@@ -9,6 +9,7 @@ import AboutUsPage from './pages/AboutUsPage/AboutUsPage'
 import ServicesPage from './pages/ServicesPage/ServicesPage'
 import SearchPage from './pages/SearchPage/SearchPage'
 import ResourcePage from './pages/ResourecPage/ResourcePage'
+import DepartmentPage from './pages/DepartmentPage/DepartmentPage'
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route path='/services' element={<ServicesPage/>}/>
           <Route path='/search' element={<SearchPage/>}/>
           <Route path='/resource' element={<ResourcePage/>}/>
+          <Route path='/department' element={<DepartmentPage/>}/>
         </Routes>
       </BrowserRouter>
       

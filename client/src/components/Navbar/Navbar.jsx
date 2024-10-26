@@ -29,6 +29,7 @@ const Navbar = () => {
                     <div class="navbar-nav ms-auto">
                         <Link class="nav-link" to='/'>Home</Link>
                         <Link class="nav-link" to='/about-us'>About Us</Link>
+                        {/* <Link class="nav-link" to="/department">Departments</Link> */}
                         <Link class="nav-link" to="/services">Services</Link>
                     </div>
                 </div>
