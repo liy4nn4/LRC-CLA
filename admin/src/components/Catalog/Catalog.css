@@ -146,6 +146,7 @@
 .cat-table thead tr th{
     background-color: var(--tup-color) !important;
     color: var(--white);
+    width: 70px;
     /* font-size: 1rem !important; */
 }
 

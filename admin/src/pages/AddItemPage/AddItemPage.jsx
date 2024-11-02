@@ -5,6 +5,7 @@ import AdminTopNavbar from '../../components/AdminTopNavbar/AdminTopNavbar'
 import AddItem from '../../components/AddItem/AddItem'
 
 const AddItemPage = () => {
+  console.log('AddItemPage mounted');
   return (
     <div className='additempage'>
       <div>

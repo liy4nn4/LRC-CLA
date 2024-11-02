@@ -7,7 +7,10 @@ import fs from 'fs'
 
 const app = express()
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:3000',
+    methods: 'GET,POST,PUT,DELETE'
+}));
 
 // api key for google books
 const apikey = "AIzaSyDq8MNGVWbLp-R-SFFe-SGL7Aa8CuMak0s";
@@ -321,11 +324,12 @@ app.get('/bookData/:isbn',async (req,res)=>{
     const isbn = req.params.isbn
     try{
         const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apikey}`);
-        console.log(response.data)
+        //console.log(response.data)
         return res.json(response.data);
         
     }catch(err){
         console.log(err)
+        return res.status(500).json({ message: 'Error fetching data from Google Books API.' });
     }
 })
 
@@ -380,16 +384,6 @@ app.get('/authors',(req,res)=>{
     })
 })
 
-//retrieve resources  from database
-app.get('/authors',(req,res)=>{
-    const q = 'SELECT * FROM author'
-
-    db.query(q,(err,results)=>{
-        if(err) return res.send(err)
-           return res.send(results)
-    })
-})
-
 //retrieve advisers  from database
 app.get('/advisers',(req,res)=>{
     const q = 'SELECT * FROM adviser'
@@ -403,6 +397,16 @@ app.get('/advisers',(req,res)=>{
 //retrieve type  from database
 app.get('/type',(req,res)=>{
     const q = 'SELECT * FROM resourcetype'
+
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+            return res.send(results)
+    })
+})
+
+//retrieve type  from database
+app.get('/status',(req,res)=>{
+    const q = 'SELECT * FROM status'
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)

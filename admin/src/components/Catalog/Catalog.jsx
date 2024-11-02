@@ -18,14 +18,19 @@ const Catalog = () => {
   const [pagination,setPagination] = useState(0)
 
   useEffect(()=>{
-    getCatalog();
+    if(navigator.onLine){
+      getCatalog();
+    }
+
+  
+    
+
   },[pagination])
 
   const getCatalog = async()=>{
     try {
       const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
-  
-     
+
       setCatalog(response)
     } catch (err) {
         console.log(err.message);
@@ -85,9 +90,6 @@ const Catalog = () => {
             </div>
 
         </div>
-
-        {/* table */}
-        
             <table className="cat-table">
               <thead>
                 <tr>
@@ -101,7 +103,7 @@ const Catalog = () => {
                 </tr>
               </thead>
               <tbody>
-                {typeof catalog!=='string'?catalog.map((item,key)=>(
+                {catalog?typeof catalog!=='string'?catalog.map((item,key)=>(
                 <tr key={key}>
                   <td>{item.resource_id}</td>
                   <td>{item.resource_title}</td>
@@ -119,10 +121,10 @@ const Catalog = () => {
                   </td>
                 </tr> )):
                   <tr>
-                      <td colSpan="7">No records available</td> {/* Use colspan to fill the empty row */}
-                  </tr>}
+                      <td colSpan="7">No records available</td> 
+                  </tr>:''}
               </tbody>
-            </table>
+            </table> 
             {/* pagination */}
             <nav aria-label="Page navigation example">
               <div class="pagination justify-content-end">

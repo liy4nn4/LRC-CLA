@@ -6,14 +6,24 @@ import Select from 'react-select'
 import JournalInput from '../JournalInput/JournalInput'
 import ThesisInput from '../ThesisInput/ThesisInput'
 import axios from 'axios'
+import { getGenreOffline } from '../../indexedDb'
 
-const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser}) => {
+const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,isDbInitialized}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
+    const [resourceGenre,setResourceGenre]=useState([])
+    
 
-    useEffect(()=>{
-        getGenre()
-    },[])
+    useEffect(() => {
+        console.log('cataloginfo mounted')
+        if(isDbInitialized||!navigator.onLine){
+            getGenreOffline(setResourceGenre)
+        }else{
+            getGenre();
+        }    
+    
+      }, [isDbInitialized]);
+      
     // sample data for multi select options
     // should be retrieved sa database
     const [options,setOptions] = useState([])
@@ -44,8 +54,22 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
           };
       },[bookData.file])
 
-    //   get genre
+    useEffect(()=>{
+        const genres = []
+        resourceGenre.map((item)=>{
+            const genre = {
+                value: item.genre_id,
+                label: item.genre_name
+            }
+            genres.push(genre)
+        })    
+        setOptions(genres)
+    },[resourceGenre])
+
+
+    //get genre online
       const getGenre = async()=>{
+        console.log('genre online')
         const genres = []
         
         try{
@@ -63,6 +87,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
             console.log(err.message)
         }
     }
+   
   return (
     <div className='cat-info'>
         <div className="row">
@@ -92,11 +117,11 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                         {/* status */}
                         <div className="col-4 info-input-box">
                             <label htmlFor="">Status *</label>
-                            <select name="status" id="" className='form-select' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
+                            <select name="status" id="" className='form-select' disabled={disabled} onChange={handleChange} onBlur={formValidation}>   
                                 <option selected disabled>Select item status</option>
-                                <option value="available">Available</option>
-                                <option value="lost">Lost</option>
-                                <option value="damaged">Damaged</option>
+                                {resourceStatus?resourceStatus.map(item=>(
+                                     <option value={item.status_id}>{item.status_name}</option>
+                                )):''}
                             </select>
                             <p className='resource-error'>{error.status}</p>
                         </div>

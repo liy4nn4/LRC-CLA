@@ -5,9 +5,12 @@ import CatalogInfo from '../CatalogInfo/CatalogInfo';
 import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
+import { initDatabase,getTypeOffline,getStatusOffline,saveResourcesOffline,getPublishersOffline} from '../../indexedDb';
 
 
 const AddItem = () => {
+    // initialize offline database
+    const [isDbInitialized, setDbInitialized] = useState(false);
     const [disabled,setDisabled] = useState(false)
     const [type, setType] = useState('');
     const [bookData, setBookData] = useState({
@@ -31,6 +34,7 @@ const AddItem = () => {
     //this is for viewing resource purposes
     const {resourceId} = useParams();
     //console.log(resourceId)
+    const [resourceStatus,setResourceStatus] = useState([])
 
     useEffect(() => {
         if (bookData.mediaType== 1) {
@@ -53,17 +57,51 @@ const AddItem = () => {
 
     // Fetch publishers when component mounts
     useEffect(() => {
-        getPublishers();
-        getAuthors();
-        getType()
-        getAdvisers()
-
-        //when first rendered, check if may resourceId. Pag may resourceId means its for viewing/editing purposes
-        if(resourceId>=0){
-            setDisabled(true)
-        }else{
-            setDisabled(false)
+        console.log('additem mounted');
+    
+        // Define handlers
+        const offlineHandler = () => {
+            alert("You're offline")
+            if (!isDbInitialized) {
+                initDatabase(() => {
+                    setDbInitialized(true);
+                    getTypeOffline(setResourceType);
+                    getStatusOffline(setResourceStatus);
+                    getPublishersOffline(setPublishers)
+                });
+            } else {
+                getTypeOffline(setResourceType);
+                getStatusOffline(setResourceStatus);
+            }
+            console.log('not connected to internet');
+        };
+    
+        const onlineHandler = () => {
+            alert("You're online")
+            getPublishers();
+            getAuthors();
+            getType();
+            getAdvisers();
+            getStatus()
+            console.log('connected to internet');
+        };
+    
+        // Check online status immediately on mount
+        if (navigator.onLine) {
+            onlineHandler();
+        } else {
+            offlineHandler();
         }
+    
+        // Attach event listeners for dynamic online/offline handling
+        window.addEventListener('offline', offlineHandler);
+        window.addEventListener('online', onlineHandler);
+    
+        // Cleanup listeners on component unmount
+        return () => {
+            window.removeEventListener('offline', offlineHandler);
+            window.removeEventListener('online', onlineHandler);
+        };
     }, []);
 
     // this gets executed every first render and everytime disabled usestate changes
@@ -85,7 +123,6 @@ const AddItem = () => {
        
     }
 
-    console.log(bookData)
 
     // Handle input changes
     const handleChange = (e) => {
@@ -247,6 +284,7 @@ const AddItem = () => {
 
     // Handle resource save
     const handleSaveResource = async () => {
+  
         if (formValidation() === true) {
             setLoading(true)
             try {
@@ -264,9 +302,7 @@ const AddItem = () => {
                         ...prevData,
                         file: blob,
                     }));
-                    
-                    
-    
+
                     // Use a temporary state to wait for the blob to be set
                     //create a new object that includes all properties of bookdata but replaces the file property to blob
                     const updatedBookData = {
@@ -284,24 +320,43 @@ const AddItem = () => {
                         formData.append(key, value);
                     });
                 }
-    
-                // Send data to the endpoint
-                await axios.post('http://localhost:3001/save', formData);
-                console.log('Resource saved successfully');
-                
-                //close loading
-                setLoading(false)
-                // Reset bookData if saved successfully
-                setBookData({
-                    mediaType: 'book',
-                    authors: [],
-                    genre: [],
-                    isCirculation: false,
-                    publisher_id: 0,
-                    publisher: ''
-                });
-    
-                window.location.reload(); // Optionally reload the page
+
+                //if online
+                if(navigator.onLine){
+                    console.log('save online')
+                    // Send data to the endpoint
+                    await axios.post('http://localhost:3001/save', formData);
+                    console.log('Resource saved successfully');
+
+                    //close loading
+                    setLoading(false)
+                    // Reset bookData if saved successfully
+                    setBookData({
+                        mediaType: 'book',
+                        authors: [],
+                        genre: [],
+                        isCirculation: false,
+                        publisher_id: 0,
+                        publisher: ''
+                    });
+
+                    window.location.reload(); // Optionally reload the page
+                }else{
+                    console.log('save offline')
+                    saveResourcesOffline(bookData)
+                    setLoading(false)
+                    // Reset bookData if saved successfully
+                    setBookData({
+                        mediaType: 'book',
+                        authors: [],
+                        genre: [],
+                        isCirculation: false,
+                        publisher_id: 0,
+                        publisher: ''
+                    });
+                    //retrieve latest publisher to display todropdown
+                    getPublishersOffline(setPublishers)
+                }
             } catch (err) {
                 console.log('Error saving resource:', err.message);
             }
@@ -321,9 +376,11 @@ const AddItem = () => {
 
     // Fetch publishers from the backend
     const getPublishers = async () => {
+        console.log('publishers online')
         const pubs = [];
         try {
             const response = await axios.get('http://localhost:3001/publishers');
+            console.log(response.data)
             response.data.forEach(item => {
                 pubs.push({
                     value: item.pub_id,
@@ -374,19 +431,29 @@ const AddItem = () => {
     const getType = async()=>{
         try {
             const response = await axios.get('http://localhost:3001/type').then(res=>res.data);
-            console.log(response)
+            //console.log(response)
             setResourceType(response)
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+
+    // fetch status (available,lost,damaged)
+    const getStatus = async()=>{
+        try {
+            const response = await axios.get('http://localhost:3001/status').then(res=>res.data);
+            //console.log(response)
+            setResourceStatus(response)
         } catch (err) {
             console.log(err.message);
         }
     };
     
 
-    // console.log(error);
-    // console.log(bookData);
-    // console.log(publishers);
-    // console.log(typeof bookData.file)
-
+    console.log(error);
+    console.log(bookData);
+    console.log(publishers);
+    
     return (
         <div className='add-item-container'>
             <h1 className='m-0'>Cataloging</h1>
@@ -422,6 +489,8 @@ const AddItem = () => {
                     resourceType={resourceType}
                     adviserList={adviserList}
                     deleteAdviser={deleteAdviser}
+                    resourceStatus={resourceStatus}
+                    isDbInitialized={isDbInitialized}
                 />
             </div>
 
@@ -433,6 +502,7 @@ const AddItem = () => {
                     handleToggle={handleToggle}
                     formValidation={formValidation}
                     error={error}
+                    isDbInitialized={isDbInitialized}
                 />
             </div>
 

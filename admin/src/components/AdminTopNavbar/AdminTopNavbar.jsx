@@ -37,25 +37,34 @@ const AdminTopNavbar = () => {
     <div className='top-navbar'>
         {/* date and time */}
         <div className="top-navbar-datetime">
-            <p>{dateTime.toLocaleTimeString()}</p>
-            <p>|</p>
-            <p>{currentDay}</p>
-            <p>|</p>
-            <p>{dateTime.toLocaleDateString()}</p>
+            <span>{dateTime.toLocaleTimeString()}</span>
+            <span>|</span>
+            <span>{currentDay}</span>
+            <span>|</span>
+            <span>{dateTime.toLocaleDateString()}</span>
         </div>
 
         {/* admin account */}
         <div className='user-box'>
-            <img src={user} alt="" />
-            <p className='user-welcome'>Hello, <span className='user-welcome-uname'>@admin</span></p>
-            <div className="user-dropdown">
+            <div class="dropdown">
+                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src={user} alt="" />
+                    <span>Hello, 
+                    <span className='user-welcome-uname'> @admin</span></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  </ul>
+            </div>
+            {/* <div className="user-dropdown">
                 <button className='user-button' onClick={toggleDropdown}><img src={dropdown_yellow} alt="" /></button>
                 <div className={`user-dropdown-list ${userDropdown?'show-user-list':''}`}>
                     <p>List 1</p>
                     <p>List 2</p>
                 </div>
-
-            </div>
+            </div> */}
             
         </div>
       

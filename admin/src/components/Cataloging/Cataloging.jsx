@@ -2,16 +2,23 @@
 import React, { useEffect, useState } from 'react'
 import './Cataloging.css'
 import axios from 'axios'
+import { getDepartmentOffline, getCatalogOffline } from '../../indexedDb'
 
-
-const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error}) => {
+const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized}) => {
     const [department, setDepartment] = useState([])
     const [catalog, setCatalog] = useState([])
 
-    useEffect(()=>{
-        getDept()
-        getCatalog()
-    },[])
+    useEffect(() => {
+        console.log('cataloging mounted')
+        if(isDbInitialized){
+            getDepartmentOffline(setDepartment);
+            getCatalogOffline(setCatalog);
+        }else{
+            getDept();
+            getCatalog();
+        }      
+    }, [isDbInitialized]);
+    
 
     const getDept = async()=>{
         try{
@@ -31,6 +38,8 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
         }
     }
 
+    console.log(department)
+
   return (
     <div className='cataloging-box'>
         <div className="row">
@@ -48,7 +57,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             name='department'
                             disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled className=''>Select department</option>
-                                {department?department.map((item,key)=>(
+                                {department.length>0?department.map((item,key)=>(
                                     <option value={item.dept_id} className='dept_name'>{item.dept_name}</option>
                                 )):''}
                                 
@@ -60,7 +69,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             <label htmlFor="">Course</label>
                             <select className="form-select" name='course' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled>Select Course</option>
-                                {catalog?catalog.map((item,key)=>(
+                                {catalog.length>0?catalog.map((item,key)=>(
                                     <option value={item.cat_id}>{`${item.cat_course_code} (${item.cat_course_name})`}</option>
                                 )):''}
                             </select>

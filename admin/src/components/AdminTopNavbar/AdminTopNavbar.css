@@ -12,9 +12,6 @@
     text-decoration: none;
 }
 
-
-
-
 :root{
     --black:#000;
     --tup-color: #94152B;
@@ -41,6 +38,7 @@
     justify-content: end;
     gap: 15px;
     color: var(--tup-color);
+    align-items: center;
 }
 
 
@@ -51,12 +49,18 @@
     gap: 10px;
 }
 
-.user-welcome{
+
+.user-box .dropdown .cat-dropdown{
+    display: flex;
+    align-items: center;
     color: var(--yellow);
+    gap: 8px;
+    border: none;
 }
 
-.user-welcome-uname{
-    text-decoration: underline;
+.user-box .dropdown .cat-dropdown:hover{
+    background-color: transparent !important;
+    color: var(--yellow) !important;
 }
 
 .user-button{

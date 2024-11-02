@@ -63,9 +63,16 @@ const Dashboard = () => {
           </div>
         </div> */}
         <div>
-          <select name="" id="" className='dashboard-dropdown'>
-            <option value="" selected disabled>Today</option>
-          </select>
+        <div class="dropdown">
+                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Today
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                  </ul>
+                </div>
         </div>
         
       </div>
@@ -97,7 +104,7 @@ const Dashboard = () => {
         <div className='borrowers-list'>
           <div className='borrowers-heading'>
             <p className='list-heading'>Borrowers List</p>
-            <button className='list-add-button'>
+            <button className='btn list-add-button'>
               <img src={add} alt="" className='add-icon'/>
               Add new
             </button>
@@ -124,7 +131,7 @@ const Dashboard = () => {
         <div className='books-list'>
           <div className='books-heading'>
             <p className='list-heading'>Books List</p>
-            <button className='list-add-button'>
+            <button className='btn list-add-button'>
               <img src={add} alt="" className='add-icon'/>
               Add new
             </button>
@@ -205,7 +212,7 @@ const Dashboard = () => {
           <div className="books-issued">
             <div className='book-issued-heading'>
               <p className='list-heading'>Books Issued</p>
-              <button className='list-add-button'>
+              <button className='btn list-add-button'>
                 <img src={add} alt="" className='add-icon'/>
                 Add new
               </button>
