@@ -35,9 +35,9 @@
 }
 
 .home-hero-section{
-    background: url('../../assets/OPAC/photos/home-background.png');
+    background: url('../../assets/OPAC/photos/cla-hall.png');
     width: 100%;
-    height: 80vh;
+    height: 120vh;
     background-repeat: no-repeat;
     background-size: cover;
     display: flex;

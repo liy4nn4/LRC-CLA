@@ -1,6 +1,6 @@
 import React from 'react'
 import './AboutUs.css'
-import staff from '../../assets/OPAC/photos/staff.jpg'
+import staff from '../../assets/OPAC/photos/staff.png'
 
 
 const AboutUs = () => {
@@ -12,31 +12,32 @@ const AboutUs = () => {
         {/* about us */}
         <section className='about-us'>
             <h1 className='text-center mb-4'>About Us</h1>
-            <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quibusdam, illo qui, ipsa velit perferendis, nobis ducimus eos voluptas tempora eius consectetur illum dignissimos ex repellendus quos ipsam! Suscipit atque amet quibusdam saepe veniam quis unde, blanditiis iusto temporibus inventore sunt iste eligendi fuga perspiciatis, laudantium dolor fugiat iure ut cumque! Rem corporis dolorem sapiente. Explicabo, dignissimos neque iste, consequatur assumenda ab dolor eum nam accusamus nemo saepe? Dicta exercitationem ipsum quas? Officiis dicta nulla nostrum, nemo dolor laboriosam sapiente, ducimus minus id, voluptatum harum. Numquam iure aliquid, exercitationem nam aut illo, nostrum distinctio inventore magni laboriosam tenetur saepe culpa unde.</p>
+            <p>The College of Liberal Arts Learning Resource Center (CLA LRC) is your dedicated hub for academic exploration and intellectual growth. Our mission is to provide a comprehensive range of resources and services that support your academic journey.</p>
         </section>
 
         {/* mission vision */}
         <section className='mission-vision-box'>
             <div className='vision-cover'></div>
             <div className="vision-content">
-                <h2 className="vision-title">Vision</h2>
-                <p className='vision-text'>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Similique, obcaecati mollitia? Aliquid corrupti, voluptas repudiandae aut itaque neque impedit, doloribus asperiores temporibus distinctio enim obcaecati adipisci autem odio dolores necessitatibus consequuntur vitae sit perspiciatis optio tempore! Assumenda, possimus non nisi a odit magni maiores at, amet aperiam voluptate quis obcaecati.</p>
+                <h2 className="vision-title">A Space for Learning and Collaboration</h2>
+                <p className='vision-text'>The CLA LRC offers a serene and conducive environment for focused study and collaborative work. Our facilities include study areas and specialized sections for each Liberal Arts discipline: Entrepreneurship, Languages, Hotel and Restaurant Management, Physical Education, Social Sciences.</p>
             </div>
             <div className="mission-content">
-                <h2 className="mission-title">Mission</h2>
-                <p className='mission-text'>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Similique, obcaecati mollitia? Aliquid corrupti, voluptas repudiandae aut itaque neque impedit, doloribus asperiores temporibus distinctio enim obcaecati adipisci autem odio dolores necessitatibus consequuntur vitae sit perspiciatis optio tempore! Assumenda, possimus non nisi a odit magni maiores at, amet aperiam voluptate quis obcaecati.</p>
+                <h2 className="mission-title">Comprehensive Resources at Your Fingertips</h2>
+                <p className='mission-text'>Our extensive collection of books, newsletters, magazines, and theses resources provide you with the tools you need to succeed. Whether you're researching a complex topic, preparing for an exam, or working on a creative project, the CLA LRC has you covered.</p>
             </div>
             <div className='mission-cover'></div>
         </section>
 
         
-        {/* Board of Directors and Management */}
+        {/* Administration and Staff */}
         <section className="staff">
             <div>
-                <h3 className='staff-header'>Board of Directors and Management</h3>
-                <p className='staff-description'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Necessitatibus, voluptatem!</p>
+                <h3 className='staff-header'>Administration and Staff</h3>
+                <p className='staff-description'>We are committed to assisting you with your academic needs, from finding resources to scheduling study spaces.</p>
             </div>
             
+
             <div className="row staff-members m-0">
                 {/* head */}
                 <div className="col-md-12 staff-box">
@@ -44,7 +45,7 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
+                        <p className='staff-name m-0'>Jaime Jr. E. Mozo</p>
                         <p className='satff-position m-0'>Head</p>
                     </div>
                 </div>
@@ -54,8 +55,8 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
-                        <p className='satff-position m-0'>position</p>
+                        <p className='staff-name m-0'>Student Name</p>
+                        <p className='satff-position m-0'>Staff</p>
                     </div>
                 </div>
 
@@ -65,8 +66,8 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
-                        <p className='satff-position m-0'>position</p>
+                        <p className='staff-name m-0'>Student Name</p>
+                        <p className='satff-position m-0'>Staff</p>
                     </div>
                 </div>
 
@@ -76,8 +77,8 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
-                        <p className='satff-position m-0'>position</p>
+                        <p className='staff-name m-0'>Student Name</p>
+                        <p className='satff-position m-0'>Staff</p>
                     </div>
                 </div>
                 {/* staff */}
@@ -86,8 +87,8 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
-                        <p className='satff-position m-0'>position</p>
+                        <p className='staff-name m-0'>Student Name</p>
+                        <p className='satff-position m-0'>Staff</p>
                     </div>
                 </div>
                 {/* staff */}
@@ -96,8 +97,8 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
-                        <p className='satff-position m-0'>position</p>
+                        <p className='staff-name m-0'>Student Name</p>
+                        <p className='satff-position m-0'>Staff</p>
                     </div>
                 </div>
                 {/* staff */}
@@ -106,8 +107,8 @@ const AboutUs = () => {
                     <img src={staff} className="staff-icon"/>
                     {/* staff-info */}
                     <div className="staff-info">
-                        <p className='staff-name m-0'>Name</p>
-                        <p className='satff-position m-0'>position</p>
+                        <p className='staff-name m-0'>Student Name</p>
+                        <p className='satff-position m-0'>Staff</p>
                     </div>
                 </div>
             </div>

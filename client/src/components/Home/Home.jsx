@@ -79,7 +79,7 @@ const Home = () => {
       <section className='home-acquired-books'>
         <div className='home-acquired-books-header'>
           <h2 className='newly-acquired-text m-0'>Newly Acquired Books</h2>
-          <p className='newly-acquired-description m-0'>Lorem ipsum dolor sit amet.</p>
+          <p className='newly-acquired-description m-0'>Discover the latest reads</p>
         </div>
         
 
@@ -121,7 +121,7 @@ const Home = () => {
         </div>
 
         {/* coverflow description */}
-        <p className='home-coverflow-description'>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Iusto porro odit, sapiente facilis enim explicabo minus provident sunt temporibus error.</p>
+        <p className='home-coverflow-description'>Looking for a specific book? Want to find academic resources for your next project? Our online catalog has been designed to make your search simple and intuitive. Start exploring now!</p>
 
       </section>
     </div>
