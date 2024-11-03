@@ -8,25 +8,9 @@ import ThesisInput from '../ThesisInput/ThesisInput'
 import axios from 'axios'
 import { getGenreOffline } from '../../indexedDb'
 
-const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,isDbInitialized}) => {
+const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
-    const [resourceGenre,setResourceGenre]=useState([])
-    
-
-    useEffect(() => {
-        console.log('cataloginfo mounted')
-        if(isDbInitialized||!navigator.onLine){
-            getGenreOffline(setResourceGenre)
-        }else{
-            getGenre();
-        }    
-    
-      }, [isDbInitialized]);
-      
-    // sample data for multi select options
-    // should be retrieved sa database
-    const [options,setOptions] = useState([])
 
     //for displaying preview photo
     useEffect(()=>{
@@ -54,39 +38,27 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
           };
       },[bookData.file])
 
-    useEffect(()=>{
-        const genres = []
-        resourceGenre.map((item)=>{
-            const genre = {
-                value: item.genre_id,
-                label: item.genre_name
-            }
-            genres.push(genre)
-        })    
-        setOptions(genres)
-    },[resourceGenre])
-
 
     //get genre online
-      const getGenre = async()=>{
-        console.log('genre online')
-        const genres = []
+    //   const getGenre = async()=>{
+    //     console.log('genre online')
+    //     const genres = []
         
-        try{
-            const response = await axios.get('http://localhost:3001/genre').then(res=>res.data)
-            response.map((item)=>{
-                const genre = {
-                    value: item.genre_id,
-                    label: item.genre_name
-                }
-               genres.push(genre)
-            })
+    //     try{
+    //         const response = await axios.get('http://localhost:3001/genre').then(res=>res.data)
+    //         response.map((item)=>{
+    //             const genre = {
+    //                 value: item.genre_id,
+    //                 label: item.genre_name
+    //             }
+    //            genres.push(genre)
+    //         })
 
-            setOptions(genres)
-        }catch(err){
-            console.log(err.message)
-        }
-    }
+    //         setOptions(genres)
+    //     }catch(err){
+    //         console.log(err.message)
+    //     }
+    // }
    
   return (
     <div className='cat-info'>
@@ -144,7 +116,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             <Select
                                 isMulti
                                 name="genre"
-                                options={options}
+                                options={genreList}
                                 className="basic-multi-select"
                                 classNamePrefix="select"
                                 placeholder="Enter to add genre/s"

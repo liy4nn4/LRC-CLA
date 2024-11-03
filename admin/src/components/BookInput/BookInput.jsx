@@ -12,7 +12,10 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
     const [publisherDetails, setPublisherDetails] = useState({})
     
     useEffect(()=>{
-        getBookData();
+        if(navigator.onLine){
+           getBookData(); 
+        }
+        
     },[bookData.isbn])
 
     useEffect(() => {

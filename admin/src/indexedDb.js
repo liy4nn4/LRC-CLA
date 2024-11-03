@@ -12,6 +12,11 @@ export const initDatabase = (callback) => {
             const resourcesStore = db.createObjectStore("resources", { keyPath: "resources_id",autoIncrement:true });
         }
 
+        // Create "journalnewsletter" store
+        if (!db.objectStoreNames.contains("journalnewsletter")) {
+            const jnStore = db.createObjectStore("journalnewsletter", { keyPath: "jn_id",autoIncrement:true });
+        }
+
         // Create "publisher" store
         if (!db.objectStoreNames.contains("publisher")) {
             const pubStore = db.createObjectStore("publisher", { keyPath: "pub_id",autoIncrement:true });
@@ -22,9 +27,27 @@ export const initDatabase = (callback) => {
             const bookStore = db.createObjectStore("book", { keyPath: "book_id",autoIncrement:true });
         }
 
+        // Create "thesis" store
+        if (!db.objectStoreNames.contains("thesis")) {
+            const thesisStore = db.createObjectStore("thesis", { keyPath: "thesis_id",autoIncrement:true });
+        }
+
+        // Create "adviser" store
+        if (!db.objectStoreNames.contains("adviser")) {
+            const adviserStore = db.createObjectStore("adviser", { keyPath: "adviser_id",autoIncrement:true });
+            adviserStore.createIndex("adviser_name",["adviser_fname","adviser_lname"],{
+                unique:false
+            })
+        }
+
         // Create "resourceAuthors" store
         if (!db.objectStoreNames.contains("resourceauthors")) {
             const resourceAuthorsStore = db.createObjectStore("resourceauthors",{keyPath: "ra_id",autoIncrement:true});
+        }
+
+        // Create "resourceAuthors" store
+        if (!db.objectStoreNames.contains("bookgenre")) {
+            const bookGenreStore = db.createObjectStore("bookgenre",{keyPath: "bg_id",autoIncrement:true});
         }
 
         // Create "author" store
@@ -180,7 +203,12 @@ export const getGenreOffline = (callback) => {
         storeGenre.openCursor().onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
-                genres.push(cursor.value);
+                // this is for the select dropdown option
+                const genre = {
+                    value: cursor.value.genre_id,
+                    label: cursor.value.genre_name
+                }
+                genres.push(genre);
                 cursor.continue();
             } else {
                 callback(genres);
@@ -255,6 +283,69 @@ export const getPublishersOffline =  (callback) => {
     };
 };
 
+// Get author
+export const getAuthorsOffline =  (callback) => {
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA", version);
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction("author", "readonly");
+            const authorStore = transaction.objectStore("author");
+
+            // Get all publishers
+            const getAllRequest = authorStore.getAll();
+
+            getAllRequest.onsuccess = () => {
+                const authors = getAllRequest.result.map((author) => ({
+                    value: `${author.author_fname} ${author.author_lname}`,
+                    label: `${author.author_fname} ${author.author_lname}`
+                }));
+                callback(authors); // Update dropdown options immediately
+                resolve()
+            };
+
+            getAllRequest.onerror = (event) => {
+                console.error("Error fetching publishers:", event.target.error);
+            };
+        };
+
+        request.onerror = (event) => {
+            console.error("Error opening database:", event.target.error);
+        };
+
+    })
+    
+};
+
+// Get adviser
+export const getAdvisersOffline =  (callback) => {
+    const request = indexedDB.open("LRCCLA", version);
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction("adviser", "readonly");
+        const advisersStore = transaction.objectStore("adviser");
+
+        // Get all adviser
+        const getAllRequest = advisersStore.getAll();
+
+        getAllRequest.onsuccess = () => {
+            const advisers = getAllRequest.result.map((adviser) => ({
+                value: `${adviser.adviser_fname} ${adviser.adviser_lname}`,
+                label: `${adviser.adviser_fname} ${adviser.adviser_lname}`
+            }));
+            callback(advisers); // Update dropdown options immediately
+        };
+
+        getAllRequest.onerror = (event) => {
+            console.error("Error fetching publishers:", event.target.error);
+        };
+    };
+
+    request.onerror = (event) => {
+        console.error("Error opening database:", event.target.error);
+    };
+};
+
 // Get catalog
 export const getCatalogOffline = (callback) => {
     const request = indexedDB.open("LRCCLA", version);
@@ -286,7 +377,7 @@ export const getCatalogOffline = (callback) => {
 };
 
 // Post data on resources table
-export const saveResourcesOffline = (resources) => {
+export const saveResourcesOffline = (resources,setPublishers,setAuthorList,setAdviserList) => {
     const request = indexedDB.open("LRCCLA", version);
     const authors = resources.authors;
     const mediaType = resources.mediaType; //either book,journal,newsletter, and thesis
@@ -347,7 +438,12 @@ export const saveResourcesOffline = (resources) => {
                             resource_id:resourceId,
                             pub_id:pubId
                         }
-                        saveBookOffline(book)
+                        //after masave ng book, retrieve recent publishers then display sa dropdown
+                        //pass book object and book genre
+                        saveBookOffline(book, resources.genre[0]).then(()=>{
+                            getPublishersOffline(setPublishers)
+                            getAuthorsOffline(setAuthorList)
+                        })
                     })
                     .catch(()=>{
                         //insert publisher
@@ -363,7 +459,48 @@ export const saveResourcesOffline = (resources) => {
                                 resource_id:resourceId,
                                 pub_id:pubId
                             }
-                            saveBookOffline(book)
+
+                            //after masave ng book, retrieve recent publishers then display sa dropdown
+                            saveBookOffline(book,resources.genre[0]).then(()=>{
+                                getAuthorsOffline(setAuthorList).then(()=>{
+                                    getPublishersOffline(setPublishers)
+                                })
+                                
+                            })
+                        })
+                    })
+                }else if(mediaType=='2'||mediaType=='3'){
+                    const jn = {
+                        jn_volume: resources.volume,
+                        jn_issue: resources.issue,
+                        jn_cover: resources.file,
+                        resources_id:resourceId
+                    }
+                    saveJournalNewsletterOffline(jn).then(()=>{
+                        getAuthorsOffline(setAuthorList)
+                    })
+                }else{
+                    //if mediatype is thesis, check adviser first if nageexist siya sa adviser table
+                    //pass resourceId as well kasi dun na tayo magiinsert sa thesis object store
+                    const adviserArr = resources.adviser.split(" ")
+                    const adviserFname =adviserArr[0]
+                    const adviserLname= adviserArr.length > 1 ? adviserArr.slice(1).join(' ') :' '
+                    
+                    checkAdviserExist(adviserFname,adviserLname).then((adviserId)=>{
+                        //if adviser exist, pass adviserId and resourceId to saveThesisOffline 
+                        saveThesisOffline(adviserId,resourceId)
+                    }).catch(()=>{
+                        //if no adviser found, insert adviser in adviser object store
+                        //pass adviser in saveAdviserOffline
+                        saveAdviserOffline(adviserFname,adviserLname).then((adviserId)=>{
+                            //save to thesis
+                            saveThesisOffline(adviserId,resourceId).then(()=>{
+                                //display new inserted authors
+                                getAuthorsOffline(setAuthorList).then(()=>{
+                                    //display new inserted adviser
+                                    getAdvisersOffline(setAdviserList)
+                                })
+                            })
                         })
                     })
                 }
@@ -391,16 +528,130 @@ export const saveResourcesOffline = (resources) => {
     };
 }
 
-export const saveBookOffline=(book)=>{
-    const request = indexedDB.open("LRCCLA", version);
+//check if adviser exist
+export const checkAdviserExist = (adviserFname,adviserLname)=>{
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA", version);
+
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction("adviser", "readonly");
+            const adviserStore = transaction.objectStore("adviser");
+            const adviserIndex = adviserStore.index("adviser_name");
+
+            // Check if the author already exists in the author object store
+            const adviserQuery = adviserIndex.get([adviserFname, adviserLname]);
+
+            adviserQuery.onsuccess = (event) => {
+                const adviser = event.target.result;
+                //if adviser exists, get adviser id then store in thesis 
+                if (adviser) {
+                    const adviserId = adviser.adviser_id;
+                    resolve(adviserId)
+                } else {
+                    console.log("No Adviser found with the given ID.");
+                    reject()
+                }
+            };
+        }
+    })
+}
+
+export const saveThesisOffline = (adviserId,resourceId)=>{
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA",version)
+
+        request.onsuccess = (event)=>{
+            const db = event.target.result;
+            const transaction = db.transaction("thesis","readwrite");
+            const thesisStore = transaction.objectStore("thesis")
+
+            const thesisQuery = thesisStore.add({resource_id:resourceId,adviser_id:adviserId})
+
+            thesisQuery.onsuccess = ()=>{
+                console.log("Thesis Inserted Successfully")
+                resolve()
+            }
+        }
+    })
+}
+
+export const saveAdviserOffline = (adviserFname,adviserLname)=>{
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA",version)
+
+        request.onsuccess = (event)=>{
+            const db = event.target.result;
+            const transaction = db.transaction("adviser","readwrite");
+            const adviserStore = transaction.objectStore("adviser")
+
+            const adviserQuery = adviserStore.add({adviser_fname:adviserFname,adviser_lname:adviserLname})
+
+            adviserQuery.onsuccess = (event)=>{
+                //get id of inserted adviser the pass as resolve
+                const adviserId = event.target.result
+                resolve(adviserId)
+            }
+        }
+    })
+}
+
+export const saveJournalNewsletterOffline = (jn)=>{
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA", version);
+
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction("journalnewsletter", "readwrite");
+            const jnStore = transaction.objectStore("journalnewsletter");
+
+            const jnQuery = jnStore.add(jn)
+            jnQuery.onsuccess = () => {
+                console.log("Journal/Newsletter Inserted Successfully")
+                resolve()
+            };
+
+        }
+
+    })
+    
+}
+
+export const saveBookOffline=(book, genreId)=>{
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA", version);
 
         request.onsuccess = (event) => {
             const db = event.target.result;
             const transaction = db.transaction("book", "readwrite");
             const bookStore = transaction.objectStore("book");
 
-            bookStore.add(book)
+            const bookQuery = bookStore.add(book)
+            bookQuery.onsuccess = (event) => {
+                const bookId = event.target.result; 
+                saveBookGenre(bookId,genreId).then(()=>resolve())
+            };
+
         }
+    })
+}
+
+export const saveBookGenre = (bookId, genreId)=>{
+    return new Promise((resolve,reject)=>{
+        const request = indexedDB.open("LRCCLA", version);
+
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction("bookgenre", "readwrite");
+            const bookGenreStore = transaction.objectStore("bookgenre");
+
+            const bookGenreQuery = bookGenreStore.add({book_id: bookId,genre_id:genreId})
+
+            bookGenreQuery.onsuccess = (event) => {
+                resolve()
+            };
+        }
+    })
 }
 
 // Ensure saveAuthorsOffline returns a Promise
@@ -433,6 +684,7 @@ export const saveAuthorsOffline = (fname, lname, resourceId) => {
                     const addAuthor = authorStore.add({ author_lname: lname, author_fname: fname });
 
                     addAuthor.onsuccess = (event) => {
+                        // get inserted author id and store in authorId
                         const authorId = event.target.result;
                         saveResourceAuthors(resourceId, authorId)
                             .then(resolve)
