@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import AuthorModal from '../AuthorModal/AuthorModal'
 import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
+import { getResourcesCatalog } from '../../indexedDb'
 
 
 const Catalog = () => {
@@ -16,26 +17,24 @@ const Catalog = () => {
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
+  
+  
 
   useEffect(()=>{
-    if(navigator.onLine){
-      getCatalog();
-    }
-
-  
-    
+    console.log('catalog page mounted')
+    getResourcesCatalog(setCatalog)
 
   },[pagination])
 
-  const getCatalog = async()=>{
-    try {
-      const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
+  // const getCatalog = async()=>{
+  //   try {
+  //     const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
 
-      setCatalog(response)
-    } catch (err) {
-        console.log(err.message);
-    }
-  }
+  //     setCatalog(response)
+  //   } catch (err) {
+  //       console.log(err.message);
+  //   }
+  // }
 
   return (
     <div className='cat-container'>
@@ -107,9 +106,15 @@ const Catalog = () => {
                 <tr key={key}>
                   <td>{item.resource_id}</td>
                   <td>{item.resource_title}</td>
-                  <td>{item.type_name}</td>
-                  <td>{item.author_names}</td>
-                  <td>{item.cat_shelf_no}</td>
+                  <td>{item.resource_type}</td>
+                  <td>{item.resource_authors.length>1?
+                    <ul>
+                      {item.resource_authors.map(a=>(
+                        <li>{a}</li>
+                      ))}
+                    </ul>    
+                  :<ul><li>{item.resource_authors}</li></ul>}</td>
+                  <td>{item.resource_shelfNo}</td>
                   <td>{item.resource_quantity}</td>
                   <td>
                     <Link to={`/view-item/${item.resource_id}`}>

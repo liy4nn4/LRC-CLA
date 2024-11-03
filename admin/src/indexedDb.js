@@ -9,7 +9,7 @@ export const initDatabase = (callback) => {
 
         // Create "resources" store
         if (!db.objectStoreNames.contains("resources")) {
-            const resourcesStore = db.createObjectStore("resources", { keyPath: "resources_id",autoIncrement:true });
+            const resourcesStore = db.createObjectStore("resources", { keyPath: "resource_id",autoIncrement:true });
         }
 
         // Create "journalnewsletter" store
@@ -786,3 +786,84 @@ export const checkPublisherExist = (existingPublisher)=>{
 
     })
 }
+
+//get resources for catalog page
+export const getResourcesCatalog = (callback) => {
+    const request = indexedDB.open("LRCCLA", version);
+
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+
+        // Open a single transaction for all required object stores
+        const transaction = db.transaction(["resources", "type", "author", "catalog", "resourceauthors"], "readonly");
+
+        // Access stores within the single transaction
+        const resourcesStore = transaction.objectStore("resources");
+        const typeStore = transaction.objectStore("type");
+        const authorStore = transaction.objectStore("author");
+        const catalogStore = transaction.objectStore("catalog");
+        const raStore = transaction.objectStore("resourceauthors");
+
+
+        // Wrap asynchronous IndexedDB operations in promises
+        const getAll = (store) => new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        const getResourceAuthors = (store) => new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result)
+            request.onerror = () => reject(request.error);
+        });
+        
+
+        // Use promises to fetch all required data
+        Promise.all([
+            getAll(resourcesStore),
+            getAll(typeStore),
+            getAll(authorStore),
+            getAll(catalogStore)
+        ]).then(([resources, types, authors, catalogs]) => {
+            
+            // Process each resource and fetch related authors
+            const resourcePromises = resources.map(async (resource) => {
+                const type = types.find(t => t.type_id == resource.type_id);
+                const shelfNo = catalogs.find(c => c.cat_id === resource.cat_id);
+                const resourceId = resource.resource_id
+
+                // Fetch associated authors for this resource
+                const resourceRAs = (await getResourceAuthors(raStore)).filter(ra=>ra.resource_id==resourceId)
+                
+                console.log(resourceId)
+                const resourceAuthors = resourceRAs.map(ra => {
+                    const author = authors.find(a => ra.author_id === a.author_id);
+                    return author ? `${author.author_fname} ${author.author_lname}` : '';
+                });
+
+                return {
+                    resource_id: resource.resource_id,
+                    resource_title: resource.resource_title,
+                    resource_type: type.type_name,
+                    resource_authors: resourceAuthors,
+                    resource_shelfNo: shelfNo.cat_shelf_no,
+                    resource_quantity: resource.resource_quantity
+                };
+            });
+
+            // Resolve all resource promises and log the combined data
+            Promise.all(resourcePromises).then((combinedData) => {
+                callback(combinedData)
+                console.log(combinedData);
+            });
+
+        }).catch(error => {
+            console.error("Error fetching data:", error);
+        });
+    };
+
+    request.onerror = (event) => {
+        console.error("Database error:", event.target.error);
+    };
+};
