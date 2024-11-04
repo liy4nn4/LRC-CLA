@@ -32,14 +32,12 @@
     --table-border-bottom:#D9D9D9;
     --light-red: rgba(148, 21, 43, 0.1);
     --lightest-red: #FFCBD4;
-    --lightest-green:#C7C48E
+    --lightest-green:#C7C48E;
+    --regular:500;
 }
 
 .search-header-cover{
     width: 100%;
-    min-height: 60vh;
-    background-size: cover;
-    background: url('../../assets/OPAC/photos/home-background.png');
 }
 
 .dropdown-toggle, .search-button{
@@ -52,7 +50,7 @@
     font-size: 1rem;
     height: 50px;
     width: 110px;
-    background-color: var(--button);
+    background-color: var(--tup-color);
     color: var(--white);
     border: none;
     border-radius: 5px;
@@ -115,6 +113,7 @@
     top: 50px;
     gap: 10px;
     width: 90%;
+    padding: 0 0 100px;
 }
 
 .search-header-cover{
@@ -134,9 +133,7 @@
     padding: 70px 150px 40px;
 }
 
-.search-results-total, .search-result-sort{
-    font-size: 1.3rem;
-}
+
 
 .search-results-filter{
     display: flex;
@@ -149,15 +146,25 @@
     padding: 0 150px;
 }
 
+.book-results .card{
+    cursor: pointer;
+}
+
+.book-results .card-img-top{
+    box-shadow: 1px 1px 1px var(--shadow);
+    border-radius: 5px;
+}
+
 .card-body{
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .card-title{
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: var(--regular);
     color: var(--dark-gray);
+    margin: 0;
 }
 
 
@@ -166,6 +173,7 @@
     color: var(--dark-gray);
     width: 100%;
     text-align: center;
+    font-weight: 300;
 }
 
 .card{
@@ -195,6 +203,21 @@
     background-color: var(--button);
     color: var(--white);
     
+}
+
+.results-filter-toggle{
+    width: 300px;
+    background-color: var(--white) !important;
+    color: var(--dark-gray) !important;
+    box-shadow: none;
+    border: 1px solid var(--shadow) !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.link{
+    text-decoration: none;
 }
 
 @media screen and (max-width:700px) {

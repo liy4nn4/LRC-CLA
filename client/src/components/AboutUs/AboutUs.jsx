@@ -19,7 +19,7 @@ const AboutUs = () => {
         <section className='mission-vision-box'>
             <div className='vision-cover'></div>
             <div className="vision-content">
-                <h2 className="vision-title">A Space for Learning and Collaboration</h2>
+                <h1 className="vision-title">A Space for Learning and Collaboration</h1>
                 <p className='vision-text'>The CLA LRC offers a serene and conducive environment for focused study and collaborative work. Our facilities include study areas and specialized sections for each Liberal Arts discipline: Entrepreneurship, Languages, Hotel and Restaurant Management, Physical Education, Social Sciences.</p>
             </div>
             <div className="mission-content">
@@ -34,10 +34,8 @@ const AboutUs = () => {
         <section className="staff">
             <div>
                 <h3 className='staff-header'>Administration and Staff</h3>
-                <p className='staff-description'>We are committed to assisting you with your academic needs, from finding resources to scheduling study spaces.</p>
+                <p className='staff-description'>We are committed to assisting you with your academic needs,<br/>from finding resources to scheduling study spaces.</p>
             </div>
-            
-
             <div className="row staff-members m-0">
                 {/* head */}
                 <div className="col-md-12 staff-box">

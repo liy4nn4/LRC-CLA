@@ -31,13 +31,14 @@
     --table-border-bottom:#D9D9D9;
     --light-red: rgba(148, 21, 43, 0.1);
     --lightest-red: #FFCBD4;
-    --lightest-green:#C7C48E
+    --lightest-green:#C7C48E;
+    --regular: 400;
 }
 
 .home-hero-section{
     background: url('../../assets/OPAC/photos/cla-hall.png');
     width: 100%;
-    height: 120vh;
+    height: 90vh;
     background-repeat: no-repeat;
     background-size: cover;
     display: flex;
@@ -48,16 +49,20 @@
     text-align: center;
 }
 
+.home-title-subtitle{
+    position: relative;
+    top: -80px;
+}
 
 
 .home-title{
-    font-size: 5rem;
+    font-size: 4.5rem;
     color: var(--dark-gray);
     font-weight: 600;
 }
 
 .home-subtitle{
-    font-size: 3.5rem;
+    font-size: 3.3rem;
     color: var(--dark-gray);
     font-weight: 500;
 }
@@ -68,6 +73,7 @@
     gap: 10px;
     width: 90%;
     position: relative;
+    top: -80px;
 }
 
 .dropdown-toggle, .home-search-button{
@@ -80,7 +86,7 @@
     font-size: 1rem;
     height: 50px;
     width: 110px;
-    background-color: var(--button);
+    background-color: var(--tup-color) !important;
     color: var(--white);
     border: none;
     border-radius: 5px;
@@ -114,27 +120,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 100px;
+    gap: 30px;
 }
 
 .home-acquired-books-header{
     text-align: center;
+    line-height: 40px;
 }
 
 .newly-acquired-text{
     font-size: 3rem;
-    font-weight: 700;
+    font-weight: var(--regular);
     color: var(--dark-gray);
 }
 
 .newly-acquired-description{
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     color: var(--dark-gray);
 }
 
 /* the swiper itself */
 .home-acquired-books-gallery .swiper {
-    width: 100%;
+    width: 70%;
     padding-top: 50px;
     padding-bottom: 40px !important;
 
@@ -176,11 +183,11 @@
 .home-search-filter-content{
     position: absolute;
     width: 100px;
-background-color: var(--white);
-margin-top: 5px;
-border-radius: 5px;
-overflow: hidden;
-display: none;
+    background-color: var(--white);
+    margin-top: 5px;
+    border-radius: 5px;
+    overflow: hidden;
+    display: none;
 }
 
 .home-search-filter-content p{
@@ -201,10 +208,14 @@ display: none;
 }
 
 .home-coverflow-description{
+    margin-top: 60px;
+    font-size: 1.5rem;
+    width: 60%;
     text-align: center;
-    width: 70%;
-    font-size: 1.7rem;
-    color: var(--dark-gray);
+}
+
+.link{
+    text-decoration: none !important;
 }
 
 @media screen and (max-width:700px) {

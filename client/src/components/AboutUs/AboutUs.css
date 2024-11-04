@@ -32,42 +32,47 @@
     --table-border-bottom:#D9D9D9;
     --light-red: rgba(148, 21, 43, 0.1);
     --lightest-red: #FFCBD4;
-    --lightest-green:#C7C48E
+    --lightest-green:#C7C48E;
+    --regular:400;
 }
 
 
 
 .about-header-cover{
     width: 100%;
-    height: 70vh;
+    height: 50vh;
     background-size: cover;
     background: url('../../assets/OPAC/photos/home-background.png');
 }
 
 .about-us{
-    padding: 200px 200px;
+    padding: 130px 300px;
+    text-align: center;
 }
 
 .about-us h1{
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     color: var(--dark-gray);
-    font-weight: 700;
+    font-weight: var(--regular);
 }
 
 .about-us p{
     font-size: 1.3rem;
     color: var(--dark-gray);
+    margin: 0;
 }
 
 .mission-vision-box{
-    width: 100%;
+    margin: auto;
+    width: 80%;
     display: grid;
     grid-template-columns: 50% 50%;
+    
 }
 
 .mission-vision-box div{
     height: 600px;
-    padding: 0;
+    margin: 30px;
     width: 100%;
     background-size: cover;
 }
@@ -81,31 +86,37 @@
 }
 
 .vision-content, .mission-content{
-    padding: 0 130px !important;
+    padding: 0 60px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 8px;
 }
 
-.vision-title, .mission-title, .staff-header{
-    font-size: 2.5rem;
-    font-weight: 600;
-    color: var(--dark-gray);
+.vision-title,.mission-title{
+    font-size: 1.8rem;
 }
 
-.vision-text,.mission-text, .staff-description{
-    font-size: 1.3rem;
-    color: var(--dark-gray);
+.mission-text,.vision-text{
+    font-size: 1.2rem;
+}
+
+
+.staff-header{
+    font-size: 2rem;
+}
+
+.staff-description{
+    font-size: 1.2rem;
 }
 
 .staff{
-    padding: 200px 350px;
+    padding: 100px 440px;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 70px;
+    gap: 10px;
 }
 
 .staff-box{
@@ -113,24 +124,24 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    padding: 20px 0;
+    gap: 10px;
+    padding: 5px 0;
 }
 
 .staff-icon{
-    width: 250px;
-    height: 250px;
+    width: 200px;
+    height: 200px;
     background-color: var(--dark-gray);
     border-radius: 50%;
 }
 
 .staff-name{
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 500;
 }
 
 .staff-position{
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 .about-container{

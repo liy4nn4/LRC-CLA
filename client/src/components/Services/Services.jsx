@@ -14,46 +14,49 @@ const Services = () => {
 
         {/* services */}
         <section className="container-fluid services">
-            <h1>What We Offer</h1>
-            <div className="row">
+            <div className='services-header'>
+                <h1>What We Offer</h1>
+                <p>The College of Liberal Arts’ Learning Resource Center<br/>offers various services</p>
+            </div>
+            
+            <div className="row service-list">
                 {/* service */}
-                <div className="card col-md-6">
-                    <img className="card-img-top" src={resourcecollection} alt="Card image cap"/>
-                    <div className="card-body">
-                    <h5 className="card-title">Extensive Resource Collection</h5>
-                    <p className="card-text">Access a diverse collection of books, magazines, newsletter, and theses related to the liberal arts.</p>
+                <div className="col-4 service">
+                    <img src={resourcecollection} alt="" />
+                    <div>
+                        <h5>Extensive Resource Collection</h5>
+                        <span>Access a diverse collection of books, magazines, newsletter, and theses related to the liberal arts.</span>
+                    </div>
+                </div>
+                <div className=" col-4 service">
+                    <img className="" src={studyspace}/>
+                    <div className="">
+                        <h5 className="">Study and Collaboration Spaces</h5>
+                        <span className="">Find quiet study areas and group study spaces to enhance your learning experience.</span>
                     </div>
                 </div>
                 {/* service */}
-                <div className="card col-md-6">
-                    <img className="card-img-top" src={studyspace} alt="Card image cap"/>
-                    <div className="card-body">
-                    <h5 className="card-title">Study and Collaboration Spaces</h5>
-                    <p className="card-text">Find quiet study areas and group study spaces to enhance your learning experience.</p>
+                <div className="col-4 service">
+                    <img className="" src={faculty} alt=""/>
+                    <div className="">
+                        <h5 className="">Faculty Consultation</h5>
+                        <span className="">Connect with CLA faculty for academic guidance, research assistance, and thesis support.</span>
                     </div>
                 </div>
                 {/* service */}
-                <div className="card col-md-6">
-                    <img className="card-img-top" src={faculty} alt="Card image cap"/>
-                    <div className="card-body">
-                    <h5 className="card-title">Faculty Consultation</h5>
-                    <p className="card-text">Connect with CLA faculty for academic guidance, research assistance, and thesis support.</p>
+                <div className="col-4 service">
+                    <img className="" src={eventspace} alt=""/>
+                    <div className="">
+                        <h5 className="">Event and Meeting Spaces</h5>
+                        <span className="">Utilize our facilities for student organization meetings, workshops, and other academic events.</span>
                     </div>
                 </div>
                 {/* service */}
-                <div className="card col-md-6">
-                    <img className="card-img-top" src={eventspace} alt="Card image cap"/>
-                    <div className="card-body">
-                    <h5 className="card-title">Event and Meeting Spaces</h5>
-                    <p className="card-text">Utilize our facilities for student organization meetings, workshops, and other academic events.</p>
-                    </div>
-                </div>
-                {/* service */}
-                <div className="card col-md-6">
-                    <img className="card-img-top" src={research} alt="Card image cap"/>
-                    <div className="card-body">
-                    <h5 className="card-title">OBE and Research Support</h5>
-                    <p className="card-text">Benefit from the expertise of our OBE Coordinator and Research and Extension staff.</p>
+                <div className="col-4 service">
+                    <img className="" src={research} alt=""/>
+                    <div className="">
+                        <h5 className="">OBE and Research Support</h5>
+                        <span className="">Benefit from the expertise of our OBE Coordinator and Research and Extension staff.</span>
                     </div>
                 </div>
                 

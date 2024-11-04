@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar'
 import './Home.css'
 import axios from 'axios'
+import { Link } from "react-router-dom"
 
 // swiper will be used for the coverflow
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -18,6 +19,7 @@ import { EffectCoverflow, Navigation, Pagination } from 'swiper/modules';
 import './Home.css';
 import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
 import dropdown from '../../assets/OPAC/icons/arrow-dropdown.svg'
+
 
 
 
@@ -56,29 +58,31 @@ const Home = () => {
         {/* search bar */}
         <div className="home-search-bar">
           {/* filter button */}
-          <div class="dropdown">
-            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div className="dropdown">
+            <button className="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <span>Filter</span>
             </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            <ul className="dropdown-menu">
+              <li><a className="dropdown-item" href="#">Action</a></li>
+              <li><a className="dropdown-item" href="#">Another action</a></li>
+              <li><a className="dropdown-item" href="#">Something else here</a></li>
             </ul>
           </div>
           {/* search bar */}
           <input type="text" name="" id="" className='home-search' placeholder='Search for resources'/>
-          <button className='home-search-button'>
-          <i class="fa-solid fa-magnifying-glass"></i>
+          <Link to='/search' className='link'><button className='home-search-button'>
+          <i className="fa-solid fa-magnifying-glass"></i>
           <span className='button-text'>Search</span> 
           </button>
+          </Link>
+          
         </div>
       </section>
 
       {/* newly acquired books */}
       <section className='home-acquired-books'>
         <div className='home-acquired-books-header'>
-          <h2 className='newly-acquired-text m-0'>Newly Acquired Books</h2>
+          <h1 className='newly-acquired-text m-0'>Newly Acquired Books</h1>
           <p className='newly-acquired-description m-0'>Discover the latest reads</p>
         </div>
         
@@ -122,7 +126,6 @@ const Home = () => {
 
         {/* coverflow description */}
         <p className='home-coverflow-description'>Looking for a specific book? Want to find academic resources for your next project? Our online catalog has been designed to make your search simple and intuitive. Start exploring now!</p>
-
       </section>
     </div>
   )

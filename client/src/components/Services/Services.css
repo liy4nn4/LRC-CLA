@@ -31,7 +31,9 @@
     --table-border-bottom:#D9D9D9;
     --light-red: rgba(148, 21, 43, 0.1);
     --lightest-red: #FFCBD4;
-    --lightest-green:#C7C48E
+    --lightest-green:#C7C48E;
+    --regular:400;
+
 }
 
 .services-container{
@@ -45,12 +47,21 @@
     background: url('../../assets/OPAC/photos/home-background.png');
 }
 
-.services h1{
-    font-size: 3.5rem;
-    color: var(--dark-gray);
-    font-weight: 700;
+.services-header{
+    padding: 30px 0;
+    text-align: center;
 }
 
+.services-header h1{
+    font-size: 2.5rem;
+    color: var(--dark-gray);
+    font-weight: var(--regular);
+}
+
+.services-header p{
+    font-size: 1.5rem;
+    margin: 0;
+}
 
 .services{
     padding: 80px;
@@ -60,48 +71,29 @@
     gap: 50px;
 }
 
-.services .card-body{
-    margin-top: 30px;
+.service-list{
+    width: 90%;
+    margin: 0;
+    height: 100vh;
 }
 
-.services .card-title{
-    font-size: 2rem;
-    font-weight: 600;
-    text-align: center;
-    color: var(--dark-gray);
+.service{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 20px;
 }
 
-
-.services .card-text{
-    font-size: 1.3rem;
-    color: var(--dark-gray);
-    text-align: start;
+.service img{
+    height: 200px;
     width: 100%;
+    object-fit: cover;
 }
 
-.services .card{
-    border: none;
-    padding: 50px 120px;
+.service h5{
+    font-size: 1.5rem;
 }
 
-
-@media screen and (max-width:700px) {
-    .services{
-        padding: 70px 10px;
-    }
-    .services h1{
-        font-size: 2rem;
-    }
-    .card{
-        padding: 0 !important;
-    }
-    .card-title{
-        font-size: 1.5rem !important;
-        margin-bottom: 10px !important;
-    }
-    .card-text{
-        font-size: 1rem !important;
-    }
+.service span{
+    font-size: 1.2rem;
 }
-
-
