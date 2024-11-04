@@ -10,30 +10,30 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
 
     useEffect(() => {
         console.log('cataloging mounted')
-        if(isDbInitialized){
+        if(!navigator.onLine){
             getDepartmentOffline(setDepartment);
             getCatalogOffline(setCatalog);
-        }  
+        }
     }, [isDbInitialized]);
     
 
-    // const getDept = async()=>{
-    //     try{
-    //         const response = await axios.get('http://localhost:3001/departments').then(res=>res.data)
-    //         setDepartment(response)
-    //     }catch(err){
-    //         console.log(err.message)
-    //     }
-    // }
+    const getDept = async()=>{
+        try{
+            const response = await axios.get('http://localhost:3001/departments').then(res=>res.data)
+            setDepartment(response)
+        }catch(err){
+            console.log(err.message)
+        }
+    }
 
-    // const getCatalog = async()=>{
-    //     try{
-    //         const response = await axios.get('http://localhost:3001/catalog').then(res=>res.data)
-    //         setCatalog(response)
-    //     }catch(err){
-    //         console.log(err.message)
-    //     }
-    // }
+    const getCatalog = async()=>{
+        try{
+            const response = await axios.get('http://localhost:3001/catalog').then(res=>res.data)
+            setCatalog(response)
+        }catch(err){
+            console.log(err.message)
+        }
+    }
 
     console.log(department)
 

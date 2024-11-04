@@ -12,24 +12,24 @@ app.use(cors({
     methods: 'GET,POST,PUT,DELETE'
 }));
 
-// // api key for google books
-// const apikey = "AIzaSyDq8MNGVWbLp-R-SFFe-SGL7Aa8CuMak0s";
+// api key for google books
+const apikey = "AIzaSyDq8MNGVWbLp-R-SFFe-SGL7Aa8CuMak0s";
 
-// // connect server to database
-// const db = mysql.createConnection({
-//     host     : 'localhost',
-//     user     : 'root',
-//     password : '',
-//     database : 'lrc-cla'
-// })
+// connect server to database
+const db = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : '',
+    database : 'lrc-cla'
+})
 
-// db.connect((err) => {
-//     if (err) {
-//         console.error('Error connecting to the database:', err);
-//         return;
-//     }
-//     console.log('Connected to the database');
-// });
+db.connect((err) => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Connected to the database');
+});
 
 const storage = multer.diskStorage({
     destination: function(req,file,cb){
@@ -341,136 +341,136 @@ app.post('/save', upload.single('file'), (req, res) => {
 });
 
 
-// // retrieve book information from google books api using isbn
-// app.get('/bookData/:isbn',async (req,res)=>{
-//     const isbn = req.params.isbn
-//     try{
-//         const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apikey}`);
-//         //console.log(response.data)
-//         return res.json(response.data);
+// retrieve book information from google books api using isbn
+app.get('/bookData/:isbn',async (req,res)=>{
+    const isbn = req.params.isbn
+    try{
+        const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apikey}`);
+        //console.log(response.data)
+        return res.json(response.data);
         
-//     }catch(err){
-//         console.log(err)
-//         return res.status(500).json({ message: 'Error fetching data from Google Books API.' });
-//     }
-// })
+    }catch(err){
+        console.log(err)
+        return res.status(500).json({ message: 'Error fetching data from Google Books API.' });
+    }
+})
 
 
-// //retrieve list of department from database
-// app.get('/departments',(req,res)=>{
-//     const q = 'SELECT * FROM department'
+//retrieve list of department from database
+app.get('/departments',(req,res)=>{
+    const q = 'SELECT * FROM department'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//            return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+           return res.send(results)
+    })
+})
 
-// //retrieve list of catalog from database
-// app.get('/catalog',(req,res)=>{
-//     const q = 'SELECT * FROM catalog'
+//retrieve list of catalog from database
+app.get('/catalog',(req,res)=>{
+    const q = 'SELECT * FROM catalog'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//            return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+           return res.send(results)
+    })
+})
 
-// //retrieve list of genre from database
-// app.get('/genre',(req,res)=>{
-//     const q = 'SELECT * FROM genre'
+//retrieve list of genre from database
+app.get('/genre',(req,res)=>{
+    const q = 'SELECT * FROM genre'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//            return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+           return res.send(results)
+    })
+})
 
-// // retrieve list of genre from database
-// app.get('/publishers',(req,res)=>{
-//     const q = 'SELECT * FROM publisher'
+// retrieve list of genre from database
+app.get('/publishers',(req,res)=>{
+    const q = 'SELECT * FROM publisher'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//            return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+           return res.send(results)
+    })
+})
 
-// //retrieve list of genre from database
-// app.get('/authors',(req,res)=>{
-//     const q = 'SELECT * FROM author'
+//retrieve list of genre from database
+app.get('/authors',(req,res)=>{
+    const q = 'SELECT * FROM author'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//             return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+            return res.send(results)
+    })
+})
 
-// //retrieve advisers  from database
-// app.get('/advisers',(req,res)=>{
-//     const q = 'SELECT * FROM adviser'
+//retrieve advisers  from database
+app.get('/advisers',(req,res)=>{
+    const q = 'SELECT * FROM adviser'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//            return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+           return res.send(results)
+    })
+})
 
-// //retrieve type  from database
-// app.get('/type',(req,res)=>{
-//     const q = 'SELECT * FROM resourcetype'
+//retrieve type  from database
+app.get('/type',(req,res)=>{
+    const q = 'SELECT * FROM resourcetype'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//             return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+            return res.send(results)
+    })
+})
 
-// //retrieve type  from database
-// app.get('/status',(req,res)=>{
-//     const q = 'SELECT * FROM status'
+//retrieve type  from database
+app.get('/status',(req,res)=>{
+    const q = 'SELECT * FROM status'
 
-//     db.query(q,(err,results)=>{
-//         if(err) return res.send(err)
-//             return res.send(results)
-//     })
-// })
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+            return res.send(results)
+    })
+})
 
-// //get catalog details 
-// app.get('/catalogdetails/:pagination',(req,res)=>{
-//     const page = parseInt(req.params.pagination,10
-//     )
+//get catalog details 
+app.get('/catalogdetails/:pagination',(req,res)=>{
+    const page = parseInt(req.params.pagination,10
+    )
 
-//     const q = "SELECT r.resource_id, r.resource_title, r.resource_quantity,rt.type_name,GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) SEPARATOR ', ') AS author_names, c.cat_shelf_no FROM resources r JOIN resourceAuthors ra ON r.resource_id = ra.resource_id JOIN author a ON ra.author_id = a.author_id JOIN catalog c ON r.cat_id = c.cat_id JOIN resourcetype rt on rt.type_id = r.type_id GROUP BY r.resource_id, r.resource_title, r.resource_quantity, c.cat_shelf_no,rt.type_name LIMIT 5 OFFSET ?";
+    const q = "SELECT r.resource_id, r.resource_title, r.resource_quantity,rt.type_name,GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) SEPARATOR ', ') AS author_names, c.cat_shelf_no FROM resources r JOIN resourceAuthors ra ON r.resource_id = ra.resource_id JOIN author a ON ra.author_id = a.author_id JOIN catalog c ON r.cat_id = c.cat_id JOIN resourcetype rt on rt.type_id = r.type_id GROUP BY r.resource_id, r.resource_title, r.resource_quantity, c.cat_shelf_no,rt.type_name LIMIT 5 OFFSET ?";
 
-//     db.query(q,page,(err,results)=>{
-//         if(err) return res.send(err)
-//         if(results.length>0){
-//             return res.send(results)
-//         }else{
-//             return res.send('No more records')
-//         }
+    db.query(q,page,(err,results)=>{
+        if(err) return res.send(err)
+        if(results.length>0){
+            return res.send(results)
+        }else{
+            return res.send('No more records')
+        }
             
-//     })
-// })
+    })
+})
 
-// //get specific resource for viewing purposes
-// app.get('/resource/:resourceId',(req,res)=>{
-//     console.log('hi')
-//     const id = req.params.resourceId;
+//get specific resource for viewing purposes
+app.get('/resource/:resourceId',(req,res)=>{
+    console.log('hi')
+    const id = req.params.resourceId;
 
-//     // check first the type so i know where to store them
-//     const q = "SELECT type_id FROM resources WHERE resource_id = ?"
+    // check first the type so i know where to store them
+    const q = "SELECT type_id FROM resources WHERE resource_id = ?"
 
-//     db.query(q,[id],(err,results)=>{
-//         if(err) return res.send(err)
-//         const resourceTypeId = results[0].type_id
-//         console.log(resourceTypeId) //prints the type id
-//         if(resourceTypeId===1){
-//             const q = "SELECT * FROM resources WHERE resource_id = ?"
-//         }
-//     })
-// }) 
+    db.query(q,[id],(err,results)=>{
+        if(err) return res.send(err)
+        const resourceTypeId = results[0].type_id
+        console.log(resourceTypeId) //prints the type id
+        if(resourceTypeId===1){
+            const q = "SELECT * FROM resources WHERE resource_id = ?"
+        }
+    })
+}) 
 
 
 app.listen(3001,()=>{
