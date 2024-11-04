@@ -22,7 +22,10 @@ const Catalog = () => {
 
   useEffect(()=>{
     console.log('catalog page mounted')
-    getResourcesCatalog(setCatalog)
+    if(!navigator.onLine){
+      getResourcesCatalog(setCatalog)
+    }
+    
 
   },[pagination])
 
@@ -35,6 +38,8 @@ const Catalog = () => {
   //       console.log(err.message);
   //   }
   // }
+
+  console.log(catalog)
 
   return (
     <div className='cat-container'>
@@ -131,7 +136,7 @@ const Catalog = () => {
               </tbody>
             </table> 
             {/* pagination */}
-            <nav aria-label="Page navigation example">
+            {/* <nav aria-label="Page navigation example">
               <div class="pagination justify-content-end">
                 <button className={pagination===0?'btn disabled':'btn enabled'} onClick={()=>{
                   pagination!=0?setPagination(pagination-5):setPagination(0)}} disabled={pagination===0}>
@@ -141,7 +146,7 @@ const Catalog = () => {
                   Next
                 </button>
               </div>
-            </nav>
+            </nav> */}
         
         
 

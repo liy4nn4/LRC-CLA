@@ -669,26 +669,24 @@ export const saveAuthorsOffline = (fname, lname, resourceId) => {
             const authorQuery = authorIndex.get([fname, lname]);
 
             // Successful execution of the query
-            authorQuery.onsuccess = (event) => {
+            authorQuery.onsuccess = async (event) => {
                 const author = event.target.result;
 
                 // If found, get the author_id to insert into resourceAuthors table
                 if (author) {
                     console.log("Author found:", author); // Author was found
                     const authorId = author.author_id;
-                    saveResourceAuthors(resourceId, authorId)
-                        .then(resolve)
-                        .catch(reject);
+                    await saveResourceAuthors(resourceId, authorId)
+                    resolve()
                 } else {
                     // Author not found, add new author to the author object store
                     const addAuthor = authorStore.add({ author_lname: lname, author_fname: fname });
 
-                    addAuthor.onsuccess = (event) => {
+                    addAuthor.onsuccess = async (event) => {
                         // get inserted author id and store in authorId
                         const authorId = event.target.result;
-                        saveResourceAuthors(resourceId, authorId)
-                            .then(resolve)
-                            .catch(reject);
+                        await saveResourceAuthors(resourceId, authorId)
+                        resolve()
                     };
 
                     addAuthor.onerror = (event) => {
@@ -711,7 +709,7 @@ export const saveAuthorsOffline = (fname, lname, resourceId) => {
     });
 }
 
-export const saveResourceAuthors = (resourceId, authorId) => {
+export const saveResourceAuthors =  (resourceId, authorId) => {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open("LRCCLA", version);
 
@@ -814,7 +812,7 @@ export const getResourcesCatalog = (callback) => {
 
         const getResourceAuthors = (store) => new Promise((resolve, reject) => {
             const request = store.getAll();
-            request.onsuccess = () => resolve(request.result)
+            request.onsuccess = () =>{resolve(request.result)}
             request.onerror = () => reject(request.error);
         });
         
@@ -834,9 +832,10 @@ export const getResourcesCatalog = (callback) => {
                 const resourceId = resource.resource_id
 
                 // Fetch associated authors for this resource
-                const resourceRAs = (await getResourceAuthors(raStore)).filter(ra=>ra.resource_id==resourceId)
+                const resourceRAs = (await getResourceAuthors(raStore)).filter(ra=>ra.resource_id == resourceId)
+            
+                console.log(resourceRAs)
                 
-                console.log(resourceId)
                 const resourceAuthors = resourceRAs.map(ra => {
                     const author = authors.find(a => ra.author_id === a.author_id);
                     return author ? `${author.author_fname} ${author.author_lname}` : '';

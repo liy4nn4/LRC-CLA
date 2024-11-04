@@ -85,16 +85,24 @@ const AddItem = () => {
             }
         }
 
+        const onlineHandler = ()=>{
+            alert("You're Online")
+            //if online, sync data first
+        }
+
         //checks if your're offline
         window.addEventListener('offline', offlineHandler)
+        window.addEventListener('online',onlineHandler)
 
         if(!navigator.onLine){
             offlineHandler()
+        }else{
+            onlineHandler()
         }
 
         return () => {
             window.removeEventListener('offline', offlineHandler);
-            
+            window.removeEventListener('online', offlineHandler);
         };
     },[])
 
@@ -351,7 +359,6 @@ const AddItem = () => {
             setError({error:'error'})
             
             console.log(publishers)
-            navigate('/catalog')
         } catch (err) {
             console.error(err.message);
             setLoading(false); // Stop loading if there was an error
@@ -452,79 +459,79 @@ const AddItem = () => {
     };
 
     // Fetch publishers from the backend
-    // const getPublishers = async () => {
-    //     console.log('publishers online')
-    //     const pubs = [];
-    //     try {
-    //         const response = await axios.get('http://localhost:3001/publishers');
-    //         console.log(response.data)
-    //         response.data.forEach(item => {
-    //             pubs.push({
-    //                 value: item.pub_id,
-    //                 label: item.pub_name
-    //             });
-    //         });
-    //         setPublishers(pubs);
-    //     } catch (err) {
-    //         console.log(err.message);
-    //     }
-    // };
+    const getPublishers = async () => {
+        console.log('publishers online')
+        const pubs = [];
+        try {
+            const response = await axios.get('http://localhost:3001/publishers');
+            console.log(response.data)
+            response.data.forEach(item => {
+                pubs.push({
+                    value: item.pub_id,
+                    label: item.pub_name
+                });
+            });
+            setPublishers(pubs);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
 
     // Fetch publishers from the backend
-    // const getAuthors = async () => {
-    //     const auth = [];
-    //     try {
-    //         const response = await axios.get('http://localhost:3001/authors');
-    //         response.data.forEach(item => {
-    //             auth.push({
-    //                 value: `${item.author_fname} ${item.author_lname}`,
-    //                 label: `${item.author_fname} ${item.author_lname}`
-    //             });
-    //         });
-    //         setAuthorList(auth);
-    //     } catch (err) {
-    //         console.log(err.message);
-    //     }
-    // };
+    const getAuthors = async () => {
+        const auth = [];
+        try {
+            const response = await axios.get('http://localhost:3001/authors');
+            response.data.forEach(item => {
+                auth.push({
+                    value: `${item.author_fname} ${item.author_lname}`,
+                    label: `${item.author_fname} ${item.author_lname}`
+                });
+            });
+            setAuthorList(auth);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
 
     //Fetch advisers
-    // const getAdvisers = async () => {
-    //     const adv = [];
-    //     try {
-    //         const response = await axios.get('http://localhost:3001/advisers');
-    //         response.data.forEach(item => {
-    //             adv.push({
-    //                 value: `${item.adviser_fname} ${item.adviser_lname}`,
-    //                 label: `${item.adviser_fname} ${item.adviser_lname}`
-    //             });
-    //         });
-    //         setAdviserList(adv);
-    //     } catch (err) {
-    //         console.log(err.message);
-    //     }
-    // };
+    const getAdvisers = async () => {
+        const adv = [];
+        try {
+            const response = await axios.get('http://localhost:3001/advisers');
+            response.data.forEach(item => {
+                adv.push({
+                    value: `${item.adviser_fname} ${item.adviser_lname}`,
+                    label: `${item.adviser_fname} ${item.adviser_lname}`
+                });
+            });
+            setAdviserList(adv);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
 
     // fetch resourceType ( book, journal, newsletter, thesis)
-    // const getType = async()=>{
-    //     try {
-    //         const response = await axios.get('http://localhost:3001/type').then(res=>res.data);
-    //         //console.log(response)
-    //         setResourceType(response)
-    //     } catch (err) {
-    //         console.log(err.message);
-    //     }
-    // };
+    const getType = async()=>{
+        try {
+            const response = await axios.get('http://localhost:3001/type').then(res=>res.data);
+            //console.log(response)
+            setResourceType(response)
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
 
     // fetch status (available,lost,damaged)
-    // const getStatus = async()=>{
-    //     try {
-    //         const response = await axios.get('http://localhost:3001/status').then(res=>res.data);
-    //         //console.log(response)
-    //         setResourceStatus(response)
-    //     } catch (err) {
-    //         console.log(err.message);
-    //     }
-    // };
+    const getStatus = async()=>{
+        try {
+            const response = await axios.get('http://localhost:3001/status').then(res=>res.data);
+            //console.log(response)
+            setResourceStatus(response)
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
     
 
     console.log(error);
