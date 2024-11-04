@@ -13,6 +13,9 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
         if(!navigator.onLine){
             getDepartmentOffline(setDepartment);
             getCatalogOffline(setCatalog);
+        }else{
+            getDept()
+            getCatalog()
         }
     }, [isDbInitialized]);
     

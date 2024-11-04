@@ -39,26 +39,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
       },[bookData.file])
 
 
-    //get genre online
-    //   const getGenre = async()=>{
-    //     console.log('genre online')
-    //     const genres = []
-        
-    //     try{
-    //         const response = await axios.get('http://localhost:3001/genre').then(res=>res.data)
-    //         response.map((item)=>{
-    //             const genre = {
-    //                 value: item.genre_id,
-    //                 label: item.genre_name
-    //             }
-    //            genres.push(genre)
-    //         })
-
-    //         setOptions(genres)
-    //     }catch(err){
-    //         console.log(err.message)
-    //     }
-    // }
+    
    
   return (
     <div className='cat-info'>

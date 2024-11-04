@@ -87,7 +87,11 @@ const AddItem = () => {
 
         const onlineHandler = ()=>{
             alert("You're Online")
-            //if online, sync data first
+            getType()
+            getStatus()
+            getGenre()
+            getPublishers()
+            getAuthors()
         }
 
         //checks if your're offline
@@ -340,114 +344,117 @@ const AddItem = () => {
         return Object.keys(err).length === 0;
     };
 
-    const handleSaveResourceOffline = () => {
-        console.log('Save Resource Offline');
-        try {
-            //pass setPublishers to retrieve/load latest publishers in choices
-            saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
-            alert("Resource saved successfully")
-            //reset input field
-            setBookData({
-                mediaType: 'book',
-                authors: [],
-                genre: [],
-                isCirculation: false,
-                publisher_id: 0,
-                publisher: '',
-            });
-            //initialize error
-            setError({error:'error'})
+    // const handleSaveResourceOffline = () => {
+    //     console.log('Save Resource Offline');
+    //     try {
+    //         //pass setPublishers to retrieve/load latest publishers in choices
+    //         saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
+    //         alert("Resource saved successfully")
+    //         //reset input field
+    //         setBookData({
+    //             mediaType: 'book',
+    //             authors: [],
+    //             genre: [],
+    //             isCirculation: false,
+    //             publisher_id: 0,
+    //             publisher: '',
+    //         });
+    //         //initialize error
+    //         setError({error:'error'})
             
-            console.log(publishers)
-        } catch (err) {
-            console.error(err.message);
-            setLoading(false); // Stop loading if there was an error
-        }
-    };
+    //         console.log(publishers)
+    //     } catch (err) {
+    //         console.error(err.message);
+    //         setLoading(false); // Stop loading if there was an error
+    //     }
+    // };
     
 
     // Handle resource save
-    // const handleSaveResource = async () => {
+    const handleSaveResource = async () => {
   
-    //     if (formValidation() === true) {
-    //         setLoading(true)
-    //         try {
-    //             // Create a new FormData object
-    //             const formData = new FormData();
+        if (formValidation() === true) {
+            setLoading(true)
+            try {
+                // Create a new FormData object
+                const formData = new FormData();
     
-    //             // If the file is a URL string, fetch it as a Blob
-    //             if (typeof bookData.file === 'string') {
-    //                 const response = await fetch(bookData.file, { mode: 'no-cors' });
-    //                 const blob = await response.blob(); // Convert response to Blob
+                // If the file is a URL string, fetch it as a Blob
+                if (typeof bookData.file === 'string') {
+                    const response = await fetch(bookData.file, { mode: 'no-cors' });
+                    const blob = await response.blob(); // Convert response to Blob
     
-    //                 // Set the blob to bookData.file directly
-    //                 //It spreads the existing properties of prevData and sets the file property to the newly fetched blob.
-    //                 setBookData((prevData) => ({
-    //                     ...prevData,
-    //                     file: blob,
-    //                 }));
+                    // Set the blob to bookData.file directly
+                    //It spreads the existing properties of prevData and sets the file property to the newly fetched blob.
+                    setBookData((prevData) => ({
+                        ...prevData,
+                        file: blob,
+                    }));
 
-    //                 // Use a temporary state to wait for the blob to be set
-    //                 //create a new object that includes all properties of bookdata but replaces the file property to blob
-    //                 const updatedBookData = {
-    //                     ...bookData,
-    //                     file: blob,
-    //                 };
+                    // Use a temporary state to wait for the blob to be set
+                    //create a new object that includes all properties of bookdata but replaces the file property to blob
+                    const updatedBookData = {
+                        ...bookData,
+                        file: blob,
+                    };
     
-    //                 // Append all data to formData using updatedBookData instead of bookData
-    //                 Object.entries(updatedBookData).forEach(([key, value]) => {
-    //                     formData.append(key, value);
-    //                 });
-    //             } else {
-    //                 // If it's not a URL, just append the current bookData
-    //                 Object.entries(bookData).forEach(([key, value]) => {
-    //                     formData.append(key, value);
-    //                 });
-    //             }
+                    // Append all data to formData using updatedBookData instead of bookData
+                    Object.entries(updatedBookData).forEach(([key, value]) => {
+                        formData.append(key, value);
+                    });
+                } else {
+                    // If it's not a URL, just append the current bookData
+                    Object.entries(bookData).forEach(([key, value]) => {
+                        formData.append(key, value);
+                    });
+                }
 
-    //             //if online
-    //             if(navigator.onLine){
-    //                 console.log('save online')
-    //                 // Send data to the endpoint
-    //                 await axios.post('http://localhost:3001/save', formData);
-    //                 console.log('Resource saved successfully');
+                //if online
+                if(navigator.onLine){
+                    console.log('save online')
+                    // Send data to the endpoint
+                    await axios.post('http://localhost:3001/save', formData);
+                    console.log('Resource saved successfully');
 
-    //                 //close loading
-    //                 setLoading(false)
-    //                 // Reset bookData if saved successfully
-    //                 setBookData({
-    //                     mediaType: 'book',
-    //                     authors: [],
-    //                     genre: [],
-    //                     isCirculation: false,
-    //                     publisher_id: 0,
-    //                     publisher: ''
-    //                 });
+                    //close loading
+                    setLoading(false)
+                    // Reset bookData if saved successfully
+                    setBookData({
+                        mediaType: 'book',
+                        authors: [],
+                        genre: [],
+                        isCirculation: false,
+                        publisher_id: 0,
+                        publisher: ''
+                    });
 
-    //                 window.location.reload(); // Optionally reload the page
-    //             }else{
-    //                 console.log('save offline')
-    //                 saveResourcesOffline(bookData)
-    //                 setLoading(false)
-    //                 // Reset bookData if saved successfully
-    //                 setBookData({
-    //                     mediaType: 'book',
-    //                     authors: [],
-    //                     genre: [],
-    //                     isCirculation: false,
-    //                     publisher_id: 0,
-    //                     publisher: ''
-    //                 });
-    //                 //retrieve latest publisher to display todropdown
-    //                 getPublishersOffline(setPublishersOffline)
-    //             }
-    //         } catch (err) {
-    //             console.log('Error saving resource:', err.message);
-    //         }
-    //     } else {
-    //         console.log("Please enter complete information");
-    //     }
-    // };
+                    window.location.reload(); // Optionally reload the page
+                }else{
+                    console.log('save offline')
+                    //pass setPublishers to retrieve/load latest publishers in choices
+                    saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
+                    alert("Resource saved successfully")
+                    //reset input field
+                    setBookData({
+                        mediaType: 'book',
+                        authors: [],
+                        genre: [],
+                        isCirculation: false,
+                        publisher_id: 0,
+                        publisher: '',
+                    });
+                    //initialize error
+                    setError({error:'error'})
+                    
+                    console.log(publishers)
+                }
+            } catch (err) {
+                console.log('Error saving resource:', err.message);
+            }
+        } else {
+            console.log("Please enter complete information");
+        }
+    };
     
     // Handle toggle buttons
     const handleToggle = (e) => {
@@ -476,6 +483,27 @@ const AddItem = () => {
             console.log(err.message);
         }
     };
+
+    //get genre online
+    const getGenre = async()=>{
+        console.log('genre online')
+        const genres = []
+        
+        try{
+            const response = await axios.get('http://localhost:3001/genre').then(res=>res.data)
+            response.map((item)=>{
+                const genre = {
+                    value: item.genre_id,
+                    label: item.genre_name
+                }
+               genres.push(genre)
+            })
+
+            setGenreList(genres)
+        }catch(err){
+            console.log(err.message)
+        }
+    }
 
     // Fetch publishers from the backend
     const getAuthors = async () => {
@@ -597,7 +625,7 @@ const AddItem = () => {
                 <button className="btn add-item-cancel">
                     Cancel
                 </button>
-                <button className="btn add-item-save" onClick={handleSaveResourceOffline} disabled={Object.values(error).length>=1}>
+                <button className="btn add-item-save" onClick={handleSaveResource} disabled={Object.values(error).length>=1}>
                     <i className="fa-regular fa-floppy-disk"></i>
                     <span>Save</span>
                 </button>
