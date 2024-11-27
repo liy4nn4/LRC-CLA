@@ -1,10 +1,14 @@
 const CACHE_NAME = 'my-app-cache-v1';
 const urlsToCache = [
   '/',
+  '/favicon.ico',
   '/logo192.png',
   '/logo512.png',
+  '/manifest.json',
   '/index.html',
   '/bootstrap/css/bootstrap.min.css',
+  '/bootstrap/js/bootstrap.bundle.min.js',
+  '/static/js/bundle.js',
   '/static/css/main.928dabc7.css',
   '/static/js/main.a044b3e1.js',
   '/static/media/tuplogo.bf503865e05a1b3a6263.png',
@@ -37,6 +41,7 @@ const urlsToCache = [
   '/static/media/total-borrowed.83aec8ab92d8eb1da51d4da3b3c4b6d5.svg',
   '/static/media/total-visitors.a219788674b67bf6294a67e03890d3c6.svg',
   '/static/media/user-profile.2224aa11d71f0002406ab8c20ad810d0.svg',
+  
  
   
 
