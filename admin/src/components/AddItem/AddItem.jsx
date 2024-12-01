@@ -110,7 +110,7 @@ const AddItem = () => {
         };
     },[])
 
-    // Fetch publishers when component mounts
+    // //Fetch publishers when component mounts
     // useEffect(() => {
     //     console.log('additem mounted');
     
@@ -159,14 +159,14 @@ const AddItem = () => {
     //     };
     // }, []);
 
-    // this gets executed every first render and everytime disabled usestate changes
+    // //this gets executed every first render and everytime disabled usestate changes
     // useEffect(()=>{
     //     if(disabled){
     //         viewResource()
     //     }
     // },[disabled])
 
-    //get specific resource for viewing purposes
+    // //get specific resource for viewing purposes
     // const viewResource = async ()=>{
     //     try{
     //         const response = await axios.get(`http://localhost:3001/resource/${resourceId}`).then(res=>res.data[0]);
@@ -372,7 +372,6 @@ const AddItem = () => {
 
     // Handle resource save
     const handleSaveResource = async () => {
-  
         if (formValidation() === true) {
             setLoading(true)
             try {
@@ -562,7 +561,7 @@ const AddItem = () => {
     };
     
 
-    console.log(error);
+    console.log(resourceType);
     console.log(bookData);
     console.log(Object.values(error).length);
     

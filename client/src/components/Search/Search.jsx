@@ -1,9 +1,29 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './Search.css'
 import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
-import {Link} from 'react-router-dom'
+import {Link, useNavigate, useParams} from 'react-router-dom'
 const Search = () => {
+  //get params in URL
+  const {searchInput} = useParams();
+  //this is used to navigate to different pages
+  //just put the page route
+  const navigate = useNavigate();
+  //this is where the search input is stored
+  const [search,setSearch]=useState('');
 
+  useEffect(()=>{
+    setSearch(searchInput);
+  },[])
+  
+
+  //this is executed whenever enter key in keyboard is pressed
+  const handleEnter = (e)=>{
+    if(e.key === "Enter"){
+      navigate(`search/${searchInput}`);
+    }
+  }
+
+  console.log(search)
 
   return (
     <div className='search-container'>
@@ -23,7 +43,7 @@ const Search = () => {
             </ul>
           </div>
           {/* search bar */}
-          <input type="text" name="" id="" className='search' placeholder='Search for resources'/>
+          <input type="text" name="searchInput" id="searchInput" className='search' placeholder='Search for resources'  onKeyDown={handleEnter} value={search} onChange={(e)=>setSearch(e.target.value)}/>
           <button className='search-button'>
           <i class="fa-solid fa-magnifying-glass"></i>
           <span className='button-text'>Search</span> 
@@ -36,7 +56,6 @@ const Search = () => {
         <div className="search-results-filter">
           {/* search results total number */}
           <p className='search-results-total m-0'>Search Results (<span>1</span>)</p>
-          
           <div className='search-sort'>
             {/* filter button */}
             <div class="dropdown">
@@ -50,11 +69,7 @@ const Search = () => {
                 <li><a class="dropdown-item" href="#">Something else here</a></li>
               </ul>
             </div>
-
-            </div>
-
-          
-          
+          </div>
         </div>
       </section>
 
@@ -69,7 +84,6 @@ const Search = () => {
                   <p className="card-text">by Author</p>
                 </div>
           </div>
-          
           {/* book */}
           <div className="card col-md-2">
               <img className="card-img-top" src={cover} alt="Card image cap"/>

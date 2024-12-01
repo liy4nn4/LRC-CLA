@@ -15,7 +15,6 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
         if(navigator.onLine){
            getBookData(); 
         }
-        
     },[bookData.isbn])
 
     useEffect(() => {
@@ -30,7 +29,6 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
         setPublisherDetails({...publisherDetails,[name]:value
         })
     }
-
 
     // for getting info sa google books api
     const getBookData = async()=>{

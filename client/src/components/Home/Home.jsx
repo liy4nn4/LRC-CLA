@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar'
 import './Home.css'
 import axios from 'axios'
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { gsap } from "gsap"; // for animations
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // swiper will be used for the coverflow
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -21,13 +23,19 @@ import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
 import dropdown from '../../assets/OPAC/icons/arrow-dropdown.svg'
 
 
-
+gsap.registerPlugin(ScrollTrigger)
 
 const Home = () => {
+  //this is used to navigate to different pages
+  //just put the page route
+  const navigate = useNavigate();
   
   // this contains data about books
-  const [bookData,setBookData]=useState([])
+  const [bookData,setBookData]=useState([]);
+  //this is where the search input is stored
+  const [searchInput,setSearchInput]=useState('');
 
+  //getBookCovers() will be called once this component renders
   useEffect(()=>{
     getBookCovers()
   },[])
@@ -43,14 +51,19 @@ const Home = () => {
     }
   }
 
-  
+  //this is executed whenever enter key in keyboard is pressed
+  const handleEnter = (e)=>{
+    if(e.key === "Enter"){
+      navigate(`search/${searchInput}`);
+    }
+  }
+
+  console.log(searchInput)
 
   return (
     <div className='home-container'>
-      
         {/* hero section */}
       <section className='home-hero-section'>
-
         <div className="home-title-subtitle">
           <h1 className='home-title m-0'>College of Liberal Arts</h1>
           <p className='home-subtitle m-0'>Learning Resource Center</p>
@@ -69,8 +82,8 @@ const Home = () => {
             </ul>
           </div>
           {/* search bar */}
-          <input type="text" name="" id="" className='home-search' placeholder='Search for resources'/>
-          <Link to='/search' className='link'><button className='home-search-button'>
+          <input type="text" name="searchInput" id="searchInput" className='home-search' placeholder='Search for resources' onChange={(e)=>setSearchInput(e.target.value)} onKeyDown={handleEnter}/>
+          <Link to={`/search/${searchInput}`} className='link'><button className='home-search-button'>
           <i className="fa-solid fa-magnifying-glass"></i>
           <span className='button-text'>Search</span> 
           </button>
