@@ -22,18 +22,18 @@ import './Home.css';
 import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
 import dropdown from '../../assets/OPAC/icons/arrow-dropdown.svg'
 
-
 gsap.registerPlugin(ScrollTrigger)
 
 const Home = () => {
   //this is used to navigate to different pages
   //just put the page route
   const navigate = useNavigate();
-  
   // this contains data about books
   const [bookData,setBookData]=useState([]);
   //this is where the search input is stored
   const [searchInput,setSearchInput]=useState('');
+  const [searchFilter, setSearchFilter]= useState('all'); 
+  const filterOptions = ['all','book','journal','newsletter','thesis','author']
 
   //getBookCovers() will be called once this component renders
   useEffect(()=>{
@@ -51,11 +51,14 @@ const Home = () => {
     }
   }
 
-  //this is executed whenever enter key in keyboard is pressed
-  const handleEnter = (e)=>{
-    if(e.key === "Enter"){
-      navigate(`search/${searchInput}`);
-    }
+  //for handling filter
+  const handleFilter = (value)=>{
+    setSearchFilter(value)
+  }
+
+  //handling search 
+  const handleSearch = ()=>{
+    navigate(`/results?q=${searchInput}&filter=${searchFilter}`)
   }
 
   console.log(searchInput)
@@ -68,27 +71,28 @@ const Home = () => {
           <h1 className='home-title m-0'>College of Liberal Arts</h1>
           <p className='home-subtitle m-0'>Learning Resource Center</p>
         </div>
+
         {/* search bar */}
         <div className="home-search-bar">
+
           {/* filter button */}
-          <div className="dropdown">
-            <button className="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span>Filter</span>
-            </button>
-            <ul className="dropdown-menu">
-              <li><a className="dropdown-item" href="#">Action</a></li>
-              <li><a className="dropdown-item" href="#">Another action</a></li>
-              <li><a className="dropdown-item" href="#">Something else here</a></li>
-            </ul>
-          </div>
-          {/* search bar */}
-          <input type="text" name="searchInput" id="searchInput" className='home-search' placeholder='Search for resources' onChange={(e)=>setSearchInput(e.target.value)} onKeyDown={handleEnter}/>
-          <Link to={`/search/${searchInput}`} className='link'><button className='home-search-button'>
-          <i className="fa-solid fa-magnifying-glass"></i>
-          <span className='button-text'>Search</span> 
+          <button className="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span>{searchFilter}</span>
           </button>
-          </Link>
+          <ul className="dropdown-menu">
+            {filterOptions.map(item=>(
+                <li onClick={()=>handleFilter(item)}><a className="dropdown-item" href="#" >{item}</a></li>
+            ))}
+          </ul>
           
+          {/* search bar */}
+          <input type="text" name="searchInput" id="searchInput" className='home-search' placeholder='Search for resources' onChange={(e)=>setSearchInput(e.target.value)}/>
+
+          {/* search button */}
+          <button className='home-search-button' onClick={handleSearch}>
+            <i className="fa-solid fa-magnifying-glass"></i>
+            <span className='button-text'>search</span> 
+          </button>
         </div>
       </section>
 
@@ -98,8 +102,6 @@ const Home = () => {
           <h1 className='newly-acquired-text m-0'>Newly Acquired Books</h1>
           <p className='newly-acquired-description m-0'>Discover the latest reads</p>
         </div>
-        
-
         {/* coverflow slider */}
         <div className="home-acquired-books-gallery">
         <Swiper

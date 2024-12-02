@@ -8,7 +8,7 @@ import fs from 'fs'
 const app = express()
 app.use(express.json())
 app.use(cors({
-    origin: 'http://localhost:3000',
+    // origin: 'http://localhost:3000',
     methods: 'GET,POST,PUT,DELETE'
 }));
 
@@ -72,6 +72,8 @@ app.post('/save', upload.single('file'), async (req, res) => {
     let genre;
     let existingPublisher;
     let filePath;
+
+    console.log(req.body.url)
     
     if(req.file){
        filePath = req.file.path; // Get the file path 
@@ -310,86 +312,6 @@ app.post('/save', upload.single('file'), async (req, res) => {
 
         }
     })
-
-    // //insert data in resources data
-    // const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, cat_id,type_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-
-    // const resources = [
-    //     req.body.title,
-    //     req.body.description,
-    //     req.body.publishedDate,
-    //     req.body.quantity,
-    //     req.body.isCirculation,
-    //     req.body.department,
-    //     req.body.course,
-    //     req.body.mediaType
-    // ];
-
-    // db.query(q, resources, (err, results) => {
-    //     if (err) {
-    //         return res.status(500).send(err); 
-    //     }
-
-    //     // Get the resource_id of the newly inserted row
-    //     const resourceId = results.insertId;
-
-    //     //insert authors
-    //     const authorQ = 'INSERT INTO author (author_fname, author_lname) VALUES (?, ?)'
-    //     const resourceAuthorQ = 'INSERT INTO resourceauthors (resource_id, author_id) VALUES (?, ?)'
-    //     const checkIfAuthorExist ='SELECT author_id FROM author WHERE author_fname = ? AND author_lname = ?'
-        
-        // authors.forEach(element => {
-        //     const nameParts = element.split(' '); 
-        //     const fname = nameParts[0]; // First name
-        //     const lname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''; // Last name (handles multiple words)
-
-        //     const authorValue = [
-        //         fname,
-        //         lname
-        //     ]
-
-        //     // check if author already exist
-        //     db.query(checkIfAuthorExist,[fname,lname], (err,results)=>{
-        //         if (err) {
-        //             return res.status(500).send(err); 
-        //         }
-                
-        //         //pag walang nahanap
-        //         if(results.length===0){
-        //             db.query(authorQ,authorValue,(err,results)=>{
-        //                 if (err) {
-        //                     return res.status(500).send(err); 
-        //                 }
-        
-        //                 //author Id nung author info na kakainsert lang
-        //                 const authorId = results.insertId;
-        
-        //                 //if author is inserted, insert sa resourceAuthor table
-        //                 db.query(resourceAuthorQ,[resourceId,authorId],(req,res)=>{
-        //                     if (err) {
-        //                         return res.status(500).send(err); 
-        //                     }
-        //                 })
-        //             })
-        //         }else{
-        //             //if author is inserted, insert sa resourceAuthor table
-        //             //results look like this: 
-        //             // [
-        //             //     {
-        //             //         author_id: 5
-        //             //     }
-        //             // ]
-        //             //so you have to use index to access id
-        //             db.query(resourceAuthorQ,[resourceId,results[0].author_id],(req,res)=>{
-        //                 if (err) {
-        //                     return res.status(500).send(err); 
-        //                 }
-        //             })
-        //         }
-        //     })    
-        // });
-//if resource is inserted in resources table, check mediaType and insert the rest of the data to their corresponding media type.
-        
     });
 ;
 
@@ -621,6 +543,72 @@ app.get('/resource/:resourceId',(req,res)=>{
         }
     })
 }) 
+
+app.get('/search', async (req, res) => {
+    const searchQuery = req.query.q;
+    console.log(searchQuery);
+
+    const query = 'SELECT resource_Id FROM resources WHERE resource_title LIKE ?';
+
+    db.query(query, [`%${searchQuery}%`], async (err, results) => {
+        if (err) return res.status(500).send(err);
+
+        if (results.length !== 0) {
+            const searchResults = [];
+
+            const titleAuthorQuery = `
+                SELECT 
+                    resources.resource_title, 
+                    resources.resource_id,
+                    book.book_cover, 
+                    CONCAT(author.author_fname, ' ', author.author_lname) AS author_name 
+                FROM resourceauthors 
+                JOIN resources ON resourceauthors.resource_id = resources.resource_id 
+                JOIN author ON resourceauthors.author_id = author.author_id 
+                JOIN book ON book.resource_id = resources.resource_id 
+                WHERE resourceauthors.resource_id = ?`;
+
+            try {
+                await Promise.all(
+                    results.map(item => {
+                        return new Promise((resolve, reject) => {
+                            db.query(titleAuthorQuery, [item.resource_Id], (err, results) => {
+                                if (err) return reject(err); // Reject on query error
+
+                                if (results.length > 0) {
+                                    searchResults.push({
+                                        title: results[0].resource_title,
+                                        author: results[0].author_name,
+                                        cover: results[0].book_cover,
+                                        id: results[0].resource_id
+                                    });
+                                }
+                                resolve(); // Resolve the promise
+                            });
+                        });
+                    })
+                );
+
+                console.log(searchResults);
+                res.send(searchResults); // Send the collected results
+            } catch (err) {
+                res.status(500).send(err); // Handle errors in the inner queries
+            }
+        } else {
+            res.send([]); // No results found
+        }
+    });
+});
+
+app.get('/view',(req,res)=>{
+    const q = 'SELECT book_cover FROM book'
+    db.query(q,(err,results)=>{
+        if(err) res.send(err)
+        if(results.length>0){
+            res.send(results[0])
+        }
+    })
+})
 
 
 app.listen(3001,()=>{

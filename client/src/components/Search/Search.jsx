@@ -2,26 +2,75 @@ import React, { useEffect, useState } from 'react'
 import './Search.css'
 import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
 import {Link, useNavigate, useParams} from 'react-router-dom'
+import { useLocation } from 'react-router-dom'; //for retrieving query
+import axios from 'axios'
+
 const Search = () => {
-  //get params in URL
-  const {searchInput} = useParams();
+  const location = useLocation();
+
+  // Retrieve the query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const query = searchParams.get('q');
+  const filter = searchParams.get('filter');
+
   //this is used to navigate to different pages
   //just put the page route
   const navigate = useNavigate();
+
   //this is where the search input is stored
   const [search,setSearch]=useState('');
 
-  useEffect(()=>{
-    setSearch(searchInput);
-  },[])
-  
+  //filters
+  const [searchFilter, setSearchFilter]= useState('all'); 
+  const filterOptions = ['all','book','journal','newsletter','thesis','author']
 
-  //this is executed whenever enter key in keyboard is pressed
-  const handleEnter = (e)=>{
-    if(e.key === "Enter"){
-      navigate(`search/${searchInput}`);
+  //store results from database
+  const [results, setResults] = useState([]);
+
+  const [image,setImage]=useState(null)
+
+  useEffect(()=>{
+    setSearch(query)
+    getResource()
+    getImage()
+  },[])
+
+  const getResource = async()=>{
+    try{
+      const response = await axios.get(`http://localhost:3001/search?q=${query}`);
+      console.log(response.data);
+      setResults(response.data)
+      
+    }catch(err){
+      console.log('An error occurred: ', err.message)
     }
   }
+
+  //for handling filter
+  const handleFilter = (value)=>{
+    setSearchFilter(value)
+  }
+  
+  const handleCover = (cover)=>{
+   console.log(cover.data)
+    // return URL.createObjectURL(new Blob([Buffer.from(cover.data)]));
+    if (cover && cover.data) {
+      const blob = new Blob([new Uint8Array(cover.data)], { type: 'image/jpeg' });
+      return URL.createObjectURL(blob);
+    }
+    return null; // Handle case where there is no cover
+  }
+
+  const getImage = async()=>{
+    const response = await axios.get('http://localhost:3001/view',{
+      responseType:'blob'
+    })
+    const url = URL.createObjectURL(response.data)
+    setImage(url)
+
+    console.log(response.data)
+  }
+
 
   console.log(search)
 
@@ -29,25 +78,23 @@ const Search = () => {
     <div className='search-container'>
       {/* header cover */}
       <div className="search-header-cover">
-      <div className="search-bar">
-          {/* filter button */}
-          <div class="dropdown">
-            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span>Filter
-              </span>
+        <div className="search-bar">
+            {/* filter button */}
+            <button className="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <span>{searchFilter}</span>
             </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            <ul className="dropdown-menu">
+              {filterOptions.map(item=>(
+                  <li onClick={()=>handleFilter(item)}><a className="dropdown-item" href="#" >{item}</a></li>
+              ))}
             </ul>
-          </div>
-          {/* search bar */}
-          <input type="text" name="searchInput" id="searchInput" className='search' placeholder='Search for resources'  onKeyDown={handleEnter} value={search} onChange={(e)=>setSearch(e.target.value)}/>
-          <button className='search-button'>
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <span className='button-text'>Search</span> 
-          </button>
+            {/* search bar */}
+            <input type="text" name="searchInput" id="searchInput" className='search' placeholder='Search for resources' value={search} onChange={(e)=>setSearch(e.target.value)}/>
+            {/* search button */}
+            <button className='search-button'>
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span className='button-text'>Search</span> 
+            </button>
         </div>
       </div>
 
@@ -77,53 +124,16 @@ const Search = () => {
       <section className="book-results">
         <div className="row">
           {/* book */}
-          <div className="card col-md-2">
-                <img className="card-img-top" src={cover} alt="Card image cap"/>
-                <div className="card-body">
-                  <h5 className="card-title">Card title</h5>
-                  <p className="card-text">by Author</p>
-                </div>
-          </div>
-          {/* book */}
-          <div className="card col-md-2">
-              <img className="card-img-top" src={cover} alt="Card image cap"/>
-              <div className="card-body">
-                <h5 className="card-title">Card title</h5>
-                <p className="card-text">by Author</p>
-              </div>
-          </div>
-          {/* book */}
-          <div className="card col-md-2">
-              <img className="card-img-top" src={cover} alt="Card image cap"/>
-              <div className="card-body">
-                <h5 className="card-title">Card title</h5>
-                <p className="card-text">by Author</p>
-              </div>
-          </div>
-          {/* book */}
-          <div className="card col-md-2">
-              <img className="card-img-top" src={cover} alt="Card image cap"/>
-              <div className="card-body">
-                <h5 className="card-title">Card title</h5>
-                <p className="card-text">by Author</p>
-              </div>
-          </div>
-          {/* book */}
-          <div className="card col-md-2">
-              <img className="card-img-top" src={cover} alt="Card image cap"/>
-              <div className="card-body">
-                <h5 className="card-title">Card title</h5>
-                <p className="card-text">by Author</p>
-              </div>
-          </div>
-          {/* book */}
-          <div className="card col-md-2">
-              <img className="card-img-top" src={cover} alt="Card image cap"/>
-              <div className="card-body">
-                <h5 className="card-title">Card title</h5>
-                <p className="card-text">by Author</p>
-              </div>
-          </div>
+          {results.length!=0?results.map(item=>{
+           return <div className="card col-md-2">
+                    <img className="card-img-top" src={handleCover(item.cover)} alt="Card image cap"/>
+                    <div className="card-body">
+                      <h5 className="card-title">{item.title}</h5>
+                      <p className="card-text">by {item.author}</p>
+                    </div>
+                  </div>
+          }):''}
+          
         </div>
       </section>
 

@@ -368,6 +368,8 @@ const AddItem = () => {
     //         setLoading(false); // Stop loading if there was an error
     //     }
     // };
+
+    console.log(typeof(bookData.file))
     
 
     // Handle resource save
@@ -381,7 +383,8 @@ const AddItem = () => {
                 // If the file is a URL string, fetch it as a Blob
                 if (typeof bookData.file === 'string') {
                     const response = await fetch(bookData.file, { mode: 'no-cors' });
-                    const blob = await response.blob(); // Convert response to Blob
+                    //store lang natin siya as string kasi di pwede idownload yung mismong file sa link
+                    const blob = new Blob([bookData.file], { type: 'text/plain' }); // Convert response to Blob
     
                     // Set the blob to bookData.file directly
                     //It spreads the existing properties of prevData and sets the file property to the newly fetched blob.
