@@ -119,8 +119,8 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                         <label htmlFor="">Cover</label>
                         <input type="file" src="" alt="" className='cover-upload' id='cover'disabled={disabled} onChange={handleFileChange} onBlur={formValidation}/>
                         <div className="cover-upload-box">
-                            {bookData.url?'':<label htmlFor="cover">Add cover</label>}
-                            {bookData.file || bookData.url && ( // Display the selected image if it exists
+                            {(bookData.file || bookData.url)?'':<label htmlFor="cover">Add cover</label>}
+                            {(bookData.file || bookData.url) && ( // Display the selected image if it exists
                                 <div>
                                     <img src={preview}
                                     // Create a URL for the selected image

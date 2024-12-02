@@ -73,12 +73,34 @@ app.post('/save', upload.single('file'), async (req, res) => {
     let existingPublisher;
     let filePath;
 
-    console.log(req.body.url)
+    //dito masstore yung URL/ImageFile
+    let imageFile;
+
+    //pag walang URL, undefined ung req.body.url
+    console.log('URL: ',req.body.url)
+    //pag walang file na inupload, undefined ung req.file
+    console.log(req.file)
     
+    // if not a URL
     if(req.file){
        filePath = req.file.path; // Get the file path 
+       fs.readFile(filePath, (err, data) => {
+            if (err) {
+                return res.status(500).send(err); 
+            }
+            imageFile = data;
+            //data
+            // ganitong form mo siya isstore sa database
+            //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
+        })
+    }else if(req.body.url){
+        const imageUrl = req.body.url; 
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        imageFile = response.data; // Image data in binary format (Buffer)
     }
 
+    
+    // initialize variables based on media type
     if(mediaType==='1'){
         genre = req.body.genre.split(',')
         existingPublisher = req.body.publisher_id; //this is not 0 if pinili niya ay existing na publisher
@@ -126,19 +148,11 @@ app.post('/save', upload.single('file'), async (req, res) => {
                         // Get the publisherId of the data you just inserted
                         const publisherId = results.insertId;
 
-                        // Read the file data
-                    fs.readFile(filePath, (err, data) => {
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-                        //data
-                        // ganitong form mo siya isstore sa database
-                        //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
-                        
                         // Insert the file data into the database
                         const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                        
                         const book = [
-                            data,
+                            imageFile,
                             req.body.isbn,
                             resourceId,
                             publisherId
@@ -152,13 +166,16 @@ app.post('/save', upload.single('file'), async (req, res) => {
                             // Optionally, delete the file from disk after saving it to the database
                             // fs.unlink() method is used to delete files in Node.js
                             // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                            fs.unlink(filePath, (unlinkErr) => {
-                                if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                            });
+                            if(filePath){
+                                fs.unlink(filePath, (unlinkErr) => {
+                                    if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                                }); 
+                            }
+                            
 
                             // Successfully inserted image, send response
                             // return res.send('Successful');
-                            
+                                
                             //insert to bookgenre
                             //store yung id ng kakastore na book sa bookId
                             const bookId = result.insertId;
@@ -172,77 +189,58 @@ app.post('/save', upload.single('file'), async (req, res) => {
                                     }
                                     return res.send('successful')
                                 })
-                                
+                                    
                             })
 
                         });
                     });
-                    });
                 }else{
-                    // Read the file data
-                    fs.readFile(filePath, (err, data) => {
+                    // Insert the file data into the database
+                    const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                    const book = [
+                        imageFile,
+                        req.body.isbn,
+                        resourceId,
+                        existingPublisher
+                    ];
+
+                    db.query(q, book, (err, result) => {
                         if (err) {
                             return res.status(500).send(err); 
                         }
-                        //data
-                        // ganitong form mo siya isstore sa database
-                        //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
-                        
-                        // Insert the file data into the database
-                        const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
-                        const book = [
-                            data,
-                            req.body.isbn,
-                            resourceId,
-                            existingPublisher
-                        ];
 
-                        db.query(q, book, (err, result) => {
-                            if (err) {
-                                return res.status(500).send(err); 
-                            }
-
-                            // Optionally, delete the file from disk after saving it to the database
-                            // fs.unlink() method is used to delete files in Node.js
-                            // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+                        // Optionally, delete the file from disk after saving it to the database
+                        // fs.unlink() method is used to delete files in Node.js
+                        // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+                        if(filePath){
                             fs.unlink(filePath, (unlinkErr) => {
                                 if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                            });
+                            }); 
+                        }
 
-                            // Successfully inserted image, send response
-                            // return res.send('Successful');
+                        // Successfully inserted image, send response
+                        // return res.send('Successful');
                             
-                            //insert to bookgenre
-                            //store yung id ng kakastore na book sa bookId
-                            const bookId = result.insertId;
-                            const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
+                        //insert to bookgenre
+                        //store yung id ng kakastore na book sa bookId
+                        const bookId = result.insertId;
+                        const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
 
-                            //iterate through genre array
-                            genre.forEach(element=>{
-                                db.query(bookGenreQ,[bookId,element],(err,result)=>{
-                                    if (err) {
-                                        return res.status(500).send(err); 
-                                    }
-                                    return res.send('successful')
-                                })
-                                
+                        //iterate through genre array
+                        genre.forEach(element=>{
+                            db.query(bookGenreQ,[bookId,element],(err,result)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
+                                return res.send('successful')
                             })
+                                
+                        })
 
-                        });
                     });
                 }
             })
-            
         }else if(mediaType==='2'|| mediaType==='3'){
-            // Read the file data
-            fs.readFile(filePath, (err, data) => {
-                if (err) {
-                    return res.status(500).send(err); 
-                }
-                //data
-                // ganitong form mo siya isstore sa database
-                //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
-                
                 // Insert the file data into the database
                 const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id) VALUES (?, ?, ?, ?)';
                 const jn = [
@@ -260,14 +258,15 @@ app.post('/save', upload.single('file'), async (req, res) => {
                     // Optionally, delete the file from disk after saving it to the database
                     // fs.unlink() method is used to delete files in Node.js
                     // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                    fs.unlink(filePath, (unlinkErr) => {
-                        if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                    });
+                    if(filePath){
+                        fs.unlink(filePath, (unlinkErr) => {
+                            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                        }); 
+                    }
 
                     // Successfully inserted image, send response
                     return res.send('Successful');
                 });
-            });
         }else{
             //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
 
@@ -312,8 +311,8 @@ app.post('/save', upload.single('file'), async (req, res) => {
 
         }
     })
-    });
-;
+});
+
 
 //insert resources
 const insertResources = async (req,authors)=>{

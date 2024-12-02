@@ -20,7 +20,8 @@ const AddItem = () => {
         genre: [],
         isCirculation: false,
         publisher_id: 0,
-        publisher: ''
+        publisher: '',
+        
     });
     const [error, setError] = useState({
         error: 'error'
@@ -110,75 +111,6 @@ const AddItem = () => {
         };
     },[])
 
-    // //Fetch publishers when component mounts
-    // useEffect(() => {
-    //     console.log('additem mounted');
-    
-    //     // Define handlers
-    //     const offlineHandler = () => {
-    //         alert("You're offline")
-    //         if (!isDbInitialized) {
-    //             initDatabase(() => {
-    //                 setDbInitialized(true);
-    //                 getTypeOffline(setResourceType);
-    //                 getStatusOffline(setResourceStatus);
-    //                 getPublishersOffline(setPublishers)
-    //             });
-    //         } else {
-    //             getTypeOffline(setResourceType);
-    //             getStatusOffline(setResourceStatus);
-    //         }
-    //         console.log('not connected to internet');
-    //     };
-    
-    //     const onlineHandler = () => {
-    //         alert("You're online")
-    //         getPublishers();
-    //         getAuthors();
-    //         getType();
-    //         getAdvisers();
-    //         getStatus()
-    //         console.log('connected to internet');
-    //     };
-    
-    //     // Check online status immediately on mount
-    //     if (navigator.onLine) {
-    //         onlineHandler();
-    //     } else {
-    //         offlineHandler();
-    //     }
-    
-    //     // Attach event listeners for dynamic online/offline handling
-    //     window.addEventListener('offline', offlineHandler);
-    //     window.addEventListener('online', onlineHandler);
-    
-    //     // Cleanup listeners on component unmount
-    //     return () => {
-    //         window.removeEventListener('offline', offlineHandler);
-    //         window.removeEventListener('online', onlineHandler);
-    //     };
-    // }, []);
-
-    // //this gets executed every first render and everytime disabled usestate changes
-    // useEffect(()=>{
-    //     if(disabled){
-    //         viewResource()
-    //     }
-    // },[disabled])
-
-    // //get specific resource for viewing purposes
-    // const viewResource = async ()=>{
-    //     try{
-    //         const response = await axios.get(`http://localhost:3001/resource/${resourceId}`).then(res=>res.data[0]);
-    //         console.log(response)
-            
-    //     }catch(err){
-    //         console.log(err.message)
-    //     }
-       
-    // }
-
-
     // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -256,6 +188,7 @@ const AddItem = () => {
     // Handle file input
     const handleFileChange = (e) => {
         const file = e.target.files[0];  // Get the first file from the input
+        console.log(file)
         if (file) {  // Check if a file was selected
             const blob = new Blob([file], { type: file.type });  // Create a Blob from the file
 
@@ -291,7 +224,7 @@ const AddItem = () => {
         }
 
         if (bookData.mediaType === '1') {
-            if (!bookData.file) {
+            if (!bookData.file&&!bookData.url) {
                 err.file = 'Please select cover';
             }
             if (!bookData.genre || bookData.genre.length === 0) {
@@ -310,7 +243,7 @@ const AddItem = () => {
                 err.publishedDate = 'Please enter publish date';
             }
         }else if(bookData.mediaType==='2'||bookData.mediaType==='3'){
-            if (!bookData.file) {
+            if (!bookData.file&&!bookData.url) {
                 err.file = 'Please select cover';
             }
             if (!bookData.authors || bookData.authors.length === 0) {
@@ -351,41 +284,13 @@ const AddItem = () => {
     const handleSaveResource = async () => {
         if (formValidation() === true) {
             setLoading(true)
-            try {
-                // Create a new FormData object
-                const formData = new FormData();
-    
-                // If the file is a URL string, fetch it as a Blob
-                if (typeof bookData.file === 'string') {
-                    const response = await fetch(bookData.file, { mode: 'no-cors' });
-                    //store lang natin siya as string kasi di pwede idownload yung mismong file sa link
-                    const blob = new Blob([bookData.file], { type: 'text/plain' }); // Convert response to Blob
-    
-                    // Set the blob to bookData.file directly
-                    //It spreads the existing properties of prevData and sets the file property to the newly fetched blob.
-                    setBookData((prevData) => ({
-                        ...prevData,
-                        file: blob,
-                    }));
-
-                    // Use a temporary state to wait for the blob to be set
-                    //create a new object that includes all properties of bookdata but replaces the file property to blob
-                    const updatedBookData = {
-                        ...bookData,
-                        file: blob,
-                    };
-    
-                    // Append all data to formData using updatedBookData instead of bookData
-                    Object.entries(updatedBookData).forEach(([key, value]) => {
-                        formData.append(key, value);
-                    });
-                } else {
-                    // If it's not a URL, just append the current bookData
-                    Object.entries(bookData).forEach(([key, value]) => {
-                        formData.append(key, value);
-                    });
-                }
-
+            
+            const formData = new FormData();
+            
+            Object.entries(bookData).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+                
                 //if online
                 if(navigator.onLine){
                     console.log('save online')
@@ -425,9 +330,6 @@ const AddItem = () => {
                     
                     console.log(publishers)
                 }
-            } catch (err) {
-                console.log('Error saving resource:', err.message);
-            }
         } else {
             console.log("Please enter complete information");
         }
