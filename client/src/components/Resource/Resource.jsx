@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import './Resource.css'
 import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
 // Import Swiper React components
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { useLocation, useNavigate } from 'react-router-dom'; //for retrieving query
+
 
 // Import Swiper styles
 import 'swiper/css';
@@ -13,34 +15,91 @@ import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 
 import './Resource.css'
+import { useParams } from 'react-router-dom';
+import axios from 'axios'
 
 
 const Resource = () => {
+    const location = useLocation();
+    const {id} = useParams();
+    const navigate = useNavigate();
+
+    // Retrieve the query parameters
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('q');
+    const filter = searchParams.get('filter');
+    console.log(filter)
+
+    
+    const [resource,setResource]=useState({})
+    const [image, setImage] = useState()
+    const [preview,setPreview] =useState() 
+    
+
+    console.log(id)
+
+    useEffect(()=>{
+        getResource()
+    },[])
+
+    const getResource = async()=>{
+        try{
+            const response = await axios.get(`http://localhost:3001/resource/${id}`)
+            console.log(response.data)
+            setResource(response.data[0])
+            
+        }catch(err){
+            console.log('An error occurred:  ', err.message)
+        }
+    }
+
+    const handleCover = (cover)=>{
+        console.log(cover.data)
+         // return URL.createObjectURL(new Blob([Buffer.from(cover.data)]));
+         if (cover && cover.data) {
+           const blob = new Blob([new Uint8Array(cover.data)], { type: 'image/jpeg' });
+           return URL.createObjectURL(blob);
+         }
+         return null; // Handle case where there is no cover
+    }
+
+    const handleBack = ()=>{
+        navigate(`/results?q=${query}&filter=${filter}`)
+    }
+
+    if(Object.keys(resource).length==0){
+        return (<div className='loading-resource container'>
+            <div class="spinner-grow text-danger container" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>)
+    }
+  
   return (
     <div className='resource-container container'>
         {/* view selected resource */}
-
-        <button className='back-to-results'><i class="fa-solid fa-arrow-left"></i>
-        <span>Back to Results</span></button>  
+        <button className='back-to-results' onClick={handleBack}><i class="fa-solid fa-arrow-left"></i>
+        <span >Back to Results</span></button>  
     
         {/*resource cover and resource info  */}
         <section className='row resource-info-cover container'>
             {/* book info */}
-            <div className="col-md-6 col-12  resource-info">
+            
+            <div className="col-md-7 col-12  resource-info">
                 {/* resource status */}
-                <p className='resource-status'>Available</p>
+                <p className='resource-status'>{resource?resource.avail_name:''}</p>
 
                 {/* resource image and author */}
                 <div className='resource-title-author'>
-                    <h2 className='resource-name'>Happiness at WORK: Maximizing your psychological capital for success</h2>
-                    <p className="resource-author">by <span>Jessica Pryce-Jones</span></p>
+                    <h2 className='resource-name'>{resource?resource.resource_title:''}</h2>
+                    <p className="resource-author">by <span>{resource?resource.author_name:''}</span></p>
                 </div>
 
                 {/* resource summary */}
                 <div className="resource-summary">
                     <h3 className="resource-summary-text">Summary</h3>
                     <p className="resource-summary-content">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Perferendis recusandae, placeat, iste quibusdam provident explicabo a modi labore odio consequuntur quae. Aut at quia blanditiis odio fugit reprehenderit inventore similique expedita quo a temporibus sint, ab ipsa, tenetur eaque asperiores. Corporis veniam illo, provident a dicta at beatae cupiditate? Rem!
+                        {resource?resource.resource_description:''}
                     </p>
                 </div>
 
@@ -48,9 +107,7 @@ const Resource = () => {
                 <div className="resource-subject">
                     <h3 className="resource-subject-text">Subject</h3>
                     <ul>
-                        <li>lorem</li>
-                        <li>lorem</li>
-                        <li>lorem</li>
+                        <li>{resource?resource.cat_course_code:''}</li>
                     </ul>
                 </div>
 
@@ -58,18 +115,14 @@ const Resource = () => {
                 <div className="resource-isbn">
                 <h3 className="resource-isbn-text">ISBN</h3>
                     <ul>
-                        <li>lorem</li>
-                        <li>lorem</li>
-                        <li>lorem</li>
+                        <li>{resource?resource.book_isbn:''}</li>
                     </ul>
-
                 </div>
-                
 
             </div>
             {/* book cover */}
-            <div className="col-md-6 col-12  resource-cover-box">
-                <img src={cover} alt="" className='resource-cover'/>
+            <div className="col-md-5 col-12  resource-cover-box">
+                <img src={resource.book_cover?handleCover(resource.book_cover):''} alt="" className='resource-cover'/>
                 
             </div>
         </section>

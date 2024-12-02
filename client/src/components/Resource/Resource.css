@@ -35,11 +35,20 @@
     --lightest-green:#C7C48E
 }
 
+.loading-resource{
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    top: 150px;
+}
+
 .resource-info-cover{
     padding: 50px;
 }
 
 .resource-status{
+    text-transform: capitalize;
     background-color: var(--available);
     padding: 8px;
     width: 100px;
@@ -61,8 +70,10 @@
 }
 
 .resource-cover{
-    width: 80%;
-    object-fit:contain;
+    width: 90%;
+    object-fit:cover;
+    height: 700px;
+    background-color: #0c0c0c;
 }
 
 .back-to-results{

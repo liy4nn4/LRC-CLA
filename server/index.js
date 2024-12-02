@@ -500,7 +500,7 @@ app.get('/type',(req,res)=>{
 
 //retrieve type  from database
 app.get('/status',(req,res)=>{
-    const q = 'SELECT * FROM status'
+    const q = 'SELECT * FROM availability'
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
@@ -513,7 +513,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     const page = parseInt(req.params.pagination,10
     )
 
-    const q = "SELECT r.resource_id, r.resource_title, r.resource_quantity,rt.type_name,GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) SEPARATOR ', ') AS author_names, c.cat_shelf_no FROM resources r JOIN resourceAuthors ra ON r.resource_id = ra.resource_id JOIN author a ON ra.author_id = a.author_id JOIN catalog c ON r.cat_id = c.cat_id JOIN resourcetype rt on rt.type_id = r.type_id GROUP BY r.resource_id, r.resource_title, r.resource_quantity, c.cat_shelf_no,rt.type_name LIMIT 5 OFFSET ?";
+    const q = "SELECT r.resource_id, r.resource_title, r.resource_quantity,rt.type_name,GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) SEPARATOR ', ') AS author_names,  c.cat_shelf_no FROM resources r JOIN resourceAuthors ra ON r.resource_id = ra.resource_id JOIN author a ON ra.author_id = a.author_id JOIN catalog c ON r.cat_id = c.cat_id JOIN resourcetype rt on rt.type_id = r.type_id GROUP BY r.resource_id, r.resource_title, r.resource_quantity, c.cat_shelf_no,rt.type_name LIMIT 5 OFFSET ?";
 
     db.query(q,page,(err,results)=>{
         if(err) return res.send(err)
@@ -526,23 +526,23 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     })
 })
 
-//get specific resource for viewing purposes
-app.get('/resource/:resourceId',(req,res)=>{
-    console.log('hi')
-    const id = req.params.resourceId;
+// //get specific resource for viewing purposes
+// app.get('/resource/:resourceId',(req,res)=>{
+//     console.log('hi')
+//     const id = req.params.resourceId;
 
-    // check first the type so i know where to store them
-    const q = "SELECT type_id FROM resources WHERE resource_id = ?"
+//     // check first the type so i know where to store them
+//     const q = "SELECT type_id FROM resources WHERE resource_id = ?"
 
-    db.query(q,[id],(err,results)=>{
-        if(err) return res.send(err)
-        const resourceTypeId = results[0].type_id
-        console.log(resourceTypeId) //prints the type id
-        if(resourceTypeId===1){
-            const q = "SELECT * FROM resources WHERE resource_id = ?"
-        }
-    })
-}) 
+//     db.query(q,[id],(err,results)=>{
+//         if(err) return res.send(err)
+//         const resourceTypeId = results[0].type_id
+//         console.log(resourceTypeId) //prints the type id
+//         if(resourceTypeId===1){
+//             const q = "SELECT * FROM resources WHERE resource_id = ?"
+//         }
+//     })
+// }) 
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.q;
@@ -599,6 +599,17 @@ app.get('/search', async (req, res) => {
         }
     });
 });
+
+app.get('/resource/:id', (req,res)=>{
+    const id = req.params.id;
+    
+    const q = "SELECT resources.resource_title,resources.resource_description, CONCAT(author.author_fname, ' ', author.author_lname) AS author_name, availability.avail_name, catalog.cat_course_code, book.book_cover, book.book_isbn FROM resourceauthors JOIN resources ON resourceauthors.resource_id = resources.resource_id JOIN author ON resourceauthors.author_id = author.author_id JOIN book ON book.resource_id = resources.resource_id AND resources.resource_id = book.resource_id JOIN availability ON resources.avail_id = availability.avail_id JOIN catalog ON resources.cat_id = catalog.cat_id WHERE resourceauthors.resource_id=?;"
+
+    db.query(q,[id],(err,result)=>{
+        if(err) return res.send(err)
+            return res.send(result)
+    })
+})
 
 app.get('/view',(req,res)=>{
     const q = 'SELECT book_cover FROM book'

@@ -99,10 +99,10 @@ const Search = () => {
       </div>
 
       {/* results section */}
-      <section className="search-results-box">
+      {results.length!=0?<section className="search-results-box">
         <div className="search-results-filter">
           {/* search results total number */}
-          <p className='search-results-total m-0'>Search Results (<span>1</span>)</p>
+          <p className='search-results-total m-0'>Search Results (<span>{results?results.length:''}</span>)</p>
           <div className='search-sort'>
             {/* filter button */}
             <div class="dropdown">
@@ -118,19 +118,25 @@ const Search = () => {
             </div>
           </div>
         </div>
-      </section>
+        </section>:
+        <div class="spinner-grow text-danger container" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>}
+      
 
       {/* book results */}
       <section className="book-results">
         <div className="row">
+          
+          
           {/* book */}
           {results.length!=0?results.map(item=>{
-           return <div className="card col-md-2">
-                    <img className="card-img-top" src={handleCover(item.cover)} alt="Card image cap"/>
+           return <div className="card search-book col-md-2"><Link to={`/resource/${item.id}?q=${query}&filter=${filter}`} className='book-link'>
+                    <img className="card-img-top search-book-cover" src={handleCover(item.cover)} alt="Card image cap"/>
                     <div className="card-body">
                       <h5 className="card-title">{item.title}</h5>
                       <p className="card-text">by {item.author}</p>
-                    </div>
+                    </div></Link>
                   </div>
           }):''}
           
@@ -138,9 +144,10 @@ const Search = () => {
       </section>
 
       {/* results pagination */}
-      <section className="search-more">
+      {results.length!=0?<section className="search-more">
         <button className='load-more'>Load more</button>
-      </section>
+      </section>:''}
+      
     
     </div>
   )

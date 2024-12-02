@@ -36,6 +36,10 @@
     --regular:500;
 }
 
+.search-container{
+    min-height: 100vh;
+}
+
 .search-header-cover{
     width: 100%;
 }
@@ -117,7 +121,7 @@
     top: 50px;
     gap: 10px;
     width: 90%;
-    padding: 0 0 100px;
+    padding: 0 0 50px;
 }
 
 .search-header-cover{
@@ -134,9 +138,8 @@
 }
 
 .search-results-box{
-    padding: 70px 150px 40px;
+    padding: 70px 150px 30px;
 }
-
 
 
 .search-results-filter{
@@ -152,11 +155,14 @@
 
 .book-results .card{
     cursor: pointer;
+    height: 400px;
 }
 
 .book-results .card-img-top{
     box-shadow: 1px 1px 1px var(--shadow);
     border-radius: 5px;
+    height: 300px;
+    object-fit: cover;
 }
 
 .card-body{
@@ -165,7 +171,7 @@
 }
 
 .card-title{
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: var(--regular);
     color: var(--dark-gray);
     margin: 0;
@@ -221,6 +227,17 @@
 }
 
 .link{
+    text-decoration: none;
+}
+
+.search-container .spinner-grow{
+    margin-top: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.book-link{
     text-decoration: none;
 }
 

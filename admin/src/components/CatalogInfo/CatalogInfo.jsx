@@ -32,9 +32,9 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
     
          // Cleanup function to revoke the Object URL
          return () => {
-          if (objectUrl) {
-              URL.revokeObjectURL(objectUrl);
-          }
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
           };
       },[bookData.file])
 
@@ -73,7 +73,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             <select name="status" id="" className='form-select' disabled={disabled} onChange={handleChange} onBlur={formValidation}>   
                                 <option selected disabled>Select item status</option>
                                 {resourceStatus?resourceStatus.map(item=>(
-                                     <option value={item.status_id}>{item.status_name}</option>
+                                     <option value={item.avail_id}>{item.avail_name}</option>
                                 )):''}
                             </select>
                             <p className='resource-error'>{error.status}</p>
