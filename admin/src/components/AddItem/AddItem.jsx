@@ -256,7 +256,6 @@ const AddItem = () => {
     // Handle file input
     const handleFileChange = (e) => {
         const file = e.target.files[0];  // Get the first file from the input
-        console.log(file)
         if (file) {  // Check if a file was selected
             const blob = new Blob([file], { type: file.type });  // Create a Blob from the file
 
@@ -344,30 +343,6 @@ const AddItem = () => {
         return Object.keys(err).length === 0;
     };
 
-    // const handleSaveResourceOffline = () => {
-    //     console.log('Save Resource Offline');
-    //     try {
-    //         //pass setPublishers to retrieve/load latest publishers in choices
-    //         saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
-    //         alert("Resource saved successfully")
-    //         //reset input field
-    //         setBookData({
-    //             mediaType: 'book',
-    //             authors: [],
-    //             genre: [],
-    //             isCirculation: false,
-    //             publisher_id: 0,
-    //             publisher: '',
-    //         });
-    //         //initialize error
-    //         setError({error:'error'})
-            
-    //         console.log(publishers)
-    //     } catch (err) {
-    //         console.error(err.message);
-    //         setLoading(false); // Stop loading if there was an error
-    //     }
-    // };
 
     console.log(typeof(bookData.file))
     

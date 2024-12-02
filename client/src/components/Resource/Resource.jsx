@@ -67,13 +67,15 @@ const Resource = () => {
         navigate(`/results?q=${query}&filter=${filter}`)
     }
 
-    if(Object.keys(resource).length==0){
+    if(!resource||Object.keys(resource).length==0){
         return (<div className='loading-resource container'>
             <div class="spinner-grow text-danger container" role="status">
                 <span class="sr-only">Loading...</span>
             </div>
         </div>)
     }
+
+    console.log(resource)
   
   return (
     <div className='resource-container container'>

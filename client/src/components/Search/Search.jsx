@@ -24,6 +24,8 @@ const Search = () => {
   const [searchFilter, setSearchFilter]= useState('all'); 
   const filterOptions = ['all','book','journal','newsletter','thesis','author']
 
+  console.log(query)
+
   //store results from database
   const [results, setResults] = useState([]);
 
@@ -33,7 +35,7 @@ const Search = () => {
     setSearch(query)
     getResource()
     getImage()
-  },[])
+  },[query])
 
   const getResource = async()=>{
     try{
@@ -71,6 +73,11 @@ const Search = () => {
     console.log(response.data)
   }
 
+  //handling search 
+  const handleSearch = (searchInput,searchFilter)=>{
+    navigate(`/results?q=${searchInput}&filter=${searchFilter}`)
+  }
+
 
   console.log(search)
 
@@ -91,7 +98,7 @@ const Search = () => {
             {/* search bar */}
             <input type="text" name="searchInput" id="searchInput" className='search' placeholder='Search for resources' value={search} onChange={(e)=>setSearch(e.target.value)}/>
             {/* search button */}
-            <button className='search-button'>
+            <button className='search-button' onClick={()=>handleSearch(search,'all')}>
               <i class="fa-solid fa-magnifying-glass"></i>
               <span className='button-text'>Search</span> 
             </button>

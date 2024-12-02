@@ -14,22 +14,14 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
 
     //for displaying preview photo
     useEffect(()=>{
-        if(!bookData.file){
-          setPreview(undefined)
-          return
-        }
-    
         let objectUrl;
-    
-        if (typeof bookData.file === 'string') {
-          // If data.file is a URL (string), set it directly as the preview
-          setPreview(bookData.file);
-        } else {
+
+        if(bookData.file){
             // If data.file is a File object, create an Object URL for it
             objectUrl = URL.createObjectURL(bookData.file);
             setPreview(objectUrl);
         }
-    
+
          // Cleanup function to revoke the Object URL
          return () => {
             if (objectUrl) {
@@ -38,8 +30,15 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
           };
       },[bookData.file])
 
-
-    
+      useEffect(()=>{
+        if(bookData.url){
+            setPreview(bookData.url);
+        }
+         // Cleanup function to revoke the Object URL
+         return () => {
+            URL.revokeObjectURL(bookData.url);
+          };
+      },[bookData.url])
    
   return (
     <div className='cat-info'>
@@ -120,8 +119,8 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                         <label htmlFor="">Cover</label>
                         <input type="file" src="" alt="" className='cover-upload' id='cover'disabled={disabled} onChange={handleFileChange} onBlur={formValidation}/>
                         <div className="cover-upload-box">
-                            {bookData.file?'':<label htmlFor="cover">Add cover</label>}
-                            {bookData.file && ( // Display the selected image if it exists
+                            {bookData.url?'':<label htmlFor="cover">Add cover</label>}
+                            {bookData.file || bookData.url && ( // Display the selected image if it exists
                                 <div>
                                     <img src={preview}
                                     // Create a URL for the selected image

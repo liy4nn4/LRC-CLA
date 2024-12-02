@@ -21,23 +21,18 @@ const Catalog = () => {
   
 
   useEffect(()=>{
-    console.log('catalog page mounted')
-    if(!navigator.onLine){
-      getResourcesCatalog(setCatalog)
-    }
-    
-
+    //getCatalog()
   },[pagination])
 
-  // const getCatalog = async()=>{
-  //   try {
-  //     const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
+  const getCatalog = async()=>{
+    try {
+      const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
 
-  //     setCatalog(response)
-  //   } catch (err) {
-  //       console.log(err.message);
-  //   }
-  // }
+      setCatalog(response)
+    } catch (err) {
+        console.log(err.message);
+    }
+  }
 
   console.log(catalog)
 
@@ -112,7 +107,7 @@ const Catalog = () => {
                   <td>{item.resource_id}</td>
                   <td>{item.resource_title}</td>
                   <td>{item.resource_type}</td>
-                  <td>{item.resource_authors.length>1?
+                  <td>{item.resource_authors>1?
                     <ul>
                       {item.resource_authors.map(a=>(
                         <li>{a}</li>

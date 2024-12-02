@@ -318,7 +318,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
 //insert resources
 const insertResources = async (req,authors)=>{
     return new Promise((resolve,reject)=>{
-        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, cat_id,type_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, cat_id,type_id, avail_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
         const resources = [
             req.body.title,
@@ -328,7 +328,8 @@ const insertResources = async (req,authors)=>{
             req.body.isCirculation,
             req.body.department,
             req.body.course,
-            req.body.mediaType
+            req.body.mediaType,
+            req.body.status
         ];
 
         db.query(q, resources,(err, results)=>{
@@ -402,7 +403,6 @@ const insertAuthors = async (authors,resourceId)=>{
                         if (err) {
                             return res.status(500).send(err); 
                         }
-
                         resolve() 
                     })
                 }

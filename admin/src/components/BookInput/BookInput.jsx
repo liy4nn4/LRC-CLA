@@ -45,7 +45,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
                     title: response.title || '',
                     authors: response.authors || [],
                     publishedDate: response.publishedDate || '',
-                    file: response.imageLinks.thumbnail || '',
+                    url: response.imageLinks.thumbnail || '',
                     description: response.description || ''
                 }))
             }catch(err){
