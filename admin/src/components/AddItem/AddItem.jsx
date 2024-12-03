@@ -43,21 +43,23 @@ const AddItem = () => {
     const [resourceStatus,setResourceStatus] = useState([])
 
     useEffect(() => {
-        if (bookData.mediaType== 1) {
-            setBookData({
-                mediaType: bookData.mediaType, // keep the changed mediaType
-                authors: [],
-                genre: [],
-                isCirculation: false,
-                publisher_id: 0,
-                publisher: ''
-            });
-        } else {
-            setBookData({
-                mediaType: bookData.mediaType, // keep the changed mediaType
-                authors: [],
-                isCirculation: false,
-            });
+        if(!disabled){
+            if (bookData.mediaType== 1) {
+                setBookData({
+                    mediaType: bookData.mediaType, // keep the changed mediaType
+                    authors: [],
+                    genre: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+            } else {
+                setBookData({
+                    mediaType: bookData.mediaType, // keep the changed mediaType
+                    authors: [],
+                    isCirculation: false,
+                });
+            }
         }
     }, [bookData.mediaType]);
 
@@ -128,25 +130,54 @@ const AddItem = () => {
             const response = await axios.get(`http://localhost:3001/view/${id}`);
            
             const data = response.data[0]
-            console.log(data.genre.split(', ').map((genre) => parseInt(genre, 10)))
-            setBookData((prevdata)=>({
-                ...prevdata,
-                mediaType:data.type_id.toString(),
-                authors:data.author_names.split(', '),
-                genre: data.genre.split(', ').map((genre) => parseInt(genre, 10)),
-                description:data.resource_description,
-                quantity:data.resource_quantity.toString(),
-                title:data.resource_title.toString(),
-                isbn:data.book_isbn.toString(),
-                status:data.avail_id.toString(),
-                publisher_id:data.pub_id,
-                publisher: data.pub_name.toString(),
-                file:data.book_cover,
-                publishedDate:data.resource_published_date.toString(),
-                department: data.dept_id.toString(),
-                course:data.cat_id.toString(),
-                isCirculation:data.resource_is_circulation==0?false:true,
-            }))
+            const mediaType = data.type_id.toString();
+            console.log(mediaType)
+            console.log(data)
+            // set bookData based on media type
+            switch(mediaType){
+                case '1':
+                    setBookData((prevdata)=>({
+                        ...prevdata,
+                        mediaType:mediaType,
+                        authors:data.author_names.split(', '),
+                        genre: data.genre.split(', ').map((genre) => parseInt(genre, 10)),
+                        description:data.resource_description,
+                        quantity:data.resource_quantity.toString(),
+                        title:data.resource_title.toString(),
+                        isbn:data.book_isbn.toString(),
+                        status:data.avail_id.toString(),
+                        publisher_id:data.pub_id,
+                        publisher: data.pub_name.toString(),
+                        file:data.book_cover,
+                        publishedDate:data.resource_published_date.toString(),
+                        department: data.dept_id.toString(),
+                        course:data.cat_id.toString(),
+                        isCirculation:data.resource_is_circulation==0?false:true,
+                    }))
+                    break;
+                    
+                case '2':
+                    setBookData((prevdata)=>({
+                        ...prevdata,
+                        mediaType:mediaType,
+                        authors:data.author_names.split(', '),
+                        description:data.resource_description,
+                        quantity:data.resource_quantity.toString(),
+                        title:data.resource_title.toString(),
+                        status:data.avail_id.toString(),
+                        file:data.jn_cover,
+                        publishedDate:data.resource_published_date.toString(),
+                        department: data.dept_id.toString(),
+                        course:data.cat_id.toString(),
+                        volume: data.jn_volume.toString(),
+                        issue: data.jn_issue.toString(),
+                        isCirculation:data.resource_is_circulation==0?false:true,
+                    }))
+                    break;
+                default:
+                    console.log('Media type not allowed.')
+            }
+            
         }catch(err){
             console.log('Cannot view resource. An error occurred: ', err.message)
         }

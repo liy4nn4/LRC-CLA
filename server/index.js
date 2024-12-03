@@ -246,7 +246,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
                 const jn = [
                     req.body.volume,
                     req.body.issue,
-                    data,
+                    imageFile,
                     resourceId
                 ];
 
@@ -545,6 +545,12 @@ app.get('/view/:id',(req,res)=>{
             case 'book':
                 getBookResource(id,res);
                 break;
+            case 'journal':
+                getNewsletterJournalResource(id,res);
+                break;
+            case 'newsletter':
+                getNewsletterJournalResource(id,res);
+                break;
             default:
                 return res.status(404).send({ error: `Unsupported resource type: ${resourceType}` });
         }
@@ -552,7 +558,35 @@ app.get('/view/:id',(req,res)=>{
 }) 
 
 const getBookResource = (id,res)=>{
-    const q = "SELECT resources.resource_id, resources.type_id, GROUP_CONCAT(DISTINCT CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, resources.cat_id, resources.dept_id, resources.avail_id, resources.resource_description, GROUP_CONCAT(CONCAT(genre.genre_id) SEPARATOR ', ') AS genre,resources.resource_is_circulation, book.book_isbn, resources.resource_published_date,book.pub_id, resources.resource_quantity, resources.resource_title, publisher.pub_name, book.book_cover FROM resources JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id JOIN author ON resourceauthors.author_id = author.author_id JOIN catalog ON resources.cat_id = catalog.cat_id JOIN resourcetype ON resources.type_id = resourcetype.type_id JOIN book ON book.resource_id = resources.resource_id JOIN bookgenre ON bookgenre.book_id = book.book_id JOIN genre ON genre.genre_id = bookgenre.genre_id JOIN publisher ON book.pub_id = publisher.pub_id WHERE resources.resource_id = ? GROUP BY  resources.resource_id"
+    const q = `
+    SELECT 
+        resources.resource_id, 
+        resources.type_id, 
+        GROUP_CONCAT(DISTINCT CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, 
+        resources.cat_id, 
+        resources.dept_id, 
+        resources.avail_id, 
+        resources.resource_description, 
+        GROUP_CONCAT(CONCAT(genre.genre_id) SEPARATOR ', ') AS genre,
+        resources.resource_is_circulation, 
+        book.book_isbn, 
+        resources.resource_published_date,
+        book.pub_id, 
+        resources.resource_quantity, 
+        resources.resource_title, 
+        publisher.pub_name, 
+        book.book_cover 
+    FROM resources 
+    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+    JOIN author ON resourceauthors.author_id = author.author_id 
+    JOIN catalog ON resources.cat_id = catalog.cat_id 
+    JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+    JOIN book ON book.resource_id = resources.resource_id 
+    JOIN bookgenre ON bookgenre.book_id = book.book_id 
+    JOIN genre ON genre.genre_id = bookgenre.genre_id 
+    JOIN publisher ON book.pub_id = publisher.pub_id 
+    WHERE resources.resource_id = ? 
+    GROUP BY  resources.resource_id;`
 
     db.query(q,[id],(err,result)=>{
         if(err) return res.send(err)
@@ -565,6 +599,46 @@ const getBookResource = (id,res)=>{
         //     genre: result[0].genre.split(', ')
             
 
+        // }
+    })
+
+}
+
+const getNewsletterJournalResource = (id,res)=>{
+    const q = 
+    `SELECT 
+        resources.resource_id,
+        resources.type_id,
+        resources.resource_quantity,
+        resources.avail_id,
+        resources.resource_title,
+        resources.resource_published_date,
+        resources.resource_description,
+        resources.dept_id,
+        resources.cat_id,
+        resources.resource_is_circulation,
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names,
+        journalnewsletter.jn_volume,
+        journalnewsletter.jn_issue,
+        journalnewsletter.jn_cover
+    FROM resources
+    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
+    JOIN author ON resourceauthors.author_id = author.author_id
+    JOIN catalog ON resources.cat_id = catalog.cat_id
+    JOIN resourcetype ON resources.type_id = resourcetype.type_id
+    JOIN journalnewsletter ON resources.resource_id = journalnewsletter.resource_id
+    WHERE resources.resource_id = ? 
+    GROUP BY resources.resource_id;`
+
+    db.query(q,[id],(err,result)=>{
+        if(err) return res.send(err)
+        console.log(result[0])
+        return res.json(result)
+        
+        // const bookData = {
+        //     //convert author to array
+        //     author: result[0].author_names.split(', '),
+        //     genre: result[0].genre.split(', ')
         // }
     })
 
