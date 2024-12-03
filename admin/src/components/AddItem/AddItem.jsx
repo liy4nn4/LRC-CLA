@@ -96,6 +96,7 @@ const AddItem = () => {
             getGenre()
             getPublishers()
             getAuthors()
+            getAdvisers()
         }
 
         //checks if your're offline
@@ -174,6 +175,43 @@ const AddItem = () => {
                         isCirculation:data.resource_is_circulation==0?false:true,
                     }))
                     break;
+
+                case '3':
+                    setBookData((prevdata)=>({
+                        ...prevdata,
+                        mediaType:mediaType,
+                        authors:data.author_names.split(', '),
+                        description:data.resource_description,
+                        quantity:data.resource_quantity.toString(),
+                        title:data.resource_title.toString(),
+                        status:data.avail_id.toString(),
+                        file:data.jn_cover,
+                        publishedDate:data.resource_published_date.toString(),
+                        department: data.dept_id.toString(),
+                        course:data.cat_id.toString(),
+                        volume: data.jn_volume.toString(),
+                        issue: data.jn_issue.toString(),
+                        isCirculation:data.resource_is_circulation==0?false:true,
+                    }))
+                    break;
+
+                case '4':
+                    setBookData((prevdata)=>({
+                        ...prevdata,
+                        mediaType:mediaType,
+                        authors:data.author_names.split(', '),
+                        adviser:data.adviser_name,
+                        description:data.resource_description,
+                        quantity:data.resource_quantity.toString(),
+                        title:data.resource_title.toString(),
+                        status:data.avail_id.toString(),
+                        publishedDate:data.resource_published_date.toString(),
+                        department: data.dept_id.toString(),
+                        course:data.cat_id.toString(),
+                        isCirculation:data.resource_is_circulation==0?false:true,
+                    }))
+                    break;
+
                 default:
                     console.log('Media type not allowed.')
             }

@@ -551,6 +551,9 @@ app.get('/view/:id',(req,res)=>{
             case 'newsletter':
                 getNewsletterJournalResource(id,res);
                 break;
+            case 'thesis':
+                getThesisResource(id,res);
+                break;
             default:
                 return res.status(404).send({ error: `Unsupported resource type: ${resourceType}` });
         }
@@ -586,22 +589,13 @@ const getBookResource = (id,res)=>{
     JOIN genre ON genre.genre_id = bookgenre.genre_id 
     JOIN publisher ON book.pub_id = publisher.pub_id 
     WHERE resources.resource_id = ? 
-    GROUP BY  resources.resource_id;`
+    GROUP BY  resources.resource_id`
 
     db.query(q,[id],(err,result)=>{
         if(err) return res.send(err)
             console.log(result[0])
         return res.json(result)
-        
-        // const bookData = {
-        //     //convert author to array
-        //     author: result[0].author_names.split(', '),
-        //     genre: result[0].genre.split(', ')
-            
-
-        // }
     })
-
 }
 
 const getNewsletterJournalResource = (id,res)=>{
@@ -628,27 +622,58 @@ const getNewsletterJournalResource = (id,res)=>{
     JOIN resourcetype ON resources.type_id = resourcetype.type_id
     JOIN journalnewsletter ON resources.resource_id = journalnewsletter.resource_id
     WHERE resources.resource_id = ? 
-    GROUP BY resources.resource_id;`
+    GROUP BY resources.resource_id`
 
     db.query(q,[id],(err,result)=>{
         if(err) return res.send(err)
         console.log(result[0])
         return res.json(result)
-        
-        // const bookData = {
-        //     //convert author to array
-        //     author: result[0].author_names.split(', '),
-        //     genre: result[0].genre.split(', ')
-        // }
     })
+}
 
+const getThesisResource = (id,res)=>{
+    const q = 
+    `SELECT
+        resources.type_id,
+        resources.cat_id,
+        resources.dept_id,
+        resources.resource_description,
+        resources.resource_is_circulation,
+        resources.resource_published_date,
+        resources.resource_quantity,
+        resources.avail_id,
+        resources.resource_title,
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names,
+        CONCAT(adviser.adviser_fname, ' ', adviser.adviser_lname) AS adviser_name
+    FROM resources
+    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
+    JOIN author ON resourceauthors.author_id = author.author_id
+    JOIN catalog ON resources.cat_id = catalog.cat_id
+    JOIN resourcetype ON resources.type_id = resourcetype.type_id
+    JOIN thesis ON thesis.resource_id = thesis.resource_id
+    JOIN adviser ON adviser.adviser_id = thesis.adviser_id
+    WHERE resources.resource_id = ?
+    GROUP BY resources.resource_id`
+
+    db.query(q,[id],(err,result)=>{
+        if(err) return res.send(err)
+        console.log(result[0])
+        return res.json(result)
+    })
 }
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.q;
     console.log(searchQuery);
 
-    const query = 'SELECT resource_Id FROM resources WHERE resource_title LIKE ?';
+    const query = 
+    `SELECT 
+        resource_Id 
+    FROM 
+        resources 
+    WHERE 
+        resource_title 
+    LIKE ?`;
 
     db.query(query, [`%${searchQuery}%`], async (err, results) => {
         if (err) return res.status(500).send(err);

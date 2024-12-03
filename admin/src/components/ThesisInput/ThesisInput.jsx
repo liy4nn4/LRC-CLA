@@ -24,7 +24,8 @@ const ThesisInput = ({disabled,handleChange,bookData,addAuthor,addAdviser,author
                     {/* adviser name */}
                         <div className="adviser">
                             {bookData.adviser?
-                                <span>{bookData.adviser}<button className='delete-adviser' onClick={deleteAdviser}>x</button></span>
+                                <span>{bookData.adviser}
+                                {!disabled?<button className='delete-adviser' onClick={deleteAdviser}>x</button>:''}</span>
                             :''}
                             <button>
                                 <i class="fa-solid fa-xmark"></i>
