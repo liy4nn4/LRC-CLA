@@ -12,7 +12,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
     const [publisherDetails, setPublisherDetails] = useState({})
     
     useEffect(()=>{
-        if(bookData.isbn){
+        if(bookData.isbn&&!disabled){
             if(bookData.isbn.length){
                getBookData(); 
             }
@@ -35,11 +35,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
 
     // for getting info sa google books api
     const getBookData = async()=>{
-        // create an object na katulad bookData tapos ilalagay nalang siya doon using setBookData
-        const book = {}
-        
-       
-            try{
+        try{
                 const response = await fetch(`http://localhost:3001/bookData/${bookData.isbn}`).then(data=>data.json()).then(data=>data.items[0].volumeInfo)
                 console.log(response);
                 // // store retrieve data sa book object

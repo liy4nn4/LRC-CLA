@@ -38,9 +38,6 @@ const AddItem = () => {
     const [loading,setLoading] = useState(false)
     const [resourceType,setResourceType]=useState([])
     // Reset bookData when mediaType changes
-
-    //this is for viewing resource purposes
-    const {resourceId} = useParams();
     //console.log(resourceId)
     const [resourceStatus,setResourceStatus] = useState([])
 
@@ -104,15 +101,55 @@ const AddItem = () => {
 
         if(!navigator.onLine){
             offlineHandler()
-        }else{
+        }else if(navigator.onLine){
             onlineHandler()
         }
+        
+        if(id){
+            setDisabled(true)
+            viewResource();
+
+        }
+
 
         return () => {
             window.removeEventListener('offline', offlineHandler);
             window.removeEventListener('online', offlineHandler);
         };
     },[])
+
+    console.log(id)
+
+    
+    const viewResource = async()=>{
+        console.log('view resource')
+        try{
+            const response = await axios.get(`http://localhost:3001/view/${id}`);
+           
+            const data = response.data[0]
+            console.log(data.genre.split(', ').map((genre) => parseInt(genre, 10)))
+            setBookData((prevdata)=>({
+                ...prevdata,
+                mediaType:data.type_id.toString(),
+                authors:data.author_names.split(', '),
+                genre: data.genre.split(', ').map((genre) => parseInt(genre, 10)),
+                description:data.resource_description,
+                quantity:data.resource_quantity.toString(),
+                title:data.resource_title.toString(),
+                isbn:data.book_isbn.toString(),
+                status:data.avail_id.toString(),
+                publisher_id:data.pub_id,
+                publisher: data.pub_name.toString(),
+                file:data.book_cover,
+                publishedDate:data.resource_published_date.toString(),
+                department: data.dept_id.toString(),
+                course:data.cat_id.toString(),
+                isCirculation:data.resource_is_circulation==0?false:true
+            }))
+        }catch(err){
+            console.log('Cannot view resource. An error occurred: ', err.message)
+        }
+    }
 
     // Handle input changes
     const handleChange = (e) => {
@@ -181,6 +218,7 @@ const AddItem = () => {
 
     // Handle chosen genre
     const addGenre = (selectedGenre) => {
+        console.log(selectedGenre)
         const genre = selectedGenre.map(item => item.value);
         setBookData((prevData) => ({
             ...prevData,
@@ -201,7 +239,6 @@ const AddItem = () => {
             }));
         }
     };
-
 
     // Form validation
     const formValidation = () => {
@@ -278,10 +315,6 @@ const AddItem = () => {
 
         return Object.keys(err).length === 0;
     };
-
-
-    console.log(typeof(bookData.file))
-    
 
     // Handle resource save
     const handleSaveResource = async () => {
@@ -444,9 +477,7 @@ const AddItem = () => {
     };
     
 
-    console.log(resourceType);
     console.log(bookData);
-    console.log(Object.values(error).length);
     
     return (
         <div className='add-item-container'>

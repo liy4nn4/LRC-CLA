@@ -58,7 +58,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled className=''>Select department</option>
                                 {department.length>0?department.map((item,key)=>(
-                                    <option value={item.dept_id} className='dept_name'>{item.dept_name}</option>
+                                    <option value={item.dept_id} className='dept_name' selected={disabled?item.dept_id==bookData.department:''}>{item.dept_name}</option>
                                 )):''}
                                 
                             </select>
@@ -70,7 +70,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             <select className="form-select" name='course' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled>Select Course</option>
                                 {catalog.length>0?catalog.map((item,key)=>(
-                                    <option value={item.cat_id}>{`${item.cat_course_code} (${item.cat_course_name})`}</option>
+                                    <option value={item.cat_id} selected={disabled?item.cat_id==bookData.course:''}>{`${item.cat_course_code} (${item.cat_course_name})`}</option>
                                 )):''}
                             </select>
                             <p className='resource-error'>{error.course}</p>

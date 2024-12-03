@@ -508,8 +508,7 @@ app.get('/status',(req,res)=>{
 
 //get catalog details 
 app.get('/catalogdetails/:pagination',(req,res)=>{
-    const page = parseInt(req.params.pagination,10
-    )
+    const page = parseInt(req.params.pagination,10)
 
     const q = "SELECT resources.resource_title, resources.resource_id, resourcetype.type_name, resources.resource_quantity, GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, catalog.cat_shelf_no FROM resources JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id JOIN author ON resourceauthors.author_id = author.author_id JOIN catalog ON resources.cat_id = catalog.cat_id JOIN resourcetype ON resources.type_id = resourcetype.type_id GROUP BY resources.resource_id, resources.resource_title, resources.resource_quantity, catalog.cat_shelf_no,resourcetype.type_name LIMIT 5 OFFSET ?";
 
@@ -525,22 +524,51 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
 })
 
 // //get specific resource for viewing purposes
-// app.get('/resource/:resourceId',(req,res)=>{
-//     console.log('hi')
-//     const id = req.params.resourceId;
+app.get('/view/:id',(req,res)=>{
+    const id = req.params.id;
 
-//     // check first the type so i know where to store them
-//     const q = "SELECT type_id FROM resources WHERE resource_id = ?"
+    // check first the type so i know where to store them
+    const q = "SELECT resourcetype.type_name FROM resourcetype JOIN resources ON resources.type_id = resourcetype.type_id WHERE resources.resource_id = ?"
 
-//     db.query(q,[id],(err,results)=>{
-//         if(err) return res.send(err)
-//         const resourceTypeId = results[0].type_id
-//         console.log(resourceTypeId) //prints the type id
-//         if(resourceTypeId===1){
-//             const q = "SELECT * FROM resources WHERE resource_id = ?"
-//         }
-//     })
-// }) 
+    db.query(q,[id],(err,results)=>{
+        if(err) return res.send(err)
+
+        if (!results.length) {
+            return res.status(404).send({ error: "Resource not found" });
+        }
+        
+        console.log(results[0].type_name)
+        //store type name here
+        const resourceType = results[0].type_name   
+
+        switch(resourceType){
+            case 'book':
+                getBookResource(id,res);
+                break;
+            default:
+                return res.status(404).send({ error: `Unsupported resource type: ${resourceType}` });
+        }
+    })
+}) 
+
+const getBookResource = (id,res)=>{
+    const q = "SELECT resources.resource_id, resources.type_id, GROUP_CONCAT(DISTINCT CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, resources.cat_id, resources.dept_id, resources.avail_id, resources.resource_description, GROUP_CONCAT(CONCAT(genre.genre_id) SEPARATOR ', ') AS genre,resources.resource_is_circulation, book.book_isbn, resources.resource_published_date,book.pub_id, resources.resource_quantity, resources.resource_title, publisher.pub_name, book.book_cover FROM resources JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id JOIN author ON resourceauthors.author_id = author.author_id JOIN catalog ON resources.cat_id = catalog.cat_id JOIN resourcetype ON resources.type_id = resourcetype.type_id JOIN book ON book.resource_id = resources.resource_id JOIN bookgenre ON bookgenre.book_id = book.book_id JOIN genre ON genre.genre_id = bookgenre.genre_id JOIN publisher ON book.pub_id = publisher.pub_id WHERE resources.resource_id = ? GROUP BY  resources.resource_id"
+
+    db.query(q,[id],(err,result)=>{
+        if(err) return res.send(err)
+            console.log(result[0])
+        return res.send(result)
+        
+        // const bookData = {
+        //     //convert author to array
+        //     author: result[0].author_names.split(', '),
+        //     genre: result[0].genre.split(', ')
+            
+
+        // }
+    })
+
+}
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.q;

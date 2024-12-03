@@ -11,15 +11,29 @@ import { getGenreOffline } from '../../indexedDb'
 const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
+    const [selectedGenre,setSelectedGenre] = useState([])
+    useEffect(()=>{ 
+        if (bookData.genre.length > 0) {
+            console.log('book genre');
+            const selected = bookData.genre.map(g => genreList.find(l => l.value === g))  // Find the genre in genreList
+            setSelectedGenre(selected);
+        }
+    },[bookData.genre])
+
+    console.log(selectedGenre)
 
     //for displaying preview photo
     useEffect(()=>{
         let objectUrl;
 
-        if(bookData.file){
+        if(bookData.file&&!disabled){
             // If data.file is a File object, create an Object URL for it
             objectUrl = URL.createObjectURL(bookData.file);
             setPreview(objectUrl);
+        }else if(bookData.file&&disabled){
+            const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
+            objectUrl = URL.createObjectURL(blob);
+            setPreview(objectUrl)
         }
 
          // Cleanup function to revoke the Object URL
@@ -39,6 +53,12 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
             URL.revokeObjectURL(bookData.url);
           };
       },[bookData.url])
+
+      const handleGenre = (selected)=>{
+        setSelectedGenre(selected)
+      }
+
+      console.log(genreList)
    
   return (
     <div className='cat-info'>
@@ -55,7 +75,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             <label htmlFor="">Media Type *</label>
                             <select name="mediaType" id="" className='form-select' disabled={disabled} onChange={handleChange}>
                                  {resourceType.length>0?resourceType.map(item=>(
-                                    <option value={item.type_id}>{item.type_name}</option>
+                                    <option value={item.type_id} selected={disabled?item.type_id==bookData.mediaType:''}>{item.type_name}</option>
                                 )):''}                                 
                             </select>
                            
@@ -72,7 +92,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             <select name="status" id="" className='form-select' disabled={disabled} onChange={handleChange} onBlur={formValidation}>   
                                 <option selected disabled>Select item status</option>
                                 {resourceStatus?resourceStatus.map(item=>(
-                                     <option value={item.avail_id}>{item.avail_name}</option>
+                                     <option value={item.avail_id} selected={disabled?item.avail_id==bookData.status:''}>{item.avail_name}</option>
                                 )):''}
                             </select>
                             <p className='resource-error'>{error.status}</p>
@@ -101,8 +121,12 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                                 classNamePrefix="select"
                                 placeholder="Enter to add genre/s"
                                 isDisabled={disabled}
-                                onChange={addGenre}
+                                onChange={(selected)=>{
+                                    addGenre(selected);
+                                    handleGenre(selected)
+                                }}
                                 onBlur={formValidation}
+                                value={selectedGenre}
                             />
                             <p className='resource-error'>{error.genre}</p>
                         </div> 

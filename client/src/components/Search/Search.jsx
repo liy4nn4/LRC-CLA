@@ -34,7 +34,6 @@ const Search = () => {
   useEffect(()=>{
     setSearch(query)
     getResource()
-    getImage()
   },[query])
 
   const getResource = async()=>{
@@ -61,16 +60,6 @@ const Search = () => {
       return URL.createObjectURL(blob);
     }
     return null; // Handle case where there is no cover
-  }
-
-  const getImage = async()=>{
-    const response = await axios.get('http://localhost:3001/view',{
-      responseType:'blob'
-    })
-    const url = URL.createObjectURL(response.data)
-    setImage(url)
-
-    console.log(response.data)
   }
 
   //handling search 
