@@ -18,9 +18,8 @@ const Catalog = () => {
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
   
-  
-
   useEffect(()=>{
+    console.log('get catalog')
     getCatalog()
   },[pagination])
 

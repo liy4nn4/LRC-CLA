@@ -103,7 +103,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                         {/* circulation*/}
                         <div className="col-12 mt-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="circulation" disabled={disabled} onChange={handleToggle} name='isCirculation'/>
+                                <input class="form-check-input" type="checkbox" role="switch" id="circulation" disabled={disabled} onChange={handleToggle} name='isCirculation' checked={disabled?bookData.isCirculation==1:false}/>
                                 <div className="switch-label">
                                     <label class="form-check-label" for="circulation">Circulation</label>
                                     <span>Enable circulation, uncheck if you want to disable circulation for this item.</span>

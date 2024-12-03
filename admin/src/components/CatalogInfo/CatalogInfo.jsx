@@ -12,12 +12,17 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
     const [selectedGenre,setSelectedGenre] = useState([])
+    const [viewSelectedGenre,setViewSelectedGenre] = useState([])
+
     useEffect(()=>{ 
-        if (bookData.genre.length > 0) {
-            console.log('book genre');
-            const selected = bookData.genre.map(g => genreList.find(l => l.value === g))  // Find the genre in genreList
-            setSelectedGenre(selected);
+        if(bookData.genre){
+            if (bookData.genre.length > 0) {
+                console.log('book genre');
+                const selected = bookData.genre.map(g => genreList.find(l => l.value === g))  // Find the genre in genreList
+                setViewSelectedGenre(selected);
+            }
         }
+        
     },[bookData.genre])
 
     console.log(selectedGenre)
@@ -126,7 +131,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                                     handleGenre(selected)
                                 }}
                                 onBlur={formValidation}
-                                value={selectedGenre}
+                                value={disabled?viewSelectedGenre:selectedGenre}
                             />
                             <p className='resource-error'>{error.genre}</p>
                         </div> 
@@ -154,7 +159,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                                 </div>
                                 )}
                         </div>
-                       {typeof bookData.file!=='string'&&bookData.file?<label htmlFor="cover" className='edit-cover'>Edit cover</label>:""}
+                       {(typeof bookData.file!=='string'&&bookData.file)&&!disabled?<label htmlFor="cover" className='edit-cover'>Edit cover</label>:""}
                     </div>
                     <p className='resource-error'>{error.file}</p>
                 </div>:''}

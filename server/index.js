@@ -432,7 +432,7 @@ app.get('/departments',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-           return res.send(results)
+           return res.json(results)
     })
 })
 
@@ -442,7 +442,7 @@ app.get('/catalog',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-           return res.send(results)
+           return res.json(results)
     })
 })
 
@@ -452,7 +452,7 @@ app.get('/genre',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-           return res.send(results)
+           return res.json(results)
     })
 })
 
@@ -462,7 +462,7 @@ app.get('/publishers',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-           return res.send(results)
+           return res.json(results)
     })
 })
 
@@ -472,7 +472,7 @@ app.get('/authors',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-            return res.send(results)
+            return res.json(results)
     })
 })
 
@@ -482,7 +482,7 @@ app.get('/advisers',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-           return res.send(results)
+           return res.json(results)
     })
 })
 
@@ -492,7 +492,7 @@ app.get('/type',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-            return res.send(results)
+            return res.json(results)
     })
 })
 
@@ -502,7 +502,7 @@ app.get('/status',(req,res)=>{
 
     db.query(q,(err,results)=>{
         if(err) return res.send(err)
-            return res.send(results)
+            return res.json(results)
     })
 })
 
@@ -515,7 +515,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     db.query(q,page,(err,results)=>{
         if(err) return res.send(err)
         if(results.length>0){
-            return res.send(results)
+            return res.json(results)
         }else{
             return res.send('No more records')
         }
@@ -557,7 +557,7 @@ const getBookResource = (id,res)=>{
     db.query(q,[id],(err,result)=>{
         if(err) return res.send(err)
             console.log(result[0])
-        return res.send(result)
+        return res.json(result)
         
         // const bookData = {
         //     //convert author to array
@@ -616,7 +616,7 @@ app.get('/search', async (req, res) => {
                 );
 
                 console.log(searchResults);
-                res.send(searchResults); // Send the collected results
+                res.json(searchResults); // Send the collected results
             } catch (err) {
                 res.status(500).send(err); // Handle errors in the inner queries
             }
@@ -633,7 +633,7 @@ app.get('/resource/:id', (req,res)=>{
 
     db.query(q,[id],(err,result)=>{
         if(err) return res.send(err)
-            return res.send(result)
+            return res.json(result)
     })
 })
 
@@ -642,7 +642,7 @@ app.get('/view',(req,res)=>{
     db.query(q,(err,results)=>{
         if(err) res.send(err)
         if(results.length>0){
-            res.send(results[0])
+            res.json(results[0])
         }
     })
 })

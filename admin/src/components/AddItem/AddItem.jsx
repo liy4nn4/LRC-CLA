@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import './AddItem.css';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import CatalogInfo from '../CatalogInfo/CatalogInfo';
 import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import { initDatabase,getTypeOffline,getStatusOffline,saveResourcesOffline,getPublishersOffline, getGenreOffline, getAuthorsOffline} from '../../indexedDb';
+
 
 
 const AddItem = () => {
@@ -144,7 +145,7 @@ const AddItem = () => {
                 publishedDate:data.resource_published_date.toString(),
                 department: data.dept_id.toString(),
                 course:data.cat_id.toString(),
-                isCirculation:data.resource_is_circulation==0?false:true
+                isCirculation:data.resource_is_circulation==0?false:true,
             }))
         }catch(err){
             console.log('Cannot view resource. An error occurred: ', err.message)
@@ -376,7 +377,7 @@ const AddItem = () => {
         const { name, checked } = e.target;
         setBookData((prevData) => ({
             ...prevData,
-            [name]: checked
+            [name]: checked?1:0
         }));
     };
 
