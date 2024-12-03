@@ -9,6 +9,9 @@ import { initDatabase,getTypeOffline,getStatusOffline,saveResourcesOffline,getPu
 
 
 const AddItem = () => {
+    //pag may id, nagiging view ung purpose ng add item component
+    const {id} = useParams()
+
     const navigate = useNavigate()
     // initialize offline database
     const [isDbInitialized, setDbInitialized] = useState(false);

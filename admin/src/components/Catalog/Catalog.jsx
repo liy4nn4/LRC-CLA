@@ -21,7 +21,7 @@ const Catalog = () => {
   
 
   useEffect(()=>{
-    //getCatalog()
+    getCatalog()
   },[pagination])
 
   const getCatalog = async()=>{
@@ -52,19 +52,19 @@ const Catalog = () => {
               </Link>
           </div>
           {/* add author and publisher*/}
-          <div className="add-author-publisher">
+          {/* <div className="add-author-publisher"> */}
               {/* add author */}
 
-              <button className='btn cat-add-author' onClick={()=>setOpenAuthor(!openAuthor)}>
+              {/* <button className='btn cat-add-author' onClick={()=>setOpenAuthor(!openAuthor)}>
                 <i class="fa-solid fa-plus"></i>
                   Add Author
-              </button>
+              </button> */}
               {/* add publisher */}
-              <button className='btn cat-add-pub' onClick={()=>setOpenPublisher(!openPublisher)}>
+              {/* <button className='btn cat-add-pub' onClick={()=>setOpenPublisher(!openPublisher)}>
                 <i class="fa-solid fa-plus" ></i>
                   Add Publisher
-              </button>
-          </div>
+              </button> */}
+          {/* </div> */}
         </div>
         
         {/* search,filter,export */}
@@ -106,15 +106,15 @@ const Catalog = () => {
                 <tr key={key}>
                   <td>{item.resource_id}</td>
                   <td>{item.resource_title}</td>
-                  <td>{item.resource_type}</td>
-                  <td>{item.resource_authors>1?
+                  <td>{item.type_name}</td>
+                  <td>{item.author_names>1?
                     <ul>
-                      {item.resource_authors.map(a=>(
+                      {item.author_names.map(a=>(
                         <li>{a}</li>
                       ))}
                     </ul>    
-                  :<ul><li>{item.resource_authors}</li></ul>}</td>
-                  <td>{item.resource_shelfNo}</td>
+                  :<ul><li>{item.author_names}</li></ul>}</td>
+                  <td>{item.cat_shelf_no}</td>
                   <td>{item.resource_quantity}</td>
                   <td>
                     <Link to={`/view-item/${item.resource_id}`}>
@@ -131,7 +131,7 @@ const Catalog = () => {
               </tbody>
             </table> 
             {/* pagination */}
-            {/* <nav aria-label="Page navigation example">
+            <nav aria-label="Page navigation example">
               <div class="pagination justify-content-end">
                 <button className={pagination===0?'btn disabled':'btn enabled'} onClick={()=>{
                   pagination!=0?setPagination(pagination-5):setPagination(0)}} disabled={pagination===0}>
@@ -141,7 +141,7 @@ const Catalog = () => {
                   Next
                 </button>
               </div>
-            </nav> */}
+            </nav>
         
         
 

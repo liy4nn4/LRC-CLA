@@ -12,9 +12,12 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
     const [publisherDetails, setPublisherDetails] = useState({})
     
     useEffect(()=>{
-        if(navigator.onLine){
-           getBookData(); 
+        if(bookData.isbn){
+            if(bookData.isbn.length){
+               getBookData(); 
+            }
         }
+        
     },[bookData.isbn])
 
     useEffect(() => {
@@ -35,7 +38,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
         // create an object na katulad bookData tapos ilalagay nalang siya doon using setBookData
         const book = {}
         
-        if(bookData.isbn&&bookData.isbn.length===13){
+       
             try{
                 const response = await fetch(`http://localhost:3001/bookData/${bookData.isbn}`).then(data=>data.json()).then(data=>data.items[0].volumeInfo)
                 console.log(response);
@@ -45,13 +48,13 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
                     title: response.title || '',
                     authors: response.authors || [],
                     publishedDate: response.publishedDate || '',
-                    url: response.imageLinks.thumbnail || '',
+                    url: response.imageLinks?response.imageLinks.thumbnail :'',
                     description: response.description || ''
                 }))
             }catch(err){
                 console.log(err.message)
             }
-        }
+        
     }
 
     const handleSelectedPublisher = (item)=>{
