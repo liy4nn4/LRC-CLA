@@ -41,6 +41,7 @@ const AddItem = () => {
     // Reset bookData when mediaType changes
     //console.log(resourceId)
     const [resourceStatus,setResourceStatus] = useState([])
+    const [editMode, setEditMode] = useState(false)
 
     useEffect(() => {
         if(!disabled){
@@ -48,7 +49,6 @@ const AddItem = () => {
                 setBookData({
                     mediaType: bookData.mediaType, // keep the changed mediaType
                     authors: [],
-                    genre: [],
                     isCirculation: false,
                     publisher_id: 0,
                     publisher: ''
@@ -141,7 +141,6 @@ const AddItem = () => {
                         ...prevdata,
                         mediaType:mediaType,
                         authors:data.author_names.split(', '),
-                        genre: data.genre.split(', ').map((genre) => parseInt(genre, 10)),
                         description:data.resource_description,
                         quantity:data.resource_quantity.toString(),
                         title:data.resource_title.toString(),
@@ -152,7 +151,7 @@ const AddItem = () => {
                         file:data.book_cover,
                         publishedDate:data.resource_published_date.toString(),
                         department: data.dept_id.toString(),
-                        course:data.cat_id.toString(),
+                        topic:data.topic_id.toString(),
                         isCirculation:data.resource_is_circulation==0?false:true,
                     }))
                     break;
@@ -329,16 +328,13 @@ const AddItem = () => {
         if (!bookData.department) {
             err.department = 'Please select department';
         }
-        if (!bookData.course) {
-            err.course = 'Please select course';
+        if (!bookData.topic) {
+            err.topic = 'Please select topic';
         }
 
         if (bookData.mediaType === '1') {
             if (!bookData.file&&!bookData.url) {
                 err.file = 'Please select cover';
-            }
-            if (!bookData.genre || bookData.genre.length === 0) {
-                err.genre = 'Please select genre';
             }
             if (!bookData.authors || bookData.authors.length === 0) {
                 err.authors = 'Please specify author/s';
@@ -410,7 +406,6 @@ const AddItem = () => {
                     setBookData({
                         mediaType: 'book',
                         authors: [],
-                        genre: [],
                         isCirculation: false,
                         publisher_id: 0,
                         publisher: ''
@@ -602,7 +597,10 @@ const AddItem = () => {
                 />
             </div>
 
-            {disabled?<div className='edit-btn-cont'><button className="btn edit-item">
+            {disabled?<div className='edit-btn-cont'><button className="btn edit-item" onClick={()=>{
+                setDisabled(false);
+                setEditMode(true);
+                }}>
                     Edit
                 </button></div>:<div className="cancel-save">
                 <button className="btn add-item-cancel">

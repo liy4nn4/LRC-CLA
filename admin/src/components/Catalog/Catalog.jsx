@@ -26,7 +26,6 @@ const Catalog = () => {
   const getCatalog = async()=>{
     try {
       const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
-
       setCatalog(response)
     } catch (err) {
         console.log(err.message);
@@ -113,7 +112,7 @@ const Catalog = () => {
                       ))}
                     </ul>    
                   :<ul><li>{item.author_names}</li></ul>}</td>
-                  <td>{item.cat_shelf_no}</td>
+                  <td>{item.dept_shelf_no}</td>
                   <td>{item.resource_quantity}</td>
                   <td>
                     <Link to={`/view-item/${item.resource_id}`}>

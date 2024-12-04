@@ -41,6 +41,13 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
             setPreview(objectUrl)
         }
 
+        //reset URl
+        //pag may naupload na file, wala dapat url
+        setBookData((prevdata)=>({
+            ...prevdata,
+            url:''
+        }))
+
          // Cleanup function to revoke the Object URL
          return () => {
             if (objectUrl) {
@@ -115,7 +122,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             selectedOptions={selectedOptions} deleteAuthor={deleteAuthor} authorList={authorList}/>}
                         </div>
                         {/* genre */}
-                        {bookData.mediaType==='1'?
+                        {/* {bookData.mediaType==='1'?
                         <div className="col-12 info-input-box mb-3">
                             <label htmlFor="">Genre</label>
                             <Select
@@ -135,8 +142,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             />
                             <p className='resource-error'>{error.genre}</p>
                         </div> 
-                        :''}
-                                         
+                        :''} */}           
                     </div>
 
                 </div>
@@ -159,7 +165,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                                 </div>
                                 )}
                         </div>
-                       {(typeof bookData.file!=='string'&&bookData.file)&&!disabled?<label htmlFor="cover" className='edit-cover'>Edit cover</label>:""}
+                       <label htmlFor="cover" className='edit-cover'>Edit cover</label>
                     </div>
                     <p className='resource-error'>{error.file}</p>
                 </div>:''}

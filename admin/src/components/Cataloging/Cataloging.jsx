@@ -7,6 +7,7 @@ import { getDepartmentOffline, getCatalogOffline } from '../../indexedDb'
 const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized}) => {
     const [department, setDepartment] = useState([])
     const [catalog, setCatalog] = useState([])
+    const [topic,setTopic] = useState([])
 
     useEffect(() => {
         console.log('cataloging mounted')
@@ -15,7 +16,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
             getCatalogOffline(setCatalog);
         }else{
             getDept()
-            getCatalog()
+            getTopics()
         }
     }, [isDbInitialized]);
     
@@ -38,7 +39,17 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
         }
     }
 
+    const getTopics =async ()=>{
+        try{
+            const response = await axios.get('http://localhost:3001/topic').then(res=>res.data)
+            setTopic(response)
+        }catch(err){
+            console.log(err.message)
+        }
+    }
+
     console.log(department)
+    console.log(topic)
 
   return (
     <div className='cataloging-box'>
@@ -66,14 +77,14 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                         </div>
                         {/* course */}
                         <div className="col-6 info-input-box">
-                            <label htmlFor="">Course</label>
-                            <select className="form-select" name='course' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
-                                <option selected disabled>Select Course</option>
-                                {catalog.length>0?catalog.map((item,key)=>(
-                                    <option value={item.cat_id} selected={disabled?item.cat_id==bookData.course:''}>{`${item.cat_course_code} (${item.cat_course_name})`}</option>
+                            <label htmlFor="">Topics</label>
+                            <select className="form-select" name='topic' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
+                                <option selected disabled>Select Topic</option>
+                                {topic.length>0?topic.map((item,key)=>(
+                                    <option value={item.topic_id} selected={disabled?item.topic_id==bookData.topic:''}>{item.topic_name}</option>
                                 )):''}
                             </select>
-                            <p className='resource-error'>{error.course}</p>
+                            <p className='resource-error'>{error.topic}</p>
                         </div>
                         {/* shelf no */}
                         {/* <div className="col-3 info-input-box">

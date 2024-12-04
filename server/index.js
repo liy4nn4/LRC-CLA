@@ -102,7 +102,6 @@ app.post('/save', upload.single('file'), async (req, res) => {
     
     // initialize variables based on media type
     if(mediaType==='1'){
-        genre = req.body.genre.split(',')
         existingPublisher = req.body.publisher_id; //this is not 0 if pinili niya ay existing na publisher
     }else if(mediaType==='4'){
         // split string
@@ -174,23 +173,23 @@ app.post('/save', upload.single('file'), async (req, res) => {
                             
 
                             // Successfully inserted image, send response
-                            // return res.send('Successful');
+                            return res.send('Successful');
                                 
                             //insert to bookgenre
                             //store yung id ng kakastore na book sa bookId
-                            const bookId = result.insertId;
-                            const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
+                            // const bookId = result.insertId;
+                            // const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
 
-                            //iterate through genre array
-                            genre.forEach(element=>{
-                                db.query(bookGenreQ,[bookId,element],(err,result)=>{
-                                    if (err) {
-                                        return res.status(500).send(err); 
-                                    }
-                                    return res.send('successful')
-                                })
+                            // //iterate through genre array
+                            // genre.forEach(element=>{
+                            //     db.query(bookGenreQ,[bookId,element],(err,result)=>{
+                            //         if (err) {
+                            //             return res.status(500).send(err); 
+                            //         }
+                            //         return res.send('successful')
+                            //     })
                                     
-                            })
+                            // })
 
                         });
                     });
@@ -223,19 +222,18 @@ app.post('/save', upload.single('file'), async (req, res) => {
                             
                         //insert to bookgenre
                         //store yung id ng kakastore na book sa bookId
-                        const bookId = result.insertId;
-                        const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
+                        // const bookId = result.insertId;
+                        // const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
 
-                        //iterate through genre array
-                        genre.forEach(element=>{
-                            db.query(bookGenreQ,[bookId,element],(err,result)=>{
-                                if (err) {
-                                    return res.status(500).send(err); 
-                                }
-                                return res.send('successful')
-                            })
-                                
-                        })
+                        // //iterate through genre array
+                        // genre.forEach(element=>{
+                        //     db.query(bookGenreQ,[bookId,element],(err,result)=>{
+                        //         if (err) {
+                        //             return res.status(500).send(err); 
+                        //         }
+                        //         return res.send('successful')
+                        //     })  
+                        // })
 
                     });
                 }
@@ -317,7 +315,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
 //insert resources
 const insertResources = async (req,authors)=>{
     return new Promise((resolve,reject)=>{
-        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, cat_id,type_id, avail_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, topic_id, type_id, avail_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
         const resources = [
             req.body.title,
@@ -326,7 +324,7 @@ const insertResources = async (req,authors)=>{
             req.body.quantity,
             req.body.isCirculation,
             req.body.department,
-            req.body.course,
+            req.body.topic,
             req.body.mediaType,
             req.body.status
         ];
@@ -446,6 +444,15 @@ app.get('/catalog',(req,res)=>{
     })
 })
 
+app.get('/topic',(req,res)=>{
+    const q = 'SELECT * FROM topic'
+
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+           return res.json(results)
+    })
+})
+
 //retrieve list of genre from database
 app.get('/genre',(req,res)=>{
     const q = 'SELECT * FROM genre'
@@ -510,7 +517,23 @@ app.get('/status',(req,res)=>{
 app.get('/catalogdetails/:pagination',(req,res)=>{
     const page = parseInt(req.params.pagination,10)
 
-    const q = "SELECT resources.resource_title, resources.resource_id, resourcetype.type_name, resources.resource_quantity, GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, catalog.cat_shelf_no FROM resources JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id JOIN author ON resourceauthors.author_id = author.author_id JOIN catalog ON resources.cat_id = catalog.cat_id JOIN resourcetype ON resources.type_id = resourcetype.type_id GROUP BY resources.resource_id, resources.resource_title, resources.resource_quantity, catalog.cat_shelf_no,resourcetype.type_name LIMIT 5 OFFSET ?";
+    const q =
+    `
+    SELECT 
+        resources.resource_title, 
+        resources.resource_id, 
+        resourcetype.type_name, 
+        resources.resource_quantity, 
+        department.dept_shelf_no,
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+    FROM resources 
+    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+    JOIN author ON resourceauthors.author_id = author.author_id 
+    JOIN topic ON resources.topic_id = topic.topic_id 
+    JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+    JOIN department ON department.dept_id = resources.dept_id
+    GROUP BY resources.resource_id
+    LIMIT 5 OFFSET ?`;
 
     db.query(q,page,(err,results)=>{
         if(err) return res.send(err)
@@ -566,11 +589,10 @@ const getBookResource = (id,res)=>{
         resources.resource_id, 
         resources.type_id, 
         GROUP_CONCAT(DISTINCT CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, 
-        resources.cat_id, 
+        resources.topic_id, 
         resources.dept_id, 
         resources.avail_id, 
         resources.resource_description, 
-        GROUP_CONCAT(CONCAT(genre.genre_id) SEPARATOR ', ') AS genre,
         resources.resource_is_circulation, 
         book.book_isbn, 
         resources.resource_published_date,
@@ -582,13 +604,11 @@ const getBookResource = (id,res)=>{
     FROM resources 
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
     JOIN author ON resourceauthors.author_id = author.author_id 
-    JOIN catalog ON resources.cat_id = catalog.cat_id 
+    JOIN topic ON resources.topic_id = topic.topic_id 
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     JOIN book ON book.resource_id = resources.resource_id 
-    JOIN bookgenre ON bookgenre.book_id = book.book_id 
-    JOIN genre ON genre.genre_id = bookgenre.genre_id 
     JOIN publisher ON book.pub_id = publisher.pub_id 
-    WHERE resources.resource_id = ? 
+    WHERE resources.resource_id = 140
     GROUP BY  resources.resource_id`
 
     db.query(q,[id],(err,result)=>{
