@@ -342,9 +342,9 @@ const AddItem = () => {
             if (!bookData.isbn) {
                 err.isbn = 'Please enter ISBN';
             }
-            if (bookData.publisher_id === 0 && bookData.publisher === '') {
-                err.publisher = 'Please enter publisher';
-            }
+            // if (bookData.publisher_id === 0 && bookData.publisher === '') {
+            //     err.publisher = 'Please enter publisher';
+            // }
             if (!bookData.publishedDate) {
                 err.publishedDate = 'Please enter publish date';
             }
@@ -435,6 +435,62 @@ const AddItem = () => {
             console.log("Please enter complete information");
         }
     };
+
+    // Handle resource save
+    const handleEditResource = async () => {
+        if (formValidation() === true) {
+            setLoading(true)
+            
+            const formData = new FormData();
+            
+            Object.entries(bookData).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+                
+                //if online
+                if(navigator.onLine){
+                    console.log('save online')
+                    // Send data to the endpoint
+                    await axios.post('http://localhost:3001/edit', formData);
+                    console.log('Resource saved successfully');
+
+                    //close loading
+                    setLoading(false)
+                    // Reset bookData if saved successfully
+                    setBookData({
+                        mediaType: 'book',
+                        authors: [],
+                        isCirculation: false,
+                        publisher_id: 0,
+                        publisher: ''
+                    });
+
+                    window.location.reload(); // Optionally reload the page
+                }else{
+                    console.log('save offline')
+                    //pass setPublishers to retrieve/load latest publishers in choices
+                    saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
+                    alert("Resource saved successfully")
+                    //reset input field
+                    setBookData({
+                        mediaType: 'book',
+                        authors: [],
+                        genre: [],
+                        isCirculation: false,
+                        publisher_id: 0,
+                        publisher: '',
+                    });
+                    //initialize error
+                    setError({error:'error'})
+                    
+                    console.log(publishers)
+                }
+        } else {
+            console.log("Please enter complete information");
+        }
+    };
+
+
     
     // Handle toggle buttons
     const handleToggle = (e) => {
@@ -606,7 +662,15 @@ const AddItem = () => {
                 <button className="btn add-item-cancel">
                     Cancel
                 </button>
-                <button className="btn add-item-save" onClick={handleSaveResource} disabled={Object.values(error).length>=1}>
+                <button className="btn add-item-save" onClick={()=>{
+                    //if not in edit mode, save resource
+                    if(!editMode){
+                        handleSaveResource()
+                    }else{
+                        //update/edit resource
+                        handleEditResource()
+                    }
+                }} disabled={Object.values(error).length>=1}>
                     <i className="fa-regular fa-floppy-disk"></i>
                     <span>Save</span>
                 </button>

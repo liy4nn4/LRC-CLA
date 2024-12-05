@@ -69,7 +69,6 @@ app.post('/save', upload.single('file'), async (req, res) => {
     const mediaType = req.body.mediaType;
     let adviserFname;
     let adviserLname;
-    let genre;
     let existingPublisher;
     let filePath;
 
@@ -113,48 +112,108 @@ app.post('/save', upload.single('file'), async (req, res) => {
     
     const authors = req.body.authors.split(',')
 
+    console.log("publisher: ", req.body.publisher); // pag walang value to, this is an empty string
+
     //call insertResources and pass req
-    await insertResources(req,authors).then((data)=>{
+    await insertResources(res,req,authors).then((data)=>{
         const resourceId = data
         // For example, if mediaType is book, the rest of the data will be inserted sa book table and etc
 
         // however, before inserting the rest of the data inside the book table, we need to insert the publisher info if the mediaType is book
         if (mediaType === '1') {
-            const checkPubIdQ = "SELECT * FROM publisher WHERE pub_id = ?"
+            if(existingPublisher==0&&!req.body.publisher&&!req.body.publisher_address&&!req.body.publisher_email&&!req.body.publisher_number&&!req.body.publisher_website){
+                //if walang napiling publisher/walang nahanap na publisher, set pub_id to null
+                const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                const book = [
+                    imageFile,
+                    req.body.isbn,
+                    resourceId,
+                    null
+                ];
+
+                db.query(q, book, (err, result) => {
+                    if (err) {
+                        return res.status(500).send(err); 
+                    }
+
+                    // Optionally, delete the file from disk after saving it to the database
+                    // fs.unlink() method is used to delete files in Node.js
+                    // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+                    if(filePath){
+                        fs.unlink(filePath, (unlinkErr) => {
+                            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                        }); 
+                    }
+
+                    // Successfully inserted image, send response
+                    return res.send('Successful');
+
+                });
+            }else{
+                 const checkPubIdQ = "SELECT * FROM publisher WHERE pub_id = ?"
             
-            // check if publisher exists
-            db.query(checkPubIdQ,existingPublisher,(err,results)=>{
-                if (err) {
-                    return res.status(500).send(err); 
-                }
+                // check if publisher exists
+                db.query(checkPubIdQ,existingPublisher,(err,results)=>{
+                    if (err) {
+                        return res.status(500).send(err); 
+                    }
 
-                //if no results found
-                if(results.length===0){
-                    const pubQ = 'INSERT INTO publisher (pub_name, pub_address, pub_email, pub_phone, pub_website) VALUES (?, ?, ?, ?, ?)';
+                    //if no results found
+                    if(results.length===0){
 
-                    const publisher = [
-                        req.body.publisher,
-                        req.body.publisher_address,
-                        req.body.publisher_email,
-                        req.body.publisher_number,
-                        req.body.publisher_website
-                    ];
+                        const pubQ = 'INSERT INTO publisher (pub_name, pub_address, pub_email, pub_phone, pub_website) VALUES (?, ?, ?, ?, ?)';
 
-                    db.query(pubQ, publisher, (err, results) => {
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-                        // Get the publisherId of the data you just inserted
-                        const publisherId = results.insertId;
+                        const publisher = [
+                            !req.body.publisher?null:req.body.publisher,
+                            !req.body.publisher_address?null:req.body.publisher_address,
+                            !req.body.publisher_email?null:req.body.publisher_email,
+                            !req.body.publisher_number?null:req.body.publisher_number,
+                            !req.body.publisher_website?null:req.body.publisher_website
+                        ];
 
-                        // Insert the file data into the database
+                        db.query(pubQ, publisher, (err, results) => {
+                            if (err) {
+                                return res.status(500).send(err); 
+                            }
+                            // Get the publisherId of the data you just inserted
+                            const publisherId = results.insertId;
+
+                            // Insert the file data into the database
+                            const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                            
+                            const book = [
+                                imageFile,
+                                req.body.isbn,
+                                resourceId,
+                                publisherId
+                            ];
+
+                            db.query(q, book, (err, result) => {
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
+
+                                // Optionally, delete the file from disk after saving it to the database
+                                // fs.unlink() method is used to delete files in Node.js
+                                // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+                                if(filePath){
+                                    fs.unlink(filePath, (unlinkErr) => {
+                                        if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                                    }); 
+                                }
+                                
+                                // Successfully inserted image, send response
+                                return res.send('Successful');
+                            });
+                        });
+                    }else{
+                        //pag may nahanap na publisher, store the id of chosen publisher in book database
                         const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
-                        
                         const book = [
                             imageFile,
                             req.body.isbn,
                             resourceId,
-                            publisherId
+                            existingPublisher
                         ];
 
                         db.query(q, book, (err, result) => {
@@ -170,74 +229,13 @@ app.post('/save', upload.single('file'), async (req, res) => {
                                     if (unlinkErr) console.error('Error deleting file:', unlinkErr);
                                 }); 
                             }
-                            
 
                             // Successfully inserted image, send response
                             return res.send('Successful');
-                                
-                            //insert to bookgenre
-                            //store yung id ng kakastore na book sa bookId
-                            // const bookId = result.insertId;
-                            // const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
-
-                            // //iterate through genre array
-                            // genre.forEach(element=>{
-                            //     db.query(bookGenreQ,[bookId,element],(err,result)=>{
-                            //         if (err) {
-                            //             return res.status(500).send(err); 
-                            //         }
-                            //         return res.send('successful')
-                            //     })
-                                    
-                            // })
-
                         });
-                    });
-                }else{
-                    // Insert the file data into the database
-                    const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
-                    const book = [
-                        imageFile,
-                        req.body.isbn,
-                        resourceId,
-                        existingPublisher
-                    ];
-
-                    db.query(q, book, (err, result) => {
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-
-                        // Optionally, delete the file from disk after saving it to the database
-                        // fs.unlink() method is used to delete files in Node.js
-                        // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                        if(filePath){
-                            fs.unlink(filePath, (unlinkErr) => {
-                                if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                            }); 
-                        }
-
-                        // Successfully inserted image, send response
-                        // return res.send('Successful');
-                            
-                        //insert to bookgenre
-                        //store yung id ng kakastore na book sa bookId
-                        // const bookId = result.insertId;
-                        // const bookGenreQ = 'INSERT INTO bookgenre (book_id, genre_id) VALUES (?,?)'
-
-                        // //iterate through genre array
-                        // genre.forEach(element=>{
-                        //     db.query(bookGenreQ,[bookId,element],(err,result)=>{
-                        //         if (err) {
-                        //             return res.status(500).send(err); 
-                        //         }
-                        //         return res.send('successful')
-                        //     })  
-                        // })
-
-                    });
-                }
-            })
+                    }
+                })
+            }
         }else if(mediaType==='2'|| mediaType==='3'){
                 // Insert the file data into the database
                 const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id) VALUES (?, ?, ?, ?)';
@@ -305,15 +303,13 @@ app.post('/save', upload.single('file'), async (req, res) => {
                     })
                 }
             })
-            
-
         }
     })
 });
 
 
 //insert resources
-const insertResources = async (req,authors)=>{
+const insertResources = async (res,req,authors)=>{
     return new Promise((resolve,reject)=>{
         const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, topic_id, type_id, avail_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
@@ -337,7 +333,7 @@ const insertResources = async (req,authors)=>{
             // Get the resource_id of the newly inserted row
             const resourceId = results.insertId
             
-            insertAuthors(authors,resourceId).then(()=>{
+            insertAuthors(res,authors,resourceId).then(()=>{
                 resolve(resourceId)
             })
         })
@@ -345,7 +341,7 @@ const insertResources = async (req,authors)=>{
 }
 
 //insert authors 
-const insertAuthors = async (authors,resourceId)=>{
+const insertAuthors = async (res,authors,resourceId)=>{
     return new Promise((resolve,reject)=>{
         //insert authors
         const authorQ = 'INSERT INTO author (author_fname, author_lname) VALUES (?, ?)' 
@@ -408,6 +404,58 @@ const insertAuthors = async (authors,resourceId)=>{
     })
     
 }
+
+// for updating resources
+app.post('/edit', upload.single('file'), async (req, res) => {
+    const mediaType = req.body.mediaType;
+    let adviserFname;
+    let adviserLname;
+    let existingPublisher;
+    let filePath;
+
+    //dito masstore yung URL/ImageFile
+    let imageFile;
+
+    //pag walang URL, undefined ung req.body.url
+    console.log('URL: ',req.body.url)
+    //pag walang file na inupload, undefined ung req.file
+    console.log(req.file)
+    
+    // if not a URL
+    if(req.file){
+       filePath = req.file.path; // Get the file path 
+       fs.readFile(filePath, (err, data) => {
+            if (err) {
+                return res.status(500).send(err); 
+            }
+            imageFile = data;
+            //data
+            // ganitong form mo siya isstore sa database
+            //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
+        })
+    }else if(req.body.url){
+        const imageUrl = req.body.url; 
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        imageFile = response.data; // Image data in binary format (Buffer)
+    }
+
+    
+    // initialize variables based on media type
+    if(mediaType==='1'){
+        existingPublisher = req.body.publisher_id; //this is not 0 if pinili niya ay existing na publisher
+    }else if(mediaType==='4'){
+        // split string
+        //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
+        const adviser = req.body.adviser.split(' ')
+        adviserFname = adviser[0];
+        adviserLname = adviser[1];
+    }
+    
+    const authors = req.body.authors.split(',')
+
+    
+});
+
 
 
 // retrieve book information from google books api using isbn
@@ -539,8 +587,6 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
         if(err) return res.send(err)
         if(results.length>0){
             return res.json(results)
-        }else{
-            return res.send('No more records')
         }
             
     })

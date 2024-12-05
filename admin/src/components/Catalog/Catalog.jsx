@@ -100,7 +100,7 @@ const Catalog = () => {
                 </tr>
               </thead>
               <tbody>
-                {catalog?typeof catalog!=='string'?catalog.map((item,key)=>(
+                {catalog?catalog.length>0?catalog.map((item,key)=>(
                 <tr key={key}>
                   <td>{item.resource_id}</td>
                   <td>{item.resource_title}</td>
