@@ -406,7 +406,9 @@ const insertAuthors = async (res,authors,resourceId)=>{
 }
 
 // for updating resources
-app.post('/edit', upload.single('file'), async (req, res) => {
+app.put('/edit/:id', upload.single('file'), async (req, res) => {
+    const id = req.params.id;
+
     const mediaType = req.body.mediaType;
     let adviserFname;
     let adviserLname;
@@ -439,7 +441,6 @@ app.post('/edit', upload.single('file'), async (req, res) => {
         imageFile = response.data; // Image data in binary format (Buffer)
     }
 
-    
     // initialize variables based on media type
     if(mediaType==='1'){
         existingPublisher = req.body.publisher_id; //this is not 0 if pinili niya ay existing na publisher
@@ -452,11 +453,292 @@ app.post('/edit', upload.single('file'), async (req, res) => {
     }
     
     const authors = req.body.authors.split(',')
+    console.log(id)
 
-    
+    await editResources(res,req,authors,id).then((data)=>{
+        const resourceId = data
+
+        console.log(resourceId)
+        // For example, if mediaType is book, the rest of the data will be inserted sa book table and etc
+
+        // however, before inserting the rest of the data inside the book table, we need to insert the publisher info if the mediaType is book
+        // if (mediaType === '1') {
+        //     //if walang napiling publisher/walang nahanap na publisher, set pub_id to null
+        //     if(existingPublisher==0&&!req.body.publisher&&!req.body.publisher_address&&!req.body.publisher_email&&!req.body.publisher_number&&!req.body.publisher_website){
+        //         const q = `
+        //             UPDATE 
+        //                 book
+        //             SET 
+        //                 book_cover = ?,
+        //                 book_isbn = ?, 
+        //                 resource_id = ?, 
+        //                 pub_id = ?
+        //             WHERE 
+        //                 resource_id = ?`;
+        //         const book = [
+        //             imageFile,
+        //             req.body.isbn,
+        //             resourceId,
+        //             null,
+        //             id
+        //         ];
+
+        //         db.query(q, book, (err, result) => {
+        //             if (err) {
+        //                 return res.status(500).send(err); 
+        //             }
+
+        //             // Optionally, delete the file from disk after saving it to the database
+        //             // fs.unlink() method is used to delete files in Node.js
+        //             // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+        //             if(filePath){
+        //                 fs.unlink(filePath, (unlinkErr) => {
+        //                     if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        //                 }); 
+        //             }
+
+        //             // Successfully inserted image, send response
+        //             return res.send('Successful');
+
+        //         });
+        //     }else{
+        //          const checkPubIdQ = "SELECT * FROM publisher WHERE pub_id = ?"
+            
+        //         // check if publisher exists
+        //         db.query(checkPubIdQ,existingPublisher,(err,results)=>{
+        //             if (err) {
+        //                 return res.status(500).send(err); 
+        //             }
+
+        //             //if no results found
+        //             if(results.length===0){
+        //                 const pubQ = 'INSERT INTO publisher (pub_name, pub_address, pub_email, pub_phone, pub_website) VALUES (?, ?, ?, ?, ?)';
+
+        //                 const publisher = [
+        //                     !req.body.publisher?null:req.body.publisher,
+        //                     !req.body.publisher_address?null:req.body.publisher_address,
+        //                     !req.body.publisher_email?null:req.body.publisher_email,
+        //                     !req.body.publisher_number?null:req.body.publisher_number,
+        //                     !req.body.publisher_website?null:req.body.publisher_website
+        //                 ];
+
+        //                 db.query(pubQ, publisher, (err, results) => {
+        //                     if (err) {
+        //                         return res.status(500).send(err); 
+        //                     }
+        //                     // Get the publisherId of the data you just inserted
+        //                     const publisherId = results.insertId;
+
+        //                     // update data into the database
+        //                     const q = `
+        //                     UPDATE 
+        //                         book
+        //                     SET 
+        //                         book_cover = ?,
+        //                         book_isbn = ?, 
+        //                         resource_id = ?, 
+        //                         pub_id = ?
+        //                     WHERE 
+        //                         resource_id = ?`;
+                            
+        //                     const book = [
+        //                         imageFile,
+        //                         req.body.isbn,
+        //                         resourceId,
+        //                         publisherId,
+        //                         id
+        //                     ];
+
+        //                     db.query(q, book, (err, result) => {
+        //                         if (err) {
+        //                             return res.status(500).send(err); 
+        //                         }
+
+        //                         // Optionally, delete the file from disk after saving it to the database
+        //                         // fs.unlink() method is used to delete files in Node.js
+        //                         // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+        //                         if(filePath){
+        //                             fs.unlink(filePath, (unlinkErr) => {
+        //                                 if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        //                             }); 
+        //                         }
+                                
+        //                         // Successfully inserted image, send response
+        //                         return res.send('Successful');
+        //                     });
+        //                 });
+        //             }else{
+        //                 //pag may nahanap na publisher, store the id of chosen publisher in book database
+        //                 const q = `
+        //                     UPDATE 
+        //                         book
+        //                     SET 
+        //                         book_cover = ?,
+        //                         book_isbn = ?, 
+        //                         resource_id = ?, 
+        //                         pub_id = ?
+        //                     WHERE 
+        //                         resource_id = ?`;
+
+        //                 const book = [
+        //                     imageFile,
+        //                     req.body.isbn,
+        //                     resourceId,
+        //                     existingPublisher,
+        //                     id
+        //                 ];
+
+        //                 db.query(q, book, (err, result) => {
+        //                     if (err) {
+        //                         return res.status(500).send(err); 
+        //                     }
+
+        //                     // Optionally, delete the file from disk after saving it to the database
+        //                     // fs.unlink() method is used to delete files in Node.js
+        //                     // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+        //                     if(filePath){
+        //                         fs.unlink(filePath, (unlinkErr) => {
+        //                             if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        //                         }); 
+        //                     }
+
+        //                     // Successfully inserted image, send response
+        //                     return res.send('Successful');
+        //                 });
+        //             }
+        //         })
+        //     }
+        // }
+    })
 });
 
+// edit resources
+const editResources = async (res,req,authors,id)=>{
+    return new Promise((resolve,reject)=>{
+        const q = `
+        UPDATE
+            resources
+        SET
+            resource_title = ?,
+            resource_description = ?,
+            resource_published_date  = ?,
+            resource_quantity = ?,
+            resource_is_circulation = ?,
+            dept_id = ?,
+            topics_id = ?,
+            type_id = ?,
+            avail_id = ?
+        WHERE 
+            resource_id = ?
+        `
 
+        const resources = [
+            req.body.title,
+            req.body.description,
+            req.body.publishedDate,
+            req.body.quantity,
+            req.body.isCirculation,
+            req.body.department,
+            req.body.topic,
+            req.body.mediaType,
+            req.body.status,
+            id
+        ];
+
+        db.query(q, resources,(err, results)=>{
+            if (err) {
+                return res.status(500).send(err); 
+            }
+
+            // editAuthors(res,authors,id).then(()=>{
+            resolve(id)
+            // })
+        })
+    })
+}
+
+
+//insert authors 
+const editAuthors = async (res,authors,resourceId)=>{
+    return new Promise((resolve,reject)=>{
+        const deleteResourceAuthorsQ = `
+            DELETE FROM resourceauthors
+            WHERE resource_id = ?
+        `
+        //insert authors
+        const authorQ = `
+            INSERT INTO author (author_fname, author_lname) VALUES (?, ?) `
+        const resourceAuthorQ = `
+            INSERT INTO resourceauthors (resource_id, author_id) VALUES (?, ?)`
+        const checkIfAuthorExist =`
+            SELECT author_id 
+            FROM author 
+            WHERE author_fname = ? AND author_lname = ?`
+
+        //remove all records of resource_id under resourceauthors table
+        db.query(deleteResourceAuthorsQ,[resourceId],(err,result)=>{
+            if (err) {
+                return res.status(500).send(err); 
+            }
+
+            //insert new authors
+            authors.forEach(element => {
+                const nameParts = element.split(' '); 
+                const fname = nameParts[0]; // First name
+                const lname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''; // Last name (handles multiple words)
+    
+                const authorValue = [
+                    fname,
+                    lname
+                ]
+
+                // check if author already exist
+                db.query(checkIfAuthorExist,[fname,lname], (err,results)=>{
+                    if (err) {
+                        return res.status(500).send(err); 
+                    }
+                    
+                    //pag walang nahanap, new author sa authors table
+                    if(results.length===0){
+                        db.query(authorQ,authorValue,(err,results)=>{
+                            if (err) {
+                                return res.status(500).send(err); 
+                            }
+            
+                            //authorId nung author info na kakainsert lang
+                            const authorId = results.insertId;
+            
+                            //if author is inserted, insert sa resourceAuthor table
+                            db.query(resourceAuthorQ,[resourceId,authorId],(req,res)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
+    
+                                resolve() 
+                            })
+                        })
+                    }else{
+                        //if author is inserted, insert sa resourceAuthor table
+                        //results look like this: 
+                        // [
+                        //     {
+                        //         author_id: 5
+                        //     }
+                        // ]
+                        //so you have to use index to access id
+                        db.query(resourceAuthorQ,[resourceId,results[0].author_id],(req,res)=>{
+                            if (err) {
+                                return res.status(500).send(err); 
+                            }
+                            resolve() 
+                        })
+                    }
+                })    
+            });
+        })
+    })
+    
+}
 
 // retrieve book information from google books api using isbn
 app.get('/bookData/:isbn',async (req,res)=>{
@@ -652,9 +934,9 @@ const getBookResource = (id,res)=>{
     JOIN author ON resourceauthors.author_id = author.author_id 
     JOIN topic ON resources.topic_id = topic.topic_id 
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
-    JOIN book ON book.resource_id = resources.resource_id 
-    JOIN publisher ON book.pub_id = publisher.pub_id 
-    WHERE resources.resource_id = 140
+    LEFT JOIN book ON book.resource_id = resources.resource_id 
+    LEFT JOIN publisher ON book.pub_id = publisher.pub_id 
+    WHERE resources.resource_id = ?
     GROUP BY  resources.resource_id`
 
     db.query(q,[id],(err,result)=>{

@@ -27,9 +27,7 @@ const AddItem = () => {
         publisher: '',
         
     });
-    const [error, setError] = useState({
-        error: 'error'
-    });
+    const [error, setError] = useState({});
     const [publishers, setPublishers] = useState([]);
     // authorlist and adviserlist are for the <Select>. These are the options to be displayed
     const [authorList, setAuthorList] = useState([]);
@@ -147,7 +145,7 @@ const AddItem = () => {
                         isbn:data.book_isbn.toString(),
                         status:data.avail_id.toString(),
                         publisher_id:data.pub_id,
-                        publisher: data.pub_name.toString(),
+                        publisher: data.pub_name?data.pub_name.toString():'',
                         file:data.book_cover,
                         publishedDate:data.resource_published_date.toString(),
                         department: data.dept_id.toString(),
@@ -436,6 +434,8 @@ const AddItem = () => {
         }
     };
 
+    
+
     // Handle resource save
     const handleEditResource = async () => {
         if (formValidation() === true) {
@@ -451,7 +451,7 @@ const AddItem = () => {
                 if(navigator.onLine){
                     console.log('save online')
                     // Send data to the endpoint
-                    await axios.post('http://localhost:3001/edit', formData);
+                    await axios.put(`http://localhost:3001/edit/${id}`, formData);
                     console.log('Resource saved successfully');
 
                     //close loading
@@ -670,7 +670,7 @@ const AddItem = () => {
                         //update/edit resource
                         handleEditResource()
                     }
-                }} disabled={Object.values(error).length>=1}>
+                }} disabled={Object.values(error).length>=1&&!editMode}>
                     <i className="fa-regular fa-floppy-disk"></i>
                     <span>Save</span>
                 </button>
