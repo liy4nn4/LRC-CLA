@@ -350,9 +350,8 @@ const insertAuthors = async (res,authors,resourceId)=>{
 
         authors.forEach(element => {
             const nameParts = element.split(' '); 
-            const fname = nameParts[0]; // First name
-            const lname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''; // Last name (handles multiple words)
-
+            const fname = nameParts.slice(0, -1).join(" "); // "John Michael"
+            const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
             const authorValue = [
                 fname,
                 lname
