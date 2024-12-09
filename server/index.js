@@ -1101,12 +1101,15 @@ app.get('/catalog/search',(req,res)=>{
     console.log(searchFilter)
     switch(searchFilter){
         case 'title':
-            searchTitle(searchKeyword,res)
+            searchByTitle(searchKeyword,res)
+            break;
+        case 'author':
+            searchByAuthor(searchKeyword,res);
             break;
     }
 })
 
-const searchTitle = (searchKeyword,res)=>{
+const searchByTitle = (searchKeyword,res)=>{
     const q = `
         SELECT 
             resources.resource_title, 
@@ -1129,9 +1132,42 @@ const searchTitle = (searchKeyword,res)=>{
             if(results.length>0){
                 res.json(results)
                 // console.log(results)
+            }else{
+                res.send({})
             }
         })
 }
+
+const searchByAuthor = (searchKeyword,res)=>{
+    const q = `
+        SELECT 
+            resources.resource_title, 
+            resources.resource_id, 
+            resourcetype.type_name, 
+            resources.resource_quantity, 
+            department.dept_shelf_no,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources 
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN topic ON resources.topic_id = topic.topic_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        WHERE author.author_fname LIKE ? OR author.author_lname LIKE ?
+        GROUP BY resources.resource_id`
+
+        db.query(q, [`%${searchKeyword}%`,`%${searchKeyword}%`],(err,results)=>{
+            if(err) res.send(err)
+            if(results.length>0){
+                res.json(results)
+            }else{
+                res.send({})
+            }
+        })
+}
+
+
+
 
 
 app.listen(3001,()=>{

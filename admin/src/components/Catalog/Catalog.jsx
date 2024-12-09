@@ -17,7 +17,7 @@ const Catalog = () => {
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
-  const filterOptions = ['title', 'type', 'author', 'shelf no.']
+  const filterOptions = ['title', 'type', 'author']
   const [search, setSearch]=useState({
     searchKeyword: '',
     searchFilter: ''
@@ -27,6 +27,12 @@ const Catalog = () => {
     console.log('get catalog')
     getCatalog()
   },[pagination])
+
+  useEffect(()=>{
+    if(search.searchKeyword==''){
+      getCatalog()
+    }
+  },[search.searchKeyword])
 
   const getCatalog = async()=>{
     try {
