@@ -17,6 +17,11 @@ const Catalog = () => {
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
+  const filterOptions = ['title', 'type', 'author', 'shelf no.']
+  const [search, setSearch]=useState({
+    searchKeyword: '',
+    searchFilter: ''
+  })
   
   useEffect(()=>{
     console.log('get catalog')
@@ -32,7 +37,33 @@ const Catalog = () => {
     }
   }
 
-  console.log(catalog)
+  const handleSearch = async ()=>{
+    try{
+      const response = await axios.get(`http://localhost:3001/catalog/search`, { params: search });
+      console.log(response.data)
+      setCatalog(response.data)
+    }catch(err){
+      console.log('Cannot search resource. An error occurred: ', err.message)
+    }
+  }
+
+  const handleSelectedFilter = (filter)=>{
+    setSearch((prevdata)=>({
+      ...prevdata,
+      searchFilter: filter
+    }))
+  }
+
+  const handleChange = (e)=>{
+    const {value} = e.target
+    setSearch((prevdata)=>({
+      ...prevdata,
+      searchKeyword: value
+    }))
+  }
+
+
+  console.log(search)
 
   return (
     <div className='cat-container'>
@@ -70,17 +101,17 @@ const Catalog = () => {
             {/* search-filter */}
             <div className="search-filter">
                 <form class="d-flex " role="search">
-                  <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search"/>
-                  <button class="btn cat-search-button" type="submit">Search</button>
+                  <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange}/>
+                  <button class="btn cat-search-button" type="submit" onClick={handleSearch}>Search</button>
                 </form>
                 <div class="dropdown">
                   <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Filter
+                    {search.searchFilter==''?'Search by':search.searchFilter}
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Action</a></li>
-                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                    {filterOptions.map(item=>{
+                      return <li><a class="dropdown-item" href="#" onClick={()=>handleSelectedFilter(item)}>{item}</a></li>
+                    })}
                   </ul>
                 </div>
 

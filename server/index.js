@@ -1095,6 +1095,44 @@ app.get('/view',(req,res)=>{
     })
 })
 
+app.get('/catalog/search',(req,res)=>{
+    const searchKeyword = req.query.searchKeyword || '';
+    const searchFilter = req.query.searchFilter || '';
+    console.log(searchFilter)
+    switch(searchFilter){
+        case 'title':
+            searchTitle(searchKeyword,res)
+            break;
+    }
+})
+
+const searchTitle = (searchKeyword,res)=>{
+    const q = `
+        SELECT 
+            resources.resource_title, 
+            resources.resource_id, 
+            resourcetype.type_name, 
+            resources.resource_quantity, 
+            department.dept_shelf_no,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources 
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN topic ON resources.topic_id = topic.topic_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        WHERE resources.resource_title LIKE ?
+        GROUP BY resources.resource_id`
+
+        db.query(q, [`%${searchKeyword}%`],(err,results)=>{
+            if(err) res.send(err)
+            if(results.length>0){
+                res.json(results)
+                // console.log(results)
+            }
+        })
+}
+
 
 app.listen(3001,()=>{
     console.log('this is the backend')
