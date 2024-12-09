@@ -684,8 +684,10 @@ const editAuthors = async (res,authors,resourceId)=>{
             //insert new authors
             authors.forEach(element => {
                 const nameParts = element.split(' '); 
-                const fname = nameParts[0]; // First name
-                const lname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''; // Last name (handles multiple words)
+                // const fname = nameParts[0]; // First name
+                // const lname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''; // Last name (handles multiple words)
+                const fname = nameParts.slice(0,-1).join(" "); // First name
+                const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // Last name (handles multiple words)
     
                 const authorValue = [
                     fname,
