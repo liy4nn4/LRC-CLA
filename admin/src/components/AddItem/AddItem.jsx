@@ -65,6 +65,12 @@ const AddItem = () => {
         getPublishers()
         getAuthors()
         getAdvisers()
+
+        if(id){
+            setDisabled(true)
+            viewResource();
+
+        }
     },[])
 
     const viewResource = async()=>{
@@ -86,7 +92,7 @@ const AddItem = () => {
                         description:data.resource_description,
                         quantity:data.resource_quantity.toString(),
                         title:data.resource_title.toString(),
-                        isbn:data.book_isbn.toString(),
+                        isbn:data.book_isbn?data.book_isbn.toString():'',
                         status:data.avail_id.toString(),
                         publisher_id:data.pub_id,
                         publisher: data.pub_name?data.pub_name.toString():'',
