@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import axios from 'axios'
+import { Link } from 'react-router-dom'
 import './Logbook.css'
 import search from '../../assets/Management System/logbook/search.svg'
 import exportIcon from '../../assets/Management System/logbook/export.svg'
@@ -6,6 +8,29 @@ import left from '../../assets/Management System/logbook/arrow-left-red.svg'
 import right from '../../assets/Management System/logbook/arrow-right-red.svg'
 
 const Logbook = () => {
+    const [patron, setPatron] = useState([])
+
+    useEffect(()=>{
+        getPatron()
+        
+      },[])
+
+    const getPatron = async()=>{
+        try {
+          const response = await axios.get(`http://localhost:3001/patron`).then(res=>res.data);
+          setPatron(response)
+          console.log(response)
+        } catch (err) {
+            console.log(err.message);
+        }
+      }
+    
+    /* useEffect(()=>{
+        getPatron()
+        console.log(patron)
+        
+      },[]) */
+
   return (
     <div className='logbook-container'>
         <h1>Logbook</h1>
@@ -15,7 +40,7 @@ const Logbook = () => {
             {/* search bar */}
             <form class="d-flex " role="search">
                   <input class="form-control me-2 log-search-bar" type="search" placeholder="Enter Student ID or Student Name" aria-label="Search"/>
-                  <button class="btn log-search-button" ><img src={search} alt="" />
+                  <button class="btn log-search-button" onClick={getPatron}><img src={search} alt="" />
                   Search</button>
             </form>
             {/* export button */}
@@ -60,15 +85,47 @@ const Logbook = () => {
                         <th>Number</th>
                         <th>TUP ID</th>
                         <th>First Name</th>
-                        <th>Middle Name</th>
                         <th>Last Name</th>
                         <th>Gender</th>
+                        <th>Phone No.</th>
                         <th>Course</th>
                         <th>College</th>
                         <th>Date</th>
                         <th>Time in</th>
                     </tr>
                 </thead>
+
+                <tbody>
+                    {patron?patron.length>0?patron.map((item,key)=>(
+                    <tr key={key}>
+                        <td>{item.patron_id}</td>
+                        <td>{item.tup_id}</td>
+                        <td>{item.patron_fname}</td>
+                        <td>{item.patron_lname}</td>
+                        <td>{item.patron_sex}</td>
+                        <td>{item.patron_mobile}</td>
+                        <td>{item.course}</td>
+                        <td>{item.college}</td>
+                        <td>{new Date(item.att_date).toISOString().split('T')[0]}</td>
+                        <td>{item.att_log_in_time}</td>
+                        {/* <td>
+                        { <Link to={`/view-item/${item.resource_id}`}>
+                            <button className='btn cat-view'>
+                            <i class="fa-solid fa-bars"></i>
+                            View
+                            </button>
+                        </Link> }
+                        </td> */}
+                    </tr> )):
+                        <tr>
+                            <td colSpan="7">No records available</td> 
+                        </tr>:''}
+                </tbody>
+
+
+
+
+
                 <tbody>
                     <tr>
                         <td>x</td>

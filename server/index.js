@@ -1138,15 +1138,24 @@ app.get('/resource/:id', (req,res)=>{
     })
 })
 
-app.get('/view',(req,res)=>{
-    const q = 'SELECT book_cover FROM book'
-    db.query(q,(err,results)=>{
-        if(err) res.send(err)
-        if(results.length>0){
-            res.json(results[0])
-        }
-    })
-})
+
+
+app.get('/patron', (req, res) => {
+
+//const q = 'SELECT * FROM patron';
+
+const q = "SELECT patron.patron_id,patron.tup_id,patron.patron_fname,patron.patron_lname,patron.patron_sex,patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) as att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id";
+
+db.query(q, (err, results) => {
+    if (err) {
+    res.send(err);
+    } else if (results.length > 0) {
+    res.json(results);
+    } else {
+    res.json({ message: 'No patrons found' });
+    }
+});
+});
 
 app.get('/catalog/search',(req,res)=>{
     const searchKeyword = req.query.searchKeyword || '';
