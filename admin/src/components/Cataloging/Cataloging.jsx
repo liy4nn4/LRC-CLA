@@ -4,7 +4,7 @@ import './Cataloging.css'
 import axios from 'axios'
 import { getDepartmentOffline, getCatalogOffline } from '../../indexedDb'
 
-const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized}) => {
+const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized,editMode}) => {
     const [department, setDepartment] = useState([])
     const [catalog, setCatalog] = useState([])
     const [topic,setTopic] = useState([])
@@ -69,7 +69,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled className=''>Select department</option>
                                 {department.length>0?department.map((item,key)=>(
-                                    <option value={item.dept_id} className='dept_name' selected={disabled?item.dept_id==bookData.department:''}>{item.dept_name}</option>
+                                    <option value={item.dept_id} className='dept_name' selected={disabled||editMode?item.dept_id==bookData.department:''}>{item.dept_name}</option>
                                 )):''}
                                 
                             </select>
@@ -81,7 +81,7 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             <select className="form-select" name='topic' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled>Select Topic</option>
                                 {topic.length>0?topic.map((item,key)=>(
-                                    <option value={item.topic_id} selected={disabled?item.topic_id==bookData.topic:''}>{item.topic_name}</option>
+                                    <option value={item.topic_id} selected={disabled||editMode?item.topic_id==bookData.topic:''}>{item.topic_name}</option>
                                 )):''}
                             </select>
                             <p className='resource-error'>{error.topic}</p>

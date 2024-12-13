@@ -19,11 +19,11 @@ const PublisherModal = ({open,close,handleChange,bookData,setBookData,publishers
     
             setBookData((prevdata)=>({
                 ...prevdata,
-                publisher: publisherDetails.publisher || null,
-                publisher_address:publisherDetails.publisher_address || null,
-                publisher_email:publisherDetails.publisher_email || null,
-                publisher_number:publisherDetails.publisher_number || null,
-                publisher_website:publisherDetails.publisher_website || null,
+                publisher: publisherDetails.publisher || 'n/a',
+                publisher_address:publisherDetails.publisher_address || 'n/a',
+                publisher_email:publisherDetails.publisher_email || 'n/a',
+                publisher_number:publisherDetails.publisher_number || 'n/a',
+                publisher_website:publisherDetails.publisher_website || 'n/a',
                 publisher_id:0
             }))
             close()

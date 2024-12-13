@@ -10,6 +10,9 @@ import AuthorModal from '../AuthorModal/AuthorModal'
 import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import { getResourcesCatalog } from '../../indexedDb'
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 
 const Catalog = () => {
@@ -24,9 +27,20 @@ const Catalog = () => {
   })
   
   useEffect(()=>{
-    console.log('get catalog')
     getCatalog()
+    //Listen for the 'updateData' event from the server
+    socket.on('updateCatalog', ()=>{
+      console.log('update catalog')
+      getCatalog();
+    }); // Fetch updated appointments when event is emitted
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      socket.off('updateCatalog');
+    };
   },[pagination])
+
+  console.log('pagination: ', pagination)
 
   useEffect(()=>{
     if(search.searchKeyword==''){

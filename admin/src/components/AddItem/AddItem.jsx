@@ -5,6 +5,8 @@ import CatalogInfo from '../CatalogInfo/CatalogInfo';
 import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
+import io from 'socket.io-client';
+const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const AddItem = () => {
     //pag may id, nagiging view ung purpose ng add item component
@@ -334,31 +336,32 @@ const AddItem = () => {
     const handleSaveResource = async () => {
         if (formValidation() === true) {
             setLoading(true)
-            
-            const formData = new FormData();
-            
-            Object.entries(bookData).forEach(([key, value]) => {
-                formData.append(key, value);
-            });
-                
-                    console.log('save online')
-                    // Send data to the endpoint
-                    await axios.post('http://localhost:3001/save', formData);
-                    console.log('Resource saved successfully');
+            try{
+                const formData = new FormData();
+                Object.entries(bookData).forEach(([key, value]) => {
+                    formData.append(key, value);
+                });
 
-                    //close loading
-                    setLoading(false)
-                    // Reset bookData if saved successfully
-                    setBookData({
-                        mediaType: 'book',
-                        authors: [],
-                        isCirculation: false,
-                        publisher_id: 0,
-                        publisher: ''
-                    });
-
-                    window.location.reload(); // Optionally reload the page
-              
+                const response = await axios.post('http://localhost:3001/save', formData);
+                console.log(response)
+                // socket io
+                if(response.data=='Successful'){
+                    socket.emit('newResource');
+                }
+                //close loading
+                setLoading(false)
+                 // Reset bookData if saved successfully
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+                window.location.reload(); // Optionally reload the page
+            }catch(err){
+                console.log('Cannot save resource. An error occurred: ',err.message);
+            }
         } else {
             console.log("Please enter complete information");
         }
@@ -557,6 +560,7 @@ const AddItem = () => {
                     formValidation={formValidation}
                     error={error}
                     isDbInitialized={isDbInitialized}
+                    editMode={editMode}
                 />
             </div>
 

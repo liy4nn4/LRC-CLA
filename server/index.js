@@ -1,14 +1,16 @@
-import express from "express"
-import mysql from "mysql"
-import cors from "cors"
-import axios from 'axios'
-import multer from 'multer' // This is a tool that helps us upload files (like images or documents) from a form to our server.
-import fs from 'fs'
+import express from "express";
+import mysql from "mysql";
+import cors from "cors";
+import axios from 'axios';
+import multer from 'multer'; // This is a tool that helps us upload files (like images or documents) from a form to our server.
+import fs from 'fs';
+import http from 'http';
+import { Server } from 'socket.io';
 
 const app = express()
 app.use(express.json())
 app.use(cors({
-    // origin: 'http://localhost:3000',
+    origin: 'http://localhost:3000',
     methods: 'GET,POST,PUT,DELETE'
 }));
 
@@ -29,6 +31,27 @@ db.connect((err) => {
         return;
     }
     console.log('Connected to the database');
+});
+
+
+//how we create http server with react
+const server = http.createServer(app)
+
+// Server is a class
+const io = new Server(server,{
+    cors:{
+        // url for frontend
+        origin:"http://localhost:3000",
+    }
+})
+
+// Handle WebSocket connections
+io.on('connection', (socket) => {
+  // Listen for an event from the client
+  socket.on('newResource', () => {
+    console.log('new data inserted')
+    io.emit('updateCatalog');
+  });
 });
 
 const storage = multer.diskStorage({
@@ -164,11 +187,11 @@ app.post('/save', upload.single('file'), async (req, res) => {
                         const pubQ = 'INSERT INTO publisher (pub_name, pub_address, pub_email, pub_phone, pub_website) VALUES (?, ?, ?, ?, ?)';
 
                         const publisher = [
-                            !req.body.publisher?null:req.body.publisher,
-                            !req.body.publisher_address?null:req.body.publisher_address,
-                            !req.body.publisher_email?null:req.body.publisher_email,
-                            !req.body.publisher_number?null:req.body.publisher_number,
-                            !req.body.publisher_website?null:req.body.publisher_website
+                            req.body.publisher,
+                            req.body.publisher_address,
+                            req.body.publisher_email,
+                            req.body.publisher_number,
+                            req.body.publisher_website
                         ];
 
                         db.query(pubQ, publisher, (err, results) => {
@@ -230,7 +253,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
                                 }); 
                             }
 
-                            // Successfully inserted image, send response
+                            // Successfully inserted 
                             return res.send('Successful');
                         });
                     }
@@ -1170,6 +1193,7 @@ const searchByAuthor = (searchKeyword,res)=>{
         })
 }
 
-app.listen(3001,()=>{
+server.listen(3001,()=>{
     console.log('this is the backend')
 })
+
