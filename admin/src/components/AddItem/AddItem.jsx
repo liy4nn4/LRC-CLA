@@ -337,9 +337,9 @@ const AddItem = () => {
             if (!bookData.authors || bookData.authors.length === 0) {
                 err.authors = 'Please specify author/s';
             }
-            if (!bookData.isbn) {
+            /* if (!bookData.isbn) {
                 err.isbn = 'Please enter ISBN';
-            }
+            } */
             // if (bookData.publisher_id === 0 && bookData.publisher === '') {
             //     err.publisher = 'Please enter publisher';
             // }
