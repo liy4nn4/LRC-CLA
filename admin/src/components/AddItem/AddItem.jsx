@@ -489,7 +489,7 @@ const AddItem = () => {
                     </button>
                 </Link>
                 <div className="add-item-path">
-                    <p>Cataloging / <span>Add new Item</span></p>
+                    <p>Cataloging / <span>{disabled?'View':editMode?'Edit':'Add new'} Item</span></p>
                 </div>
             </div>
 
