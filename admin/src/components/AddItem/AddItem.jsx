@@ -371,30 +371,16 @@ const AddItem = () => {
 
     // Handle resource save
     const handleEditResource = async () => {
+        console.log('edit resource')
         if (formValidation() === true) {
             setLoading(true)
-            
-            const formData = new FormData();
-            
-            Object.entries(bookData).forEach(([key, value]) => {
-                formData.append(key, value);
-            });
+            console.log(bookData)
                   
             // Send data to the endpoint
-            await axios.put(`http://localhost:3001/edit/${id}`, formData);
-            console.log('Resource saved successfully');
-
-                    setLoading(false)
-                    // Reset bookData if saved successfully
-                    setBookData({
-                        mediaType: 'book',
-                        authors: [],
-                        isCirculation: false,
-                        publisher_id: 0,
-                        publisher: ''
-                    });
-
-                    window.location.reload(); // Optionally reload the page
+            const response = await axios.put(`http://localhost:3001/edit/${id}`, bookData).finally(()=>{
+                setLoading(false)
+                navigate(`/view-item/${id}`)
+            })
         } else {
             console.log("Please enter complete information");
         }
