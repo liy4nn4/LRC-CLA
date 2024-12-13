@@ -297,7 +297,6 @@ app.post('/save', upload.single('file'), async (req, res) => {
                     return res.status(500).send(err); 
                 }
 
-                
                 //if exist, insert to thesis table
                 if(results.length>0){
                     db.query(thesisQ,[resourceId,results[0].adviser_id],(err,results)=>{
@@ -424,16 +423,51 @@ const insertAuthors = async (res,authors,resourceId)=>{
     })
 }
 
-app.put('/edit/:id', async (req, res) => {
+app.put('/file', upload.single('file'), (req, res) => {
+    console.log(req.file); // Log the uploaded file details
+    const filePath = req.file.path; // Get the file path
+
+    fs.readFile(filePath, (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            return res.status(500).send('Error reading file');
+        }
+
+        // Send the file data as a response
+        res.send(data); // This sends the file content to the frontend
+        console.log(data)
+
+        // Attempt to unlink (delete) the file after sending the response
+        fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        });
+    });
+});
+
+app.put('/edit/:id', upload.single('file'),async (req, res) => {
     const resourceId = req.params.id;
     const mediaType = req.body.mediaType;
     let adviserFname;
     let adviserLname;
     let existingPublisher;
+    let filePath;
 
     //dito masstore yung URL/ImageFile
     let imageFile;
-    
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        fs.readFile(filePath, (err, data) => {
+             if (err) {
+                 return res.status(500).send(err); 
+             }
+             imageFile = data;
+             //data
+             // ganitong form mo siya isstore sa database
+             //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
+         })
+     }
+
     // initialize variables based on media type
     if(mediaType==='1'){
         existingPublisher = req.body.publisher_id; //this is not 0 if pinili niya ay existing na publisher
@@ -445,32 +479,57 @@ app.put('/edit/:id', async (req, res) => {
         adviserLname = adviser[1];
     }
 
-    const authors = req.body.authors
-    
-    await updateResource(res,req,authors,resourceId).then((data)=>{
+    const authors = req.body.authors.split(',')
+
+    console.log(typeof mediaType)
+
+    await editResource(res,req,authors,resourceId).then(()=>{
         // For example, if mediaType is book, the rest of the data will be inserted sa book table and etc
 
         // however, before inserting the rest of the data inside the book table, we need to insert the publisher info if the mediaType is book
         if (mediaType === '1') {
             if(existingPublisher==0&&!req.body.publisher&&!req.body.publisher_address&&!req.body.publisher_email&&!req.body.publisher_number&&!req.body.publisher_website){
                 //if walang napiling publisher/walang nahanap na publisher, set pub_id to null
-                const q = `
-                    UPDATE 
-                        book
-                    SET 
-                        book_cover = ?,
-                        book_isbn = ?,
-                        resource_id = ?,
-                        pub_id = ?
-                    WHERE 
-                        resource_id`
-                const book = [
-                    imageFile,
-                    req.body.isbn,
-                    resourceId,
-                    null,
-                    resourceId
-                ];
+                let q;
+                let book;
+
+                // ibig sabihin may inupload si user na image
+                // so we need to insert the image,pag hindi naman, as is lang ung image
+                if(typeof filePath === 'string'){
+                    q = `
+                        UPDATE 
+                            book
+                        SET 
+                            book_cover = ?,
+                            book_isbn = ?,
+                            resource_id = ?,
+                            pub_id = ?
+                        WHERE 
+                            resource_id`
+                    book = [
+                        imageFile,
+                        req.body.isbn,
+                        resourceId,
+                        null,
+                        resourceId
+                    ];
+                }else{
+                    q = `
+                        UPDATE 
+                            book
+                        SET 
+                            book_isbn = ?,
+                            resource_id = ?,
+                            pub_id = ?
+                        WHERE 
+                            resource_id`
+                    book = [
+                        req.body.isbn,
+                        resourceId,
+                        null,
+                        resourceId
+                    ];
+                }
 
                 db.query(q, book, (err, result) => {
                     if (err) {
@@ -480,11 +539,11 @@ app.put('/edit/:id', async (req, res) => {
                     // Optionally, delete the file from disk after saving it to the database
                     // fs.unlink() method is used to delete files in Node.js
                     // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                    // if(filePath){
-                    //     fs.unlink(filePath, (unlinkErr) => {
-                    //         if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                    //     }); 
-                    // }
+                    if(filePath){
+                        fs.unlink(filePath, (unlinkErr) => {
+                            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                        }); 
+                    }
 
                     // Successfully inserted image, send response
                     return res.send('Successful');
@@ -520,24 +579,43 @@ app.put('/edit/:id', async (req, res) => {
                             const publisherId = results.insertId;
 
                             // Insert the file data into the database
-                            const q = `
-                                UPDATE 
-                                    book
-                                SET 
-                                    book_cover = ?,
-                                    book_isbn = ?,
-                                    resource_id = ?,
-                                    pub_id = ?
-                                WHERE 
-                                    resource_id`
-                            
-                            const book = [
-                                imageFile,
-                                req.body.isbn,
-                                resourceId,
-                                publisherId,
-                                resourceId
-                            ];
+                           //if walang napiling publisher/walang nahanap na publisher, set pub_id to null
+                            let q;
+                            let book;
+
+                            // ibig sabihin may inupload si user na image
+                            // so we need to insert the image,pag hindi naman, as is lang ung image
+                            if(typeof filePath === 'string'){
+                                q = `
+                                    UPDATE 
+                                        book
+                                    SET 
+                                        book_cover = ?,
+                                        book_isbn = ?,
+                                        pub_id = ?
+                                    WHERE 
+                                        resource_id`
+                                book = [
+                                    imageFile,
+                                    req.body.isbn,
+                                    publisherId,
+                                    resourceId
+                                ];
+                            }else{
+                                q = `
+                                    UPDATE 
+                                        book
+                                    SET 
+                                        book_isbn = ?,
+                                        pub_id = ?
+                                    WHERE 
+                                        resource_id`
+                                book = [
+                                    req.body.isbn,
+                                    publisherId,
+                                    resourceId
+                                ];
+                            }
 
                             db.query(q, book, (err, result) => {
                                 if (err) {
@@ -547,11 +625,11 @@ app.put('/edit/:id', async (req, res) => {
                                 // Optionally, delete the file from disk after saving it to the database
                                 // fs.unlink() method is used to delete files in Node.js
                                 // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                                // if(filePath){
-                                //     fs.unlink(filePath, (unlinkErr) => {
-                                //         if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                                //     }); 
-                                // }
+                                if(typeof filePath === 'string'){
+                                    fs.unlink(filePath, (unlinkErr) => {
+                                        if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                                    }); 
+                                }
                                 
                                 // Successfully inserted image, send response
                                 return res.send('Successful');
@@ -559,23 +637,44 @@ app.put('/edit/:id', async (req, res) => {
                         });
                     }else{
                         //pag may nahanap na publisher, store the id of chosen publisher in book database
-                        const q = `
+                        //if walang napiling publisher/walang nahanap na publisher, set pub_id to null
+                        let q;
+                        let book;
+
+                        // ibig sabihin may inupload si user na image
+                        // so we need to insert the image,pag hindi naman, as is lang ung image
+                        if(typeof filePath === 'string'){
+                            q = `
                                 UPDATE 
                                     book
                                 SET 
                                     book_cover = ?,
                                     book_isbn = ?,
-                                    resource_id = ?,
                                     pub_id = ?
                                 WHERE 
                                     resource_id`
-                        const book = [
-                            imageFile,
-                            req.body.isbn,
-                            resourceId,
-                            existingPublisher,
-                            resourceId
-                        ];
+                            book = [
+                                imageFile,
+                                req.body.isbn,
+                                existingPublisher,
+                                resourceId
+                            ];
+                        }else{
+                            q = `
+                                UPDATE 
+                                    book
+                                SET 
+                                    book_isbn = ?,
+                                    pub_id = ?
+                                WHERE 
+                                    resource_id`
+                            book = [
+                                req.body.isbn,
+                                existingPublisher,
+                                resourceId
+                            ];
+                        }
+
 
                         db.query(q, book, (err, result) => {
                             if (err) {
@@ -585,11 +684,11 @@ app.put('/edit/:id', async (req, res) => {
                             // Optionally, delete the file from disk after saving it to the database
                             // fs.unlink() method is used to delete files in Node.js
                             // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                            // if(filePath){
-                            //     fs.unlink(filePath, (unlinkErr) => {
-                            //         if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                            //     }); 
-                            // }
+                            if(typeof filePath === 'string'){
+                                fs.unlink(filePath, (unlinkErr) => {
+                                    if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                                }); 
+                            }
 
                             // Successfully inserted 
                             return res.send('Successful');
@@ -597,78 +696,109 @@ app.put('/edit/:id', async (req, res) => {
                     }
                 })
             }
-        // }else if(mediaType==='2'|| mediaType==='3'){
-        //         // Insert the file data into the database
-        //         const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id) VALUES (?, ?, ?, ?)';
-        //         const jn = [
-        //             req.body.volume,
-        //             req.body.issue,
-        //             imageFile,
-        //             resourceId
-        //         ];
+        }else if(mediaType==='2'|| mediaType==='3'){
+            let q;
+            let jn;
 
-        //         db.query(q, jn, (err, result) => {
-        //             if (err) {
-        //                 return res.status(500).send(err); 
-        //             }
-
-        //             // Optionally, delete the file from disk after saving it to the database
-        //             // fs.unlink() method is used to delete files in Node.js
-        //             // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-        //             if(filePath){
-        //                 fs.unlink(filePath, (unlinkErr) => {
-        //                     if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-        //                 }); 
-        //             }
-
-        //             // Successfully inserted image, send response
-        //             return res.send('Successful');
-        //         });
-        // }else{
-        //     //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
-
-        //     const checkIfAdviserExist = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
-        //     const thesisQ = "INSERT INTO thesis (resource_id, adviser_id) VALUES (?,?)"
-        //     const insertAdviser = "INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)"
-
-        //     db.query(checkIfAdviserExist,[adviserFname,adviserLname],(err,results)=>{
-        //         if (err) {
-        //             return res.status(500).send(err); 
-        //         }
-
+            if(typeof filePath === 'string'){
+                q = `
+                    UPDATE 
+                        journalnewsletter 
+                    SET
+                        jn_volume = ?,
+                        jn_issue = ?,
+                        jn_cover = ?
+                    WHERE
+                        resource_id = ?`;
+                jn = [
+                    req.body.volume,
+                    req.body.issue,
+                    imageFile,
+                    resourceId
+                ]
+            }else{
+                q = `
+                    UPDATE 
+                        journalnewsletter 
+                    SET
+                        jn_volume = ?,
+                        jn_issue = ?
+                    WHERE
+                        resource_id = ?`;
+                jn = [
+                    req.body.volume,
+                    req.body.issue,
+                    resourceId
+                ]
+            }
                 
-        //         //if exist, insert to thesis table
-        //         if(results.length>0){
-        //             db.query(thesisQ,[resourceId,results[0].adviser_id],(err,results)=>{
-        //                 if (err) {
-        //                     return res.status(500).send(err); 
-        //                 }
-        //                 return res.send('successful')
-        //             })
-        //         }else{
-        //             //if adviser does not exist, insert it to adviser table
-        //             db.query(insertAdviser,[adviserFname,adviserLname],(err,results)=>{
-        //                 if (err) {
-        //                     return res.status(500).send(err); 
-        //                 }
-                        
-        //                 //if inserted to adviser, insert to thesis table
-        //                 const adviserId = results.insertId
-        //                 db.query(thesisQ,[resourceId,adviserId],(err,results)=>{
-        //                     if (err) {
-        //                         return res.status(500).send(err); 
-        //                     }
-        //                     return res.send('successful')
-        //                 })
+                db.query(q, jn, (err, result) => {
+                    if (err) {
+                        return res.status(500).send(err); 
+                    }
 
-        //             })
-        //         }
-        //     })
+                    // Optionally, delete the file from disk after saving it to the database
+                    // fs.unlink() method is used to delete files in Node.js
+                    // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
+                    if(typeof filePath === 'string'){
+                        fs.unlink(filePath, (unlinkErr) => {
+                            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+                        }); 
+                    }
+
+                    // Successfully inserted image, send response
+                    return res.send('Successful');
+                });
+        }else{
+            //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
+            const checkIfAdviserExist = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
+            const thesisQ = `
+                UPDATE
+                    thesis
+                SET
+                    adviser_id = ?
+                WHERE
+                    resource_id = ?`
+                
+            const insertAdviser = "INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)"
+
+            db.query(checkIfAdviserExist,[adviserFname,adviserLname],(err,results)=>{
+                if (err) {
+                    return res.status(500).send(err); 
+                }
+
+                //if exist, insert to thesis table
+                if(results.length>0){
+                    db.query(thesisQ,[results[0].adviser_id,resourceId],(err,results)=>{
+                        if (err) {
+                            return res.status(500).send(err); 
+                        }
+                        return res.send('successful')
+                    })
+                }else{
+                    //if adviser does not exist, insert it to adviser table
+                    db.query(insertAdviser,[adviserFname,adviserLname],(err,results)=>{
+                        if (err) {
+                            return res.status(500).send(err); 
+                        }
+                        
+                        //if inserted to adviser, insert to thesis table
+                        const adviserId = results.insertId
+                        db.query(thesisQ,[adviserId,resourceId],(err,results)=>{
+                            if (err) {
+                                return res.status(500).send(err); 
+                            }
+                            return res.send('successful')
+                        })
+
+                    })
+                }
+            })
         }
     })
 })
 
-const updateResource = async (res,req,authors,resourceId)=>{
+const editResource = async (res,req,authors,resourceId)=>{
     return new Promise((resolve,reject)=>{
         const q = `
         UPDATE
@@ -707,7 +837,7 @@ const updateResource = async (res,req,authors,resourceId)=>{
                 return res.status(500).send(err); 
             }
 
-            updateAuthors(res,authors,resourceId).then(()=>{
+            editAuthors(res,authors,resourceId).then(()=>{
                 resolve('success')
             })
             // resolve('success')
@@ -716,7 +846,7 @@ const updateResource = async (res,req,authors,resourceId)=>{
 }
 
 //insert authors 
-const updateAuthors = async (res,authors,resourceId)=>{
+const editAuthors = async (res,authors,resourceId)=>{
     return new Promise((resolve,reject)=>{
         //delete first yung record ng given resource_id sa resource_authors
         const deleteResourceAuthorsQ = 'DELETE FROM resourceauthors WHERE resource_id = ?'
@@ -947,8 +1077,6 @@ app.get('/view/:id',(req,res)=>{
                 getBookResource(id,res);
                 break;
             case 'journal':
-                getNewsletterJournalResource(id,res);
-                break;
             case 'newsletter':
                 getNewsletterJournalResource(id,res);
                 break;
@@ -1007,7 +1135,7 @@ const getNewsletterJournalResource = (id,res)=>{
         resources.resource_published_date,
         resources.resource_description,
         resources.dept_id,
-        resources.cat_id,
+        resources.topic_id,
         resources.resource_is_circulation,
         GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names,
         journalnewsletter.jn_volume,
@@ -1016,10 +1144,10 @@ const getNewsletterJournalResource = (id,res)=>{
     FROM resources
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
-    JOIN catalog ON resources.cat_id = catalog.cat_id
-    JOIN resourcetype ON resources.type_id = resourcetype.type_id
+    JOIN topic ON resources.topic_id = topic.topic_id
+    JOIN resourcetype ON resourcetype.type_id = resources.type_id
     JOIN journalnewsletter ON resources.resource_id = journalnewsletter.resource_id
-    WHERE resources.resource_id = ? 
+    WHERE resources.resource_id = ?
     GROUP BY resources.resource_id`
 
     db.query(q,[id],(err,result)=>{
@@ -1033,7 +1161,7 @@ const getThesisResource = (id,res)=>{
     const q = 
     `SELECT
         resources.type_id,
-        resources.cat_id,
+        resources.topic_id,
         resources.dept_id,
         resources.resource_description,
         resources.resource_is_circulation,
@@ -1046,7 +1174,7 @@ const getThesisResource = (id,res)=>{
     FROM resources
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
-    JOIN catalog ON resources.cat_id = catalog.cat_id
+    JOIN topic ON resources.topic_id = topic.topic_id
     JOIN resourcetype ON resources.type_id = resourcetype.type_id
     JOIN thesis ON thesis.resource_id = thesis.resource_id
     JOIN adviser ON adviser.adviser_id = thesis.adviser_id
