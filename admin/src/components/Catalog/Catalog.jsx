@@ -27,6 +27,7 @@ const Catalog = () => {
   })
   
   useEffect(()=>{
+    console.log('display catalog')
     getCatalog()
     //Listen for the 'updateData' event from the server
     socket.on('updateCatalog', ()=>{

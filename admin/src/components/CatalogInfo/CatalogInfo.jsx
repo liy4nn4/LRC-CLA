@@ -8,7 +8,7 @@ import ThesisInput from '../ThesisInput/ThesisInput'
 import axios from 'axios'
 import { getGenreOffline } from '../../indexedDb'
 
-const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList}) => {
+const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
     const [selectedGenre,setSelectedGenre] = useState([])
@@ -70,7 +70,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
         setSelectedGenre(selected)
       }
 
-      console.log(genreList)
+      console.log(bookData.mediaType)
    
   return (
     <div className='cat-info'>
@@ -87,7 +87,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                             <label htmlFor="">Media Type *</label>
                             <select name="mediaType" id="" className='form-select' disabled={disabled} onChange={handleChange}>
                                  {resourceType.length>0?resourceType.map(item=>(
-                                    <option value={item.type_id} selected={disabled?item.type_id==bookData.mediaType:''}>{item.type_name}</option>
+                                    <option value={item.type_id} selected={disabled||editMode?item.type_id==bookData.mediaType:''}>{item.type_name}</option>
                                 )):''}                                 
                             </select>
                            
