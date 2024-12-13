@@ -5,9 +5,6 @@ import CatalogInfo from '../CatalogInfo/CatalogInfo';
 import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
-import { initDatabase,getTypeOffline,getStatusOffline,saveResourcesOffline,getPublishersOffline, getGenreOffline, getAuthorsOffline} from '../../indexedDb';
-
-
 
 const AddItem = () => {
     //pag may id, nagiging view ung purpose ng add item component
@@ -62,67 +59,14 @@ const AddItem = () => {
     }, [bookData.mediaType]);
 
     useEffect(()=>{
-        console.log('AddItem Component Mounted')
-
-        // handles system if you're offline
-        const offlineHandler = ()=>{
-            alert("You're Offline")
-            //initialize indexedDb database first
-            if(!isDbInitialized){
-                //initdatabase accepts a callback. so whatever is inside the callback ay maeexecute after maginitialize ng database
-                initDatabase(()=>{
-                    setDbInitialized(true)
-                    getTypeOffline(setResourceType)
-                    getStatusOffline(setResourceStatus)
-                    getGenreOffline(setGenreList)
-                    getPublishersOffline(setPublishers)
-                    getAuthorsOffline(setAuthorList)
-                })
-            }else{
-                getTypeOffline(setResourceType)
-                getStatusOffline(setResourceStatus)
-                getGenreOffline(setGenreList)
-                getPublishersOffline(setPublishers)
-                getAuthorsOffline(setAuthorList)
-            }
-        }
-
-        const onlineHandler = ()=>{
-            alert("You're Online")
-            getType()
-            getStatus()
-            getGenre()
-            getPublishers()
-            getAuthors()
-            getAdvisers()
-        }
-
-        //checks if your're offline
-        window.addEventListener('offline', offlineHandler)
-        window.addEventListener('online',onlineHandler)
-
-        if(!navigator.onLine){
-            offlineHandler()
-        }else if(navigator.onLine){
-            onlineHandler()
-        }
-        
-        if(id){
-            setDisabled(true)
-            viewResource();
-
-        }
-
-
-        return () => {
-            window.removeEventListener('offline', offlineHandler);
-            window.removeEventListener('online', offlineHandler);
-        };
+        getType()
+        getStatus()
+        getGenre()
+        getPublishers()
+        getAuthors()
+        getAdvisers()
     },[])
 
-    console.log(id)
-
-    
     const viewResource = async()=>{
         console.log('view resource')
         try{
@@ -391,8 +335,6 @@ const AddItem = () => {
                 formData.append(key, value);
             });
                 
-                //if online
-                if(navigator.onLine){
                     console.log('save online')
                     // Send data to the endpoint
                     await axios.post('http://localhost:3001/save', formData);
@@ -410,25 +352,7 @@ const AddItem = () => {
                     });
 
                     window.location.reload(); // Optionally reload the page
-                }else{
-                    console.log('save offline')
-                    //pass setPublishers to retrieve/load latest publishers in choices
-                    saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
-                    alert("Resource saved successfully")
-                    //reset input field
-                    setBookData({
-                        mediaType: 'book',
-                        authors: [],
-                        genre: [],
-                        isCirculation: false,
-                        publisher_id: 0,
-                        publisher: '',
-                    });
-                    //initialize error
-                    setError({error:'error'})
-                    
-                    console.log(publishers)
-                }
+              
         } else {
             console.log("Please enter complete information");
         }
@@ -446,15 +370,11 @@ const AddItem = () => {
             Object.entries(bookData).forEach(([key, value]) => {
                 formData.append(key, value);
             });
-                
-                //if online
-                if(navigator.onLine){
-                    console.log('save online')
-                    // Send data to the endpoint
-                    await axios.put(`http://localhost:3001/edit/${id}`, formData);
-                    console.log('Resource saved successfully');
+                  
+            // Send data to the endpoint
+            await axios.put(`http://localhost:3001/edit/${id}`, formData);
+            console.log('Resource saved successfully');
 
-                    //close loading
                     setLoading(false)
                     // Reset bookData if saved successfully
                     setBookData({
@@ -466,25 +386,6 @@ const AddItem = () => {
                     });
 
                     window.location.reload(); // Optionally reload the page
-                }else{
-                    console.log('save offline')
-                    //pass setPublishers to retrieve/load latest publishers in choices
-                    saveResourcesOffline(bookData,setPublishers,setAuthorList,setAdviserList)
-                    alert("Resource saved successfully")
-                    //reset input field
-                    setBookData({
-                        mediaType: 'book',
-                        authors: [],
-                        genre: [],
-                        isCirculation: false,
-                        publisher_id: 0,
-                        publisher: '',
-                    });
-                    //initialize error
-                    setError({error:'error'})
-                    
-                    console.log(publishers)
-                }
         } else {
             console.log("Please enter complete information");
         }

@@ -5,7 +5,6 @@ import axios from 'axios'
 import { Link, useNavigate } from "react-router-dom"
 import { gsap } from "gsap"; // for animations
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 // swiper will be used for the coverflow
 import { Swiper, SwiperSlide } from 'swiper/react';
 // Import Swiper styles

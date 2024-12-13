@@ -17,7 +17,7 @@ const Catalog = () => {
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
-  const filterOptions = ['title', 'type', 'author']
+  const filterOptions = ['title','author']
   const [search, setSearch]=useState({
     searchKeyword: '',
     searchFilter: ''

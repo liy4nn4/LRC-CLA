@@ -51,12 +51,12 @@ const AdminNavbar = () => {
                 </li>
 
                 {/* inventory */}
-                <li>
+                {/* <li>
                     <Link to='/inventory' className="menu">
                         <img src={inventory} alt="" className='menu-icon'/>
                         <p>Inventory</p>
                     </Link>  
-                </li>
+                </li> */}
                 
                 {/* circulation */}
                 <li>

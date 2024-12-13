@@ -101,6 +101,10 @@
     gap: 13px;
 }
 
+.search-filter .dropdown-menu{
+    text-transform: capitalize;
+}
+
 .cat-search-button{
     height: 40px;
     border: none;
@@ -124,6 +128,7 @@
 
 .cat-dropdown{
     border: 1px solid var(--tup-color);
+    text-transform: capitalize;
 }
 
 .cat-dropdown:hover{

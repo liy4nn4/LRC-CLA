@@ -38,7 +38,7 @@ const Search = () => {
 
   const getResource = async()=>{
     try{
-      const response = await axios.get(`http://localhost:3001/search?q=${query}`);
+      const response = await axios.get(`http://localhost:3001/resource/search?q=${query}&filter=${filter}`);
       console.log(response.data);
       setResults(response.data)
       

@@ -1011,67 +1011,71 @@ const getThesisResource = (id,res)=>{
     })
 }
 
-app.get('/search', async (req, res) => {
+app.get('/resource/search', async (req, res) => {
     const searchQuery = req.query.q;
+    const searchFilter = req.query.filter;
     console.log(searchQuery);
+    console.log(searchFilter)
 
-    const query = 
-    `SELECT 
-        resource_Id 
-    FROM 
-        resources 
-    WHERE 
-        resource_title 
-    LIKE ?`;
 
-    db.query(query, [`%${searchQuery}%`], async (err, results) => {
-        if (err) return res.status(500).send(err);
 
-        if (results.length !== 0) {
-            const searchResults = [];
+    // const query = 
+    // `SELECT 
+    //     resource_Id 
+    // FROM 
+    //     resources 
+    // WHERE 
+    //     resource_title 
+    // LIKE ?`;
 
-            const titleAuthorQuery = `
-                SELECT 
-                    resources.resource_title, 
-                    resources.resource_id,
-                    book.book_cover, 
-                    CONCAT(author.author_fname, ' ', author.author_lname) AS author_name 
-                FROM resourceauthors 
-                JOIN resources ON resourceauthors.resource_id = resources.resource_id 
-                JOIN author ON resourceauthors.author_id = author.author_id 
-                JOIN book ON book.resource_id = resources.resource_id 
-                WHERE resourceauthors.resource_id = ?`;
+    // db.query(query, [`%${searchQuery}%`], async (err, results) => {
+    //     if (err) return res.status(500).send(err);
 
-            try {
-                await Promise.all(
-                    results.map(item => {
-                        return new Promise((resolve, reject) => {
-                            db.query(titleAuthorQuery, [item.resource_Id], (err, results) => {
-                                if (err) return reject(err); // Reject on query error
+    //     if (results.length !== 0) {
+    //         const searchResults = [];
 
-                                if (results.length > 0) {
-                                    searchResults.push({
-                                        title: results[0].resource_title,
-                                        author: results[0].author_name,
-                                        cover: results[0].book_cover,
-                                        id: results[0].resource_id
-                                    });
-                                }
-                                resolve(); // Resolve the promise
-                            });
-                        });
-                    })
-                );
+    //         const titleAuthorQuery = `
+    //             SELECT 
+    //                 resources.resource_title, 
+    //                 resources.resource_id,
+    //                 book.book_cover, 
+    //                 CONCAT(author.author_fname, ' ', author.author_lname) AS author_name 
+    //             FROM resourceauthors 
+    //             JOIN resources ON resourceauthors.resource_id = resources.resource_id 
+    //             JOIN author ON resourceauthors.author_id = author.author_id 
+    //             JOIN book ON book.resource_id = resources.resource_id 
+    //             WHERE resourceauthors.resource_id = ?`;
 
-                console.log(searchResults);
-                res.json(searchResults); // Send the collected results
-            } catch (err) {
-                res.status(500).send(err); // Handle errors in the inner queries
-            }
-        } else {
-            res.send([]); // No results found
-        }
-    });
+    //         try {
+    //             await Promise.all(
+    //                 results.map(item => {
+    //                     return new Promise((resolve, reject) => {
+    //                         db.query(titleAuthorQuery, [item.resource_Id], (err, results) => {
+    //                             if (err) return reject(err); // Reject on query error
+
+    //                             if (results.length > 0) {
+    //                                 searchResults.push({
+    //                                     title: results[0].resource_title,
+    //                                     author: results[0].author_name,
+    //                                     cover: results[0].book_cover,
+    //                                     id: results[0].resource_id
+    //                                 });
+    //                             }
+    //                             resolve(); // Resolve the promise
+    //                         });
+    //                     });
+    //                 })
+    //             );
+
+    //             console.log(searchResults);
+    //             res.json(searchResults); // Send the collected results
+    //         } catch (err) {
+    //             res.status(500).send(err); // Handle errors in the inner queries
+    //         }
+    //     } else {
+    //         res.send([]); // No results found
+    //     }
+    // });
 });
 
 app.get('/resource/:id', (req,res)=>{
@@ -1165,10 +1169,6 @@ const searchByAuthor = (searchKeyword,res)=>{
             }
         })
 }
-
-
-
-
 
 app.listen(3001,()=>{
     console.log('this is the backend')
