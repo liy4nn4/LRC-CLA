@@ -6,10 +6,13 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
+import { getAllFromStore, initDB, saveResourceOffline } from '../../indexedDb2';
+import CatalogingOffline from '../Cataloging/CatalogingOffline';
+import CatalogInfoOffline from '../CatalogInfo/CatalogInfoOffline';
 
-const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+// const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
-const AddItem = () => {
+const AddItemOffline = () => {
     //pag may id, nagiging view ung purpose ng add item component
     const {id} = useParams()
 
@@ -20,7 +23,6 @@ const AddItem = () => {
     const [bookData, setBookData] = useState({
         mediaType: '1',
         authors: [],
-        genre: [],
         isCirculation: false,
         publisher_id: 0,
         publisher: '',
@@ -30,7 +32,6 @@ const AddItem = () => {
     // authorlist and adviserlist are for the <Select>. These are the options to be displayed
     const [authorList, setAuthorList] = useState([]);
     const [adviserList, setAdviserList] = useState([]);
-    const [genreList, setGenreList] = useState([])
     // for loading modal
     const [loading,setLoading] = useState(false)
     const [resourceType,setResourceType]=useState([])
@@ -60,96 +61,117 @@ const AddItem = () => {
     }, [bookData.mediaType]);
 
     useEffect(()=>{
-        getType()
-        getStatus()
-        getGenre()
-        getPublishers()
-        getAuthors()
-        getAdvisers()
+        initDB()
+        getOfflineData()
 
         //pag may id sa url,for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
-            viewResource();
+            // viewResource();
         }
+    
     },[])
 
-    const viewResource = async()=>{
-        console.log('view resource')
-        try{
-            const response = await axios.get(`http://localhost:3001/view/${id}`);
-           
-            const data = response.data[0]
-            const mediaType = data.type_id.toString();
-            console.log(mediaType)
-            console.log(data)
-            // set bookData based on media type
-            switch(mediaType){
-                case '1':
-                    setBookData((prevdata)=>({
-                        ...prevdata,
-                        mediaType:mediaType,
-                        authors:data.author_names.split(', '),
-                        description:data.resource_description,
-                        quantity:data.resource_quantity.toString(),
-                        title:data.resource_title.toString(),
-                        isbn:data.book_isbn?data.book_isbn.toString():'',
-                        status:data.avail_id.toString(),
-                        publisher_id:data.pub_id,
-                        publisher: data.pub_name?data.pub_name.toString():'',
-                        file:data.book_cover,
-                        publishedDate:data.resource_published_date.toString(),
-                        department: data.dept_id.toString(),
-                        topic:data.topic_id.toString(),
-                        isCirculation:data.resource_is_circulation==0?false:true,
-                    }))
-                    break;
-                    
-                case '2':
-                case '3':
-                    setBookData((prevdata)=>({
-                        ...prevdata,
-                        mediaType:mediaType,
-                        authors:data.author_names.split(', '),
-                        description:data.resource_description,
-                        quantity:data.resource_quantity.toString(),
-                        title:data.resource_title.toString(),
-                        status:data.avail_id.toString(),
-                        file:data.jn_cover,
-                        publishedDate:data.resource_published_date.toString(),
-                        department: data.dept_id.toString(),
-                        topic:data.topic_id.toString(),
-                        volume: data.jn_volume.toString(),
-                        issue: data.jn_issue.toString(),
-                        isCirculation:data.resource_is_circulation==0?false:true,
-                    }))
-                    break;
+    //initialize data
+    const getOfflineData = async ()=>{
+        //get type
+        const type = await getAllFromStore('resourcetype')
+        setResourceType(type)
 
-                case '4':
-                    setBookData((prevdata)=>({
-                        ...prevdata,
-                        mediaType:mediaType,
-                        authors:data.author_names.split(', '),
-                        adviser:data.adviser_name,
-                        description:data.resource_description,
-                        quantity:data.resource_quantity.toString(),
-                        title:data.resource_title.toString(),
-                        status:data.avail_id.toString(),
-                        publishedDate:data.resource_published_date.toString(),
-                        department: data.dept_id.toString(),
-                        topic:data.topic_id.toString(),
-                        isCirculation:data.resource_is_circulation==0?false:true,
-                    }))
-                    break;
+        // get availability
+        const avail = await getAllFromStore('availability')
+        setResourceStatus(avail)
 
-                default:
-                    console.log('Media type not allowed.')
-            }
-            
-        }catch(err){
-            console.log('Cannot view resource. An error occurred: ', err.message)
-        }
+        //get authors
+        getAuthorsOffline()
+
+        //get publishers
+        getPublishersOffline()
+
+        //get advisers
+        getAdvisersOffline()
+        
     }
+
+    // view resource offline
+    
+
+    // const viewResource = async()=>{
+    //     console.log('view resource')
+    //     try{
+    //         const response = await axios.get(`http://localhost:3001/view/${id}`);
+           
+    //         const data = response.data[0]
+    //         const mediaType = data.type_id.toString();
+    //         console.log(mediaType)
+    //         console.log(data)
+    //         // set bookData based on media type
+    //         switch(mediaType){
+    //             case '1':
+    //                 setBookData((prevdata)=>({
+    //                     ...prevdata,
+    //                     mediaType:mediaType,
+    //                     authors:data.author_names.split(', '),
+    //                     description:data.resource_description,
+    //                     quantity:data.resource_quantity.toString(),
+    //                     title:data.resource_title.toString(),
+    //                     isbn:data.book_isbn?data.book_isbn.toString():'',
+    //                     status:data.avail_id.toString(),
+    //                     publisher_id:data.pub_id,
+    //                     publisher: data.pub_name?data.pub_name.toString():'',
+    //                     file:data.book_cover,
+    //                     publishedDate:data.resource_published_date.toString(),
+    //                     department: data.dept_id.toString(),
+    //                     topic:data.topic_id.toString(),
+    //                     isCirculation:data.resource_is_circulation==0?false:true,
+    //                 }))
+    //                 break;
+                    
+    //             case '2':
+    //             case '3':
+    //                 setBookData((prevdata)=>({
+    //                     ...prevdata,
+    //                     mediaType:mediaType,
+    //                     authors:data.author_names.split(', '),
+    //                     description:data.resource_description,
+    //                     quantity:data.resource_quantity.toString(),
+    //                     title:data.resource_title.toString(),
+    //                     status:data.avail_id.toString(),
+    //                     file:data.jn_cover,
+    //                     publishedDate:data.resource_published_date.toString(),
+    //                     department: data.dept_id.toString(),
+    //                     topic:data.topic_id.toString(),
+    //                     volume: data.jn_volume.toString(),
+    //                     issue: data.jn_issue.toString(),
+    //                     isCirculation:data.resource_is_circulation==0?false:true,
+    //                 }))
+    //                 break;
+
+    //             case '4':
+    //                 setBookData((prevdata)=>({
+    //                     ...prevdata,
+    //                     mediaType:mediaType,
+    //                     authors:data.author_names.split(', '),
+    //                     adviser:data.adviser_name,
+    //                     description:data.resource_description,
+    //                     quantity:data.resource_quantity.toString(),
+    //                     title:data.resource_title.toString(),
+    //                     status:data.avail_id.toString(),
+    //                     publishedDate:data.resource_published_date.toString(),
+    //                     department: data.dept_id.toString(),
+    //                     topic:data.topic_id.toString(),
+    //                     isCirculation:data.resource_is_circulation==0?false:true,
+    //                 }))
+    //                 break;
+
+    //             default:
+    //                 console.log('Media type not allowed.')
+    //         }
+            
+    //     }catch(err){
+    //         console.log('Cannot view resource. An error occurred: ', err.message)
+    //     }
+    // }
 
     // Handle input changes
     const handleChange = (e) => {
@@ -214,16 +236,6 @@ const AddItem = () => {
             ...prevdata,
             adviser: adviser
         }))
-    };
-
-    // Handle chosen genre
-    const addGenre = (selectedGenre) => {
-        console.log(selectedGenre)
-        const genre = selectedGenre.map(item => item.value);
-        setBookData((prevData) => ({
-            ...prevData,
-            genre
-        }));
     };
 
     // Handle file input
@@ -313,37 +325,25 @@ const AddItem = () => {
         return Object.keys(err).length === 0;
     };
 
-    const saveOffline = async()=>{
-         
-    }
-
     // Handle resource save
     const handleSaveResource = async () => {
         if (formValidation() === true) {
             setLoading(true)
             try{
-                const formData = new FormData();
-                Object.entries(bookData).forEach(([key, value]) => {
-                    formData.append(key, value);
-                });
-
-                const response = await axios.post('http://localhost:3001/save', formData);
+                const response = await saveResourceOffline(bookData)
                 console.log(response)
-                // socket io
-                if(response.data=='Successful'){
-                    socket.emit('newResource');
-                }
+
                 //close loading
                 setLoading(false)
                  // Reset bookData if saved successfully
-                 setBookData({
-                    mediaType: 'book',
-                    authors: [],
-                    isCirculation: false,
-                    publisher_id: 0,
-                    publisher: ''
-                });
-                // window.location.reload(); // Optionally reload the page
+                //  setBookData({
+                //     mediaType: 'book',
+                //     authors: [],
+                //     isCirculation: false,
+                //     publisher_id: 0,
+                //     publisher: ''
+                // });
+                // window.location.reload(); // Optionally reload the page   
             }catch(err){
                 console.log('Cannot save resource. An error occurred: ',err.message);
             }
@@ -370,9 +370,6 @@ const AddItem = () => {
             }
     };
 
-    console.log(bookData.mediaType)
-
-    
     // Handle toggle buttons
     const handleToggle = (e) => {
         const { name, checked } = e.target;
@@ -383,13 +380,12 @@ const AddItem = () => {
     };
 
     // Fetch publishers from the backend
-    const getPublishers = async () => {
+    const getPublishersOffline = async () => {
         console.log('publishers online')
         const pubs = [];
         try {
-            const response = await axios.get('http://localhost:3001/publishers');
-            console.log(response.data)
-            response.data.forEach(item => {
+            const publishers = await getAllFromStore('publisher');
+            publishers.forEach(item => {
                 pubs.push({
                     value: item.pub_id,
                     label: item.pub_name
@@ -401,33 +397,13 @@ const AddItem = () => {
         }
     };
 
-    //get genre online
-    const getGenre = async()=>{
-        console.log('genre online')
-        const genres = []
-        
-        try{
-            const response = await axios.get('http://localhost:3001/genre').then(res=>res.data)
-            response.map((item)=>{
-                const genre = {
-                    value: item.genre_id,
-                    label: item.genre_name
-                }
-               genres.push(genre)
-            })
-
-            setGenreList(genres)
-        }catch(err){
-            console.log(err.message)
-        }
-    }
-
     // Fetch publishers from the backend
-    const getAuthors = async () => {
+    const getAuthorsOffline = async () => {
         const auth = [];
         try {
-            const response = await axios.get('http://localhost:3001/authors');
-            response.data.forEach(item => {
+            const authors = await getAllFromStore('author');
+            console.log(authors)
+            authors.forEach(item => {
                 auth.push({
                     value: `${item.author_fname} ${item.author_lname}`,
                     label: `${item.author_fname} ${item.author_lname}`
@@ -440,11 +416,12 @@ const AddItem = () => {
     };
 
     //Fetch advisers
-    const getAdvisers = async () => {
+    const getAdvisersOffline = async () => {
         const adv = [];
         try {
-            const response = await axios.get('http://localhost:3001/advisers');
-            response.data.forEach(item => {
+            const advisers = await getAllFromStore('adviser')
+            console.log(advisers)
+            advisers.forEach(item => {
                 adv.push({
                     value: `${item.adviser_fname} ${item.adviser_lname}`,
                     label: `${item.adviser_fname} ${item.adviser_lname}`
@@ -455,31 +432,6 @@ const AddItem = () => {
             console.log(err.message);
         }
     };
-
-    // fetch resourceType ( book, journal, newsletter, thesis)
-    const getType = async()=>{
-        try {
-            const response = await axios.get('http://localhost:3001/type').then(res=>res.data);
-            //console.log(response)
-            setResourceType(response)
-        } catch (err) {
-            console.log(err.message);
-        }
-    };
-
-    // fetch status (available,lost,damaged)
-    const getStatus = async()=>{
-        try {
-            const response = await axios.get('http://localhost:3001/status').then(res=>res.data);
-            //console.log(response)
-            setResourceStatus(response)
-        } catch (err) {
-            console.log(err.message);
-        }
-    };
-    
-
-    console.log(bookData);
     
     return (
         <div className='add-item-container'>
@@ -498,13 +450,12 @@ const AddItem = () => {
             </div>
 
             <div className='item-information'>
-                <CatalogInfo
+                <CatalogInfoOffline
                     disabled={disabled}
                     handleChange={handleChange}
                     bookData={bookData}
                     addAuthor={addAuthor}
                     setType={setType}
-                    addGenre={addGenre}
                     addAdviser={addAdviser}
                     setBookData={setBookData}
                     handleFileChange={handleFileChange}
@@ -517,13 +468,12 @@ const AddItem = () => {
                     adviserList={adviserList}
                     deleteAdviser={deleteAdviser}
                     resourceStatus={resourceStatus}
-                    genreList={genreList}
                     editMode={editMode}
                 />
             </div>
 
             <div className="cataloging">
-                <Cataloging
+                <CatalogingOffline
                     disabled={disabled}
                     handleChange={handleChange}
                     bookData={bookData}
@@ -546,8 +496,8 @@ const AddItem = () => {
                 <button className="btn add-item-save" onClick={()=>{
                     //if not in edit mode, save resource
                     if(!editMode){
-                        // handleSaveResource()
-                        saveOffline()
+                        handleSaveResource()
+                        
                     }else{
                         //update/edit resource
                         handleEditResource()
@@ -563,4 +513,4 @@ const AddItem = () => {
     );
 };
 
-export default AddItem;
+export default AddItemOffline;

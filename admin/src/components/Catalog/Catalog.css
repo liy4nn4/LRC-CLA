@@ -13,7 +13,6 @@
 }
 
 
-
 :root{
     --black:#1F1F1F;
     --tup-color: #94152B;
@@ -41,6 +40,7 @@
     gap: 20px;
     overflow-x: hidden;   
 }
+
 
 .cat-container h1{
     font-size: 2.5rem;
@@ -161,6 +161,7 @@
     border-bottom: none;
 }
 
+
 .cat-table tbody tr:nth-child(even){
     background-color: var(--light-red) !important;
 }
@@ -168,6 +169,7 @@
 .cat-table tbody tr:nth-child(odd){
     background-color: var(--white) !important;
 }
+
 
 .pagination .btn:disabled{
     border: none !important;

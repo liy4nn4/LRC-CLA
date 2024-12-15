@@ -87,7 +87,6 @@ app.post('/file', upload.single('file'), (req, res) => {
     });
 });
 
-
 app.post('/save', upload.single('file'), async (req, res) => {
     const mediaType = req.body.mediaType;
     let adviserFname;
@@ -919,7 +918,6 @@ const editAuthors = async (res,authors,resourceId)=>{
     })
 }
 
-
 // retrieve book information from google books api using isbn
 app.get('/bookData/:isbn',async (req,res)=>{
     const isbn = req.params.isbn
@@ -1054,7 +1052,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     })
 })
 
-// //get specific resource for viewing purposes
+/*          VIEW RESOURCE FROM CATALOG              */ 
 app.get('/view/:id',(req,res)=>{
     const id = req.params.id;
 
@@ -1187,6 +1185,7 @@ const getThesisResource = (id,res)=>{
         return res.json(result)
     })
 }
+/*----------------------END--------------------------------*/ 
 
 app.get('/resource/search', async (req, res) => {
     const searchQuery = req.query.q;
@@ -1346,6 +1345,291 @@ const searchByAuthor = (searchKeyword,res)=>{
             }
         })
 }
+
+/*              SYNC DATA               */
+//sync resources table
+app.post("/sync-resources", (req, res) => {
+    const resource = req.body;
+    const q = `
+    INSERT INTO 
+        resources (resource_id, resource_title,resource_description,resource_published_date,resource_quantity,resource_is_circulation,dept_id,topic_id,type_id,avail_id) 
+    VALUES (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_title=VALUES(resource_title),
+        resource_description=VALUES(resource_description),
+        resource_published_date=VALUES(resource_published_date),
+        resource_quantity=VALUES(resource_quantity),
+        resource_is_circulation=VALUES(resource_is_circulation),
+        dept_id=VALUES(dept_id),
+        topic_id=VALUES(topic_id),
+        type_id=VALUES(type_id),
+        avail_id=VALUES(avail_id)`;
+
+    const values = [
+        resource.resource_id,
+        resource.resource_title,
+        resource.resource_description,
+        resource.resource_published_date,
+        resource.resource_quantity,
+        resource.resource_is_circulation,
+        resource.dept_id,
+        resource.topic_id,
+        resource.type_id,
+        resource.avail_id
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing resources:", err);
+        res.status(500).send("Failed to sync resources.");
+      } else {
+        console.log("resources synced successfully.");
+        res.status(200).send("resources synced successfully.");
+      }
+    });
+});
+
+//sync resources table
+app.post("/sync-authors", (req, res) => {
+    const authors = req.body;
+    const q = `
+    INSERT INTO 
+        author (author_id, author_fname, author_lname) 
+    VALUES ? ON DUPLICATE KEY 
+    UPDATE 
+        author_fname=VALUES(author_fname),
+        author_lname=VALUES(author_lname)`;
+
+    const values = authors.map((author) => [
+        author.author_id,
+        author.author_fname,
+        author.author_lname
+    ]);
+  
+    db.query(q, [values], (err) => {
+      if (err) {
+        console.error("Error syncing authors:", err);
+        res.status(500).send("Failed to sync authors.");
+      } else {
+        console.log("authors synced successfully.");
+        res.status(200).send("authors synced successfully.");
+      }
+    });
+});
+
+//sync resourceauthors table
+app.post("/sync-resourceauthors", (req, res) => {
+    const resourceauthors = req.body;
+    const q = `
+    INSERT INTO 
+        resourceauthors (resource_id,author_id) 
+    VALUES ? ON DUPLICATE KEY 
+    UPDATE 
+        resource_id=VALUES(resource_id),
+        author_id=VALUES(author_id)
+        `;
+
+    const values = resourceauthors.map((ra) => [
+        ra.resource_id,
+        ra.author_id
+    ]);
+  
+    db.query(q, [values], (err) => {
+      if (err) {
+        console.error("Error syncing resourceauthors:", err);
+        res.status(500).send("Failed to sync resourceauthors.");
+      } else {
+        console.log("resourceauthors synced successfully.");
+        res.status(200).send("authors synced successfully.");
+      }
+    });
+});
+
+//sync publishers table
+app.post("/sync-publishers", (req, res) => {
+    const publishers = req.body;
+    const q = `
+    INSERT INTO 
+        publisher (pub_id,pub_name,pub_address,pub_email,pub_phone,pub_website) 
+    VALUES ? ON DUPLICATE KEY 
+    UPDATE 
+        pub_name=VALUES(pub_name),
+        pub_address=VALUES(pub_address),
+        pub_email=VALUES(pub_email),
+        pub_phone=VALUES(pub_phone),
+        pub_website=VALUES(pub_website)
+        `;
+
+    const values = publishers.map((publisher) => [
+        publisher.pub_id,
+        publisher.pub_name,
+        publisher.pub_add,
+        publisher.pub_email,
+        publisher.pub_phone,
+        publisher.pub_website
+    ]);
+  
+    db.query(q, [values], (err) => {
+      if (err) {
+        console.error("Error syncing publishers:", err);
+        res.status(500).send("Failed to sync publishers.");
+      } else {
+        console.log("publishers synced successfully.");
+        res.status(200).send("publishers synced successfully.");
+      }
+    });
+});
+
+//sync books table
+app.post("/sync-books", upload.single('file'), async (req, res) => {
+    let imageFile;
+    let filePath;
+    const book = req.body
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        imageFile = fs.readFileSync(filePath);
+    }
+
+     const q = `
+     INSERT INTO 
+         book (book_id, book_cover, book_isbn, resource_id, pub_id) 
+     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+     UPDATE 
+         book_cover=VALUES(book_cover),
+         book_isbn=VALUES(book_isbn),
+         resource_id=VALUES(resource_id),
+         pub_id=VALUES(pub_id)`;
+ 
+     const values = [
+         book.book_id,
+         imageFile,
+         book.book_isbn,
+         book.resource_id,
+         book.pub_id
+     ];
+   
+     db.query(q, values, (err) => {
+       if (err) {
+         console.error("Error syncing book:", err);
+         res.status(500).send("Failed to sync book.");
+       } else {
+         console.log("book synced successfully.");
+         res.status(200).send("book synced successfully.");
+
+         
+        fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        }); 
+       }
+     });
+
+});
+
+//sync journal/newsletter table
+app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
+    let imageFile;
+    let filePath;
+    const jn = req.body
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        imageFile = fs.readFileSync(filePath);
+    }
+
+     const q = `
+     INSERT INTO 
+         journalnewsletter (jn_id, jn_volume, jn_issue, jn_cover, resource_id) 
+     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+     UPDATE 
+         jn_volume=VALUES(jn_volume),
+         jn_issue=VALUES(jn_issue),
+         jn_cover=VALUES(jn_cover),
+         resource_id=VALUES(resource_id)`;
+ 
+     const values = [
+         jn.jn_id,
+         jn.jn_volume,
+         jn.jn_issue,
+         imageFile,
+         jn.resource_id
+     ];
+   
+     db.query(q, values, (err) => {
+       if (err) {
+         console.error("Error syncing journal/newsletter:", err);
+         res.status(500).send("Failed to sync journal/newsletter.");
+       } else {
+         console.log("journal/newsletter synced successfully.");
+         res.status(200).send("journal/newsletter synced successfully.");
+         
+        fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        }); 
+       }
+     });
+});
+
+//sync theses 
+app.post("/sync-advisers",(req,res)=>{
+    const advisers = req.body;
+    const q = `
+    INSERT INTO 
+        adviser (adviser_id, adviser_fname, adviser_lname) 
+    VALUES ? ON DUPLICATE KEY 
+    UPDATE 
+        adviser_fname=VALUES(adviser_fname),
+        adviser_lname=VALUES(adviser_lname)
+        `;
+
+    const values = advisers.map((adviser) => [
+        adviser.adviser_id,
+        adviser.adviser_fname,
+        adviser.adviser_lname
+    ]);
+  
+    db.query(q, [values], (err) => {
+      if (err) {
+        console.error("Error syncing adviser:", err);
+        res.status(500).send("Failed to sync adviser.");
+      } else {
+        console.log("adviser synced successfully.");
+        res.status(200).send("adviser synced successfully.");
+      }
+    });
+})
+
+
+//sync theses 
+app.post("/sync-theses",(req,res)=>{
+    const theses = req.body;
+    const q = `
+    INSERT INTO 
+        thesis (thesis_id, resource_id, adviser_id) 
+    VALUES ? ON DUPLICATE KEY 
+    UPDATE 
+        resource_id=VALUES(resource_id),
+        adviser_id=VALUES(adviser_id)
+        `;
+
+    const values = theses.map((thesis) => [
+        thesis.thesis_id,
+        thesis.resource_id,
+        thesis.adviser_id
+    ]);
+  
+    db.query(q, [values], (err) => {
+      if (err) {
+        console.error("Error syncing thesis:", err);
+        res.status(500).send("Failed to sync thesis.");
+      } else {
+        console.log("thesis synced successfully.");
+        res.status(200).send("thesis synced successfully.");
+      }
+    });
+})
+
+
 
 server.listen(3001,()=>{
     console.log('this is the backend')

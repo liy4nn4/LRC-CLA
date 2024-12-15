@@ -15,6 +15,9 @@ import CatalogPage from './pages/CatalogPage/CatalogPage';
 import AddItemPage from './pages/AddItemPage/AddItemPage';
 import ViewItem from './components/ViewItem/ViewItem';
 import ViewItemPage from './pages/ViewItemPage/ViewItemPage';
+import AddItemOffline from './components/AddItem/AddItemOffline';
+import AddItemPageOffline from './pages/AddItemPageOffline/AddItemPageOffline';
+import CatalogPageOffline from './pages/CatalogPageOffline/CatalogPageOffline';
 
 
 const App = () => {
@@ -31,9 +34,9 @@ const App = () => {
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>
           <Route path='/admin' element={<Admin/>}/>
-          <Route path='/catalog' element={<CatalogPage/>}/>
-          <Route path='/add-item' element={<AddItemPage/>}/>
-          <Route path='/view-item/:id' element={<AddItemPage/>}/>
+          <Route path='/catalog' element={<CatalogPageOffline/>}/>
+          <Route path='/add-item' element={<AddItemPageOffline/>}/>
+          <Route path='/view-item/:id' element={<AddItemPageOffline/>}/>
         </Routes>
       </BrowserRouter>
     </div>

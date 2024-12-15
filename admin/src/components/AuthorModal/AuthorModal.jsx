@@ -34,7 +34,6 @@ const AuthorModal = ({open,close,handleChange,bookData,addAuthor,authorList}) =>
         }else{
             setSelectedAuthor('')
         }
-       
     }
 
     if(!open){

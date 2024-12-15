@@ -2,48 +2,27 @@
 import React, { useEffect, useState } from 'react'
 import './Cataloging.css'
 import axios from 'axios'
+import { getAllFromStore } from '../../indexedDb2'
 
-const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized,editMode}) => {
+const CatalogingOffline = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized,editMode}) => {
     const [department, setDepartment] = useState([])
     const [catalog, setCatalog] = useState([])
     const [topic,setTopic] = useState([])
 
     useEffect(() => {
-        getDept()
-        getTopics()
+      getDataOffline()
+      
     }, []);
     
+    const getDataOffline = async ()=>{
+        //get department
+        const dept = await getAllFromStore('department')
+        setDepartment(dept)
 
-    const getDept = async()=>{
-        try{
-            const response = await axios.get('http://localhost:3001/departments').then(res=>res.data)
-            setDepartment(response)
-        }catch(err){
-            console.log(err.message)
-        }
+        // get topic 
+        const topic = await getAllFromStore('topic')
+        setTopic(topic)
     }
-
-    const getCatalog = async()=>{
-        try{
-            const response = await axios.get('http://localhost:3001/catalog').then(res=>res.data)
-            setCatalog(response)
-        }catch(err){
-            console.log(err.message)
-        }
-    }
-
-    const getTopics =async ()=>{
-        try{
-            const response = await axios.get('http://localhost:3001/topic').then(res=>res.data)
-            setTopic(response)
-        }catch(err){
-            console.log(err.message)
-        }
-    }
-
-    console.log(department)
-    console.log(topic)
-
   return (
     <div className='cataloging-box'>
         <div className="row">
@@ -122,4 +101,4 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
   )
 }
 
-export default Cataloging
+export default CatalogingOffline
