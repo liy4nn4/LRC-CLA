@@ -15,7 +15,7 @@ import CatalogPage from './pages/CatalogPage/CatalogPage';
 import AddItemPage from './pages/AddItemPage/AddItemPage';
 import ViewItem from './components/ViewItem/ViewItem';
 import ViewItemPage from './pages/ViewItemPage/ViewItemPage';
-
+import AttendancePage from './pages/AttendancePage/AttendancePage';
 
 const App = () => {
   
@@ -34,6 +34,7 @@ const App = () => {
           <Route path='/catalog' element={<CatalogPage/>}/>
           <Route path='/add-item' element={<AddItemPage/>}/>
           <Route path='/view-item/:id' element={<AddItemPage/>}/>
+          <Route path='/attendance' element={<AttendancePage/>}/>
         </Routes>
       </BrowserRouter>
     </div>

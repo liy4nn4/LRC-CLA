@@ -1272,7 +1272,7 @@ app.get('/patron', (req, res) => {
 
 //const q = 'SELECT * FROM patron';
 
-const q = "SELECT patron.patron_id,patron.tup_id,patron.patron_fname,patron.patron_lname,patron.patron_sex,patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) as att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id";
+const q = "SELECT patron.patron_id, patron.tup_id, patron.patron_fname, patron.patron_lname, patron.patron_sex, patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) AS att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id ORDER BY att_date DESC, att_log_in_time DESC";
 
 db.query(q, (err, results) => {
     if (err) {
@@ -1355,6 +1355,47 @@ const searchByAuthor = (searchKeyword,res)=>{
             }
         })
 }
+
+app.post("/attendance", (req, res) => {
+    //const { studentId, date, time } = req.body;
+    const studentId = req.body.studentId;
+    const date = req.body.date;
+    const time = req.body.time;
+ 
+  
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: "Student ID is required." });
+    }
+  
+    // Step 1: Fetch Student Name
+    const getPatronIdQuery = "SELECT patron_id, patron_fname, patron_lname FROM patron WHERE tup_id = ?";
+    db.query(getPatronIdQuery, [studentId], (err, results) => {
+    if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Error retrieving patron ID." });
+    }
+    if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "Student not found." });
+    }
+
+    const patronId = results[0].patron_id;
+    const studentName = `${results[0].patron_fname} ${results[0].patron_lname}`;
+
+    const logAttendanceQuery = "INSERT INTO attendance (att_log_in_time, att_date, patron_id) VALUES ( ?, ?, ?)";
+    db.query(logAttendanceQuery, [time, date, patronId], (err) => {
+        if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Failed to log attendance." });
+        }
+
+        return res.status(200).json({
+        success: true,
+        studentName: studentName,
+        message: "Attendance logged successfully.",
+        });
+      });
+    });
+  });
 
 server.listen(3001,()=>{
     console.log('this is the backend')

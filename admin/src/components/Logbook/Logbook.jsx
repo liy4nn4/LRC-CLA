@@ -106,7 +106,7 @@ const Logbook = () => {
                         <td>{item.patron_mobile}</td>
                         <td>{item.course}</td>
                         <td>{item.college}</td>
-                        <td>{new Date(item.att_date).toISOString().split('T')[0]}</td>
+                        <td>{new Date(item.att_date).toLocaleDateString("en-CA")}</td>
                         <td>{item.att_log_in_time}</td>
                         {/* <td>
                         { <Link to={`/view-item/${item.resource_id}`}>
@@ -123,23 +123,6 @@ const Logbook = () => {
                 </tbody>
 
 
-
-
-
-                <tbody>
-                    <tr>
-                        <td>x</td>
-                        <td>xxxx-xx-xxxx</td>
-                        <td>xxxx</td>
-                        <td>xxxx</td>
-                        <td>xxxx</td>
-                        <td>xxxxx</td>
-                        <td>xxxx-xx</td>
-                        <td>xxx</td>
-                        <td>xx-xx-xxxx</td>
-                        <td>x:xx:xx AM</td>
-                    </tr>
-                </tbody>
             </table>
         </div>
 
