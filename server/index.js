@@ -422,6 +422,8 @@ const insertAuthors = async (res,authors,resourceId)=>{
     })
 }
 
+/*-----------EDIT RESOURCE-----------*/
+
 app.put('/file', upload.single('file'), (req, res) => {
     console.log(req.file); // Log the uploaded file details
     const filePath = req.file.path; // Get the file path
@@ -1391,22 +1393,22 @@ app.post("/sync-resources", (req, res) => {
 
 //sync resources table
 app.post("/sync-authors", (req, res) => {
-    const authors = req.body;
+    const author = req.body;
     const q = `
     INSERT INTO 
         author (author_id, author_fname, author_lname) 
-    VALUES ? ON DUPLICATE KEY 
+    VALUES (?,?,?) ON DUPLICATE KEY 
     UPDATE 
         author_fname=VALUES(author_fname),
         author_lname=VALUES(author_lname)`;
 
-    const values = authors.map((author) => [
+    const values = [
         author.author_id,
         author.author_fname,
         author.author_lname
-    ]);
+    ];
   
-    db.query(q, [values], (err) => {
+    db.query(q, values, (err) => {
       if (err) {
         console.error("Error syncing authors:", err);
         res.status(500).send("Failed to sync authors.");
@@ -1419,22 +1421,22 @@ app.post("/sync-authors", (req, res) => {
 
 //sync resourceauthors table
 app.post("/sync-resourceauthors", (req, res) => {
-    const resourceauthors = req.body;
+    const ra = req.body;
     const q = `
     INSERT INTO 
         resourceauthors (resource_id,author_id) 
-    VALUES ? ON DUPLICATE KEY 
+    VALUES (?,?) ON DUPLICATE KEY 
     UPDATE 
         resource_id=VALUES(resource_id),
         author_id=VALUES(author_id)
         `;
 
-    const values = resourceauthors.map((ra) => [
+    const values = [
         ra.resource_id,
         ra.author_id
-    ]);
+    ];
   
-    db.query(q, [values], (err) => {
+    db.query(q, values, (err) => {
       if (err) {
         console.error("Error syncing resourceauthors:", err);
         res.status(500).send("Failed to sync resourceauthors.");
@@ -1447,11 +1449,11 @@ app.post("/sync-resourceauthors", (req, res) => {
 
 //sync publishers table
 app.post("/sync-publishers", (req, res) => {
-    const publishers = req.body;
+    const publisher = req.body;
     const q = `
     INSERT INTO 
         publisher (pub_id,pub_name,pub_address,pub_email,pub_phone,pub_website) 
-    VALUES ? ON DUPLICATE KEY 
+    VALUES (?,?,?,?,?,?) ON DUPLICATE KEY 
     UPDATE 
         pub_name=VALUES(pub_name),
         pub_address=VALUES(pub_address),
@@ -1460,16 +1462,16 @@ app.post("/sync-publishers", (req, res) => {
         pub_website=VALUES(pub_website)
         `;
 
-    const values = publishers.map((publisher) => [
+    const values = [
         publisher.pub_id,
         publisher.pub_name,
         publisher.pub_add,
         publisher.pub_email,
         publisher.pub_phone,
         publisher.pub_website
-    ]);
+    ];
   
-    db.query(q, [values], (err) => {
+    db.query(q, values, (err) => {
       if (err) {
         console.error("Error syncing publishers:", err);
         res.status(500).send("Failed to sync publishers.");
@@ -1508,6 +1510,8 @@ app.post("/sync-books", upload.single('file'), async (req, res) => {
          book.resource_id,
          book.pub_id
      ];
+
+     console.log(book)
    
      db.query(q, values, (err) => {
        if (err) {
@@ -1516,14 +1520,9 @@ app.post("/sync-books", upload.single('file'), async (req, res) => {
        } else {
          console.log("book synced successfully.");
          res.status(200).send("book synced successfully.");
-
-         
-        fs.unlink(filePath, (unlinkErr) => {
-            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-        }); 
        }
      });
-
+     
 });
 
 //sync journal/newsletter table
@@ -1572,23 +1571,23 @@ app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
 
 //sync theses 
 app.post("/sync-advisers",(req,res)=>{
-    const advisers = req.body;
+    const adviser = req.body;
     const q = `
     INSERT INTO 
         adviser (adviser_id, adviser_fname, adviser_lname) 
-    VALUES ? ON DUPLICATE KEY 
+    VALUES (?,?,?) ON DUPLICATE KEY 
     UPDATE 
         adviser_fname=VALUES(adviser_fname),
         adviser_lname=VALUES(adviser_lname)
         `;
 
-    const values = advisers.map((adviser) => [
+    const values =[
         adviser.adviser_id,
         adviser.adviser_fname,
         adviser.adviser_lname
-    ]);
+    ];
   
-    db.query(q, [values], (err) => {
+    db.query(q, values, (err) => {
       if (err) {
         console.error("Error syncing adviser:", err);
         res.status(500).send("Failed to sync adviser.");
@@ -1599,26 +1598,25 @@ app.post("/sync-advisers",(req,res)=>{
     });
 })
 
-
 //sync theses 
 app.post("/sync-theses",(req,res)=>{
-    const theses = req.body;
+    const thesis = req.body;
     const q = `
     INSERT INTO 
         thesis (thesis_id, resource_id, adviser_id) 
-    VALUES ? ON DUPLICATE KEY 
+    VALUES (?,?,?) ON DUPLICATE KEY 
     UPDATE 
         resource_id=VALUES(resource_id),
         adviser_id=VALUES(adviser_id)
         `;
 
-    const values = theses.map((thesis) => [
+    const values = [
         thesis.thesis_id,
         thesis.resource_id,
         thesis.adviser_id
-    ]);
+    ];
   
-    db.query(q, [values], (err) => {
+    db.query(q, values, (err) => {
       if (err) {
         console.error("Error syncing thesis:", err);
         res.status(500).send("Failed to sync thesis.");
@@ -1629,9 +1627,8 @@ app.post("/sync-theses",(req,res)=>{
     });
 })
 
-
-
 server.listen(3001,()=>{
     console.log('this is the backend')
 })
+
 

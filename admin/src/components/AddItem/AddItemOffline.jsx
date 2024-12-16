@@ -6,7 +6,7 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
-import { getAllFromStore, initDB, saveResourceOffline } from '../../indexedDb2';
+import { editResourceOffline, getAllFromStore, initDB, saveResourceOffline, viewResourcesOffline } from '../../indexedDb2';
 import CatalogingOffline from '../Cataloging/CatalogingOffline';
 import CatalogInfoOffline from '../CatalogInfo/CatalogInfoOffline';
 
@@ -67,9 +67,8 @@ const AddItemOffline = () => {
         //pag may id sa url,for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
-            // viewResource();
+            viewResourceOffline()
         }
-    
     },[])
 
     //initialize data
@@ -94,84 +93,12 @@ const AddItemOffline = () => {
     }
 
     // view resource offline
-    
+    const viewResourceOffline=async ()=>{
+        console.log('view resource offline')
+        const result = await viewResourcesOffline(parseInt(id),setBookData)
+    }
 
-    // const viewResource = async()=>{
-    //     console.log('view resource')
-    //     try{
-    //         const response = await axios.get(`http://localhost:3001/view/${id}`);
-           
-    //         const data = response.data[0]
-    //         const mediaType = data.type_id.toString();
-    //         console.log(mediaType)
-    //         console.log(data)
-    //         // set bookData based on media type
-    //         switch(mediaType){
-    //             case '1':
-    //                 setBookData((prevdata)=>({
-    //                     ...prevdata,
-    //                     mediaType:mediaType,
-    //                     authors:data.author_names.split(', '),
-    //                     description:data.resource_description,
-    //                     quantity:data.resource_quantity.toString(),
-    //                     title:data.resource_title.toString(),
-    //                     isbn:data.book_isbn?data.book_isbn.toString():'',
-    //                     status:data.avail_id.toString(),
-    //                     publisher_id:data.pub_id,
-    //                     publisher: data.pub_name?data.pub_name.toString():'',
-    //                     file:data.book_cover,
-    //                     publishedDate:data.resource_published_date.toString(),
-    //                     department: data.dept_id.toString(),
-    //                     topic:data.topic_id.toString(),
-    //                     isCirculation:data.resource_is_circulation==0?false:true,
-    //                 }))
-    //                 break;
-                    
-    //             case '2':
-    //             case '3':
-    //                 setBookData((prevdata)=>({
-    //                     ...prevdata,
-    //                     mediaType:mediaType,
-    //                     authors:data.author_names.split(', '),
-    //                     description:data.resource_description,
-    //                     quantity:data.resource_quantity.toString(),
-    //                     title:data.resource_title.toString(),
-    //                     status:data.avail_id.toString(),
-    //                     file:data.jn_cover,
-    //                     publishedDate:data.resource_published_date.toString(),
-    //                     department: data.dept_id.toString(),
-    //                     topic:data.topic_id.toString(),
-    //                     volume: data.jn_volume.toString(),
-    //                     issue: data.jn_issue.toString(),
-    //                     isCirculation:data.resource_is_circulation==0?false:true,
-    //                 }))
-    //                 break;
-
-    //             case '4':
-    //                 setBookData((prevdata)=>({
-    //                     ...prevdata,
-    //                     mediaType:mediaType,
-    //                     authors:data.author_names.split(', '),
-    //                     adviser:data.adviser_name,
-    //                     description:data.resource_description,
-    //                     quantity:data.resource_quantity.toString(),
-    //                     title:data.resource_title.toString(),
-    //                     status:data.avail_id.toString(),
-    //                     publishedDate:data.resource_published_date.toString(),
-    //                     department: data.dept_id.toString(),
-    //                     topic:data.topic_id.toString(),
-    //                     isCirculation:data.resource_is_circulation==0?false:true,
-    //                 }))
-    //                 break;
-
-    //             default:
-    //                 console.log('Media type not allowed.')
-    //         }
-            
-    //     }catch(err){
-    //         console.log('Cannot view resource. An error occurred: ', err.message)
-    //     }
-    // }
+    console.log(bookData.file)
 
     // Handle input changes
     const handleChange = (e) => {
@@ -279,9 +206,9 @@ const AddItemOffline = () => {
             if (!bookData.file&&!bookData.url) {
                 err.file = 'Please select cover';
             }
-            if (!bookData.authors || bookData.authors.length === 0) {
-                err.authors = 'Please specify author/s';
-            }
+            // if (!bookData.authors || bookData.authors.length === 0) {
+            //     err.authors = 'Please specify author/s';
+            // }
             /* if (!bookData.isbn) {
                 err.isbn = 'Please enter ISBN';
             } */
@@ -295,9 +222,9 @@ const AddItemOffline = () => {
             if (!bookData.file&&!bookData.url) {
                 err.file = 'Please select cover';
             }
-            if (!bookData.authors || bookData.authors.length === 0) {
-                err.authors = 'Please specify author/s';
-            }
+            // if (!bookData.authors || bookData.authors.length === 0) {
+            //     err.authors = 'Please specify author/s';
+            // }
             if(!bookData.volume){
                 err.volume = 'Please enter volume'
             }
@@ -308,12 +235,11 @@ const AddItemOffline = () => {
                 err.publishedDate = 'Please enter publish date';
             }
         }else if(bookData.mediaType==='4'){
-            if (!bookData.authors || bookData.authors.length === 0) {
-                err.authors = 'Please specify author/s';
-            }
+            // if (!bookData.authors || bookData.authors.length === 0) {
+            //     err.authors = 'Please specify author/s';
+            // }
             if(!bookData.adviser){
                 err.adviser = 'Please specify adviser';
-
             }
             if (!bookData.publishedDate) {
                 err.publishedDate = 'Please enter publish date';
@@ -336,14 +262,14 @@ const AddItemOffline = () => {
                 //close loading
                 setLoading(false)
                  // Reset bookData if saved successfully
-                //  setBookData({
-                //     mediaType: 'book',
-                //     authors: [],
-                //     isCirculation: false,
-                //     publisher_id: 0,
-                //     publisher: ''
-                // });
-                // window.location.reload(); // Optionally reload the page   
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+                window.location.reload(); // Optionally reload the page   
             }catch(err){
                 console.log('Cannot save resource. An error occurred: ',err.message);
             }
@@ -354,21 +280,48 @@ const AddItemOffline = () => {
 
     // Handle resource save
     const handleEditResource = async () => {
-        console.log('edit resource')
+        if (formValidation() === true) {
+            setLoading(true)
             try{
-                setLoading(true)
-                const formData = new FormData();
-                Object.entries(bookData).forEach(([key, value]) => {
-                    formData.append(key, value);  
-                });
+                const response = await editResourceOffline(bookData,id)
+                console.log(response)
 
-                const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
+                //close loading
                 setLoading(false)
-                window.location.reload();            
+                 // Reset bookData if saved successfully
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+                window.location.reload(); // Optionally reload the page   
             }catch(err){
                 console.log('Cannot save resource. An error occurred: ',err.message);
             }
+        } else {
+            console.log("Please enter complete information");
+        }
     };
+
+    // Handle resource save
+    // const handleEditResource = async () => {
+    //     console.log('edit resource')
+    //         try{
+    //             setLoading(true)
+    //             const formData = new FormData();
+    //             Object.entries(bookData).forEach(([key, value]) => {
+    //                 formData.append(key, value);  
+    //             });
+
+    //             const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
+    //             setLoading(false)
+    //             window.location.reload();            
+    //         }catch(err){
+    //             console.log('Cannot save resource. An error occurred: ',err.message);
+    //         }
+    // };
 
     // Handle toggle buttons
     const handleToggle = (e) => {
@@ -432,6 +385,8 @@ const AddItemOffline = () => {
             console.log(err.message);
         }
     };
+
+    console.log(bookData)
     
     return (
         <div className='add-item-container'>

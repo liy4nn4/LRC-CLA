@@ -546,8 +546,8 @@ const AddItem = () => {
                 <button className="btn add-item-save" onClick={()=>{
                     //if not in edit mode, save resource
                     if(!editMode){
-                        // handleSaveResource()
-                        saveOffline()
+                        handleSaveResource()
+                        // saveOffline()
                     }else{
                         //update/edit resource
                         handleEditResource()

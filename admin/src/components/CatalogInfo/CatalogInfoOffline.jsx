@@ -19,14 +19,10 @@ const CatalogInfoOffline = ({disabled,handleChange,bookData,addAuthor,setType,ad
     useEffect(()=>{
         let objectUrl;
 
-        if(bookData.file&&!disabled){
+        if(bookData.file){
             // If data.file is a File object, create an Object URL for it
             objectUrl = URL.createObjectURL(bookData.file);
             setPreview(objectUrl);
-        }else if(bookData.file&&disabled){
-            const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
-            objectUrl = URL.createObjectURL(blob);
-            setPreview(objectUrl)
         }
 
         //reset URl
@@ -55,7 +51,7 @@ const CatalogInfoOffline = ({disabled,handleChange,bookData,addAuthor,setType,ad
       },[bookData.url])
 
 
-      console.log(bookData.mediaType)
+      console.log(bookData.file)
    
   return (
     <div className='cat-info'>

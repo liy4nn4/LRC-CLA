@@ -9,7 +9,6 @@ import { Link } from 'react-router-dom'
 import AuthorModal from '../AuthorModal/AuthorModal'
 import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
-import { getResourcesCatalog } from '../../indexedDb'
 import io from 'socket.io-client';
 import { getAllFromStore, getAllUnsyncedFromStore, getCatalogOffline, markAsSynced } from '../../indexedDb2'
 
@@ -64,78 +63,110 @@ const CatalogOffline = () => {
       }
     }
 
-    // //sync authors
-    // const authors = await getAllFromStore('author')
-    // console.log(authors)
-    // const authorsResponse = await axios.post("http://localhost:3001/sync-authors", authors);
+    //sync authors
+    const authors = await getAllUnsyncedFromStore('author')
+    console.log(authors)
+    for(let author of authors){
+      try{
+        //sync data
+        await axios.post("http://localhost:3001/sync-authors", author);
+        //mark as sync locally
+        await markAsSynced('author',author.author_id)
+      }catch(error){
+        console.log(`Failed to sync authors ${author.author_id}`, error);
+      }
+    }
 
-    // if (authorsResponse.ok) {
-    //   console.log("Authors synced successfully.");
-    // }
+    //sync resourceauthors
+    const resourceauthors = await getAllUnsyncedFromStore('resourceauthors')
+    console.log(resourceauthors)
+    for(let ra of resourceauthors){
+      try{
+        //sync data
+        await axios.post("http://localhost:3001/sync-resourceauthors", ra);
+        //mark as sync locally
+        await markAsSynced('resourceauthors',ra.ra_id)
+      }catch(error){
+        console.log(`Failed to sync resourceauthors ${ra.ra_id}`, error);
+      }
+    }
 
-    // //sync resourceauthors
-    // const resourceauthors = await getAllFromStore('resourceauthors')
-    // console.log(resourceauthors)
-    // const raResponse = await axios.post("http://localhost:3001/sync-resourceauthors", resourceauthors);
+    //sync publishers
+    const publishers = await getAllUnsyncedFromStore('publisher')
+    console.log(publishers)
+    for(let publisher of publishers){
+      try{
+        //sync data
+        await axios.post("http://localhost:3001/sync-publishers", publisher);
+        //mark as sync locally
+        await markAsSynced('publisher',publisher.pub_id)
+      }catch(error){
+        console.log(`Failed to sync publishers ${publisher.pub_id}`, error);
+      }
+    }
 
-    // if (raResponse.ok) {
-    //   console.log("ResourceAuthors synced successfully.");
-    // }
+    //sync book
+    const books = await getAllUnsyncedFromStore('book')
+    for(let book of books){
+        try{
+          const formData = new FormData();
+          Object.entries(book).forEach(([key, value]) => {
+            formData.append(key, value);
+          });
+          //sync data
+          await axios.post("http://localhost:3001/sync-books", formData);
+          //mark as sync locally
+          await markAsSynced('book',book.book_id)
+        }catch(error){
+          console.log(`Failed to sync books ${book.book_id}`, error);
+        }
+      
+    }
+    
+    //sync journalnewsletter
+    const journalsnewsletters = await getAllUnsyncedFromStore('journalnewsletter')
+    for(let jn of journalsnewsletters){
+      try{
+        const formData = new FormData();
+        Object.entries(jn).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+        //sync data
+        await axios.post("http://localhost:3001/sync-journalnewsletter", formData);
+        //mark as sync locally
+        await markAsSynced('journalnewsletter',jn.jn_id)
+      }catch(error){
+        console.log(`Failed to sync journal/newsletter ${jn.jn_id}`, error);
+      }
+    }
 
-    // //sync publishers
-    // const publishers = await getAllFromStore('publisher')
-    // console.log(publishers)
-    // const pubResponse = await axios.post("http://localhost:3001/sync-publishers", publishers);
+    //sync adviser
+    const advisers = await getAllUnsyncedFromStore('adviser')
+    console.log(advisers)
+    for(let adviser of advisers){
+      try{
+        //sync data
+        await axios.post("http://localhost:3001/sync-advisers", adviser);
+        //mark as sync locally
+        await markAsSynced('adviser',adviser.adviser_id)
+      }catch(error){
+        console.log(`Failed to sync advisers ${adviser.adviser_id}`, error);
+      }
+    }
 
-    // if (pubResponse.ok) {
-    //   console.log("Publishers synced successfully.");
-    // }
-
-    // //sync book
-    // const books = await getAllFromStore('book')
-    // for(let book of books){
-    //   const formData = new FormData();
-    //   Object.entries(book).forEach(([key, value]) => {
-    //     formData.append(key, value);
-    //   });
-    //   const bookResponse = await axios.post("http://localhost:3001/sync-books", formData);
-
-    //   if (bookResponse.ok) {
-    //     console.log("Books synced successfully.");
-    //   }
-    // }
-
-    // //sync journalnewsletter
-    // const journalsnewsletters = await getAllFromStore('journalnewsletter')
-    // for(let jn of journalsnewsletters){
-    //   const formData = new FormData();
-    //   Object.entries(jn).forEach(([key, value]) => {
-    //     formData.append(key, value);
-    //   });
-    //   const jnResponse = await axios.post("http://localhost:3001/sync-journalnewsletter", formData);
-
-    //   if (jnResponse.ok) {
-    //     console.log("Journal/Newsletter synced successfully.");
-    //   }
-    // }
-
-    // //sync adviser
-    // const advisers = await getAllFromStore('adviser')
-    // console.log(advisers)
-    // const adviserResponse = await axios.post("http://localhost:3001/sync-advisers", advisers);
-
-    // if (adviserResponse.ok) {
-    //   console.log("Advisers synced successfully.");
-    // }
-
-    // //sync thesis
-    // const theses = await getAllFromStore('thesis');
-    // console.log(theses)
-    // const thesesResponse = await axios.post("http://localhost:3001/sync-theses", theses);
-
-    // if (thesesResponse.ok) {
-    //   console.log("Theses synced successfully.");
-    // }
+    //sync thesis
+    const theses = await getAllUnsyncedFromStore('thesis')
+    console.log(theses)
+    for(let thesis of theses){
+      try{
+        //sync data
+        await axios.post("http://localhost:3001/sync-theses", thesis);
+        //mark as sync locally
+        await markAsSynced('thesis',thesis.thesis_id)
+      }catch(error){
+        console.log(`Failed to sync theses ${thesis.thesis_id}`, error);
+      }
+    }
     
   }
 
@@ -146,9 +177,11 @@ const CatalogOffline = () => {
   },[search.searchKeyword])
 
   const getCatalog = async()=>{
-    const catalog = await getCatalogOffline()
-    setCatalog(catalog)
+    await getCatalogOffline(setCatalog)
   }
+
+  console.log(catalog)
+
 
   const handleSearch = async ()=>{
     try{
@@ -249,13 +282,13 @@ const CatalogOffline = () => {
                   <td>{item.resource_id}</td>
                   <td>{item.resource_title}</td>
                   <td>{item.type_name}</td>
-                  <td>{item.author_names>1?
+                  <td>{item.author_names.length>1?
                     <ul className='cat-list'>
                       {item.author_names.map(a=>(
                         <li>{a}</li>
                       ))}
                     </ul>    
-                  :<ul><li>{item.author_names}</li></ul>}</td>
+                  :item.author_names.length==0?'n/a':<ul><li>{item.author_names}</li></ul>}</td>
                   <td>{item.dept_shelf_no}</td>
                   <td>{item.resource_quantity}</td>
                   <td>
