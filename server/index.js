@@ -1365,7 +1365,7 @@ const searchByTitle = (searchKeyword,res)=>{
 
         db.query(q, [`%${searchKeyword}%`],(err,results)=>{
             if(err) res.send(err)
-            if(results.length>0){
+            if(results){
                 res.json(results)
                 // console.log(results)
             }else{
@@ -1392,11 +1392,11 @@ const searchByAuthor = (searchKeyword,res)=>{
         WHERE author.author_fname LIKE ? OR author.author_lname LIKE ?
         ORDER BY resources.resource_title ASC
         GROUP BY resources.resource_id`
-        
+
         db.query(q, [`%${searchKeyword}%`,`%${searchKeyword}%`],(err,results)=>{
             if(err) res.send(err)
             if(results.length>0){
-                res.json(results)
+                res.send(results)
             }else{
                 res.send({})
             }

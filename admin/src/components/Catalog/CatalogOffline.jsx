@@ -10,7 +10,7 @@ import AuthorModal from '../AuthorModal/AuthorModal'
 import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import io from 'socket.io-client';
-import { getAllFromStore, getAllUnsyncedFromStore, getCatalogOffline, markAsSynced } from '../../indexedDb2'
+import { getAllFromStore, getAllUnsyncedFromStore, markAsSynced } from '../../indexedDb2'
 
 // const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -27,7 +27,7 @@ const CatalogOffline = () => {
   
   useEffect(()=>{
     console.log('display catalog')
-    getCatalog()
+    
     //Listen for the 'updateData' event from the server
     // socket.on('updateCatalog', ()=>{
     //   console.log('update catalog')
@@ -173,13 +173,10 @@ const CatalogOffline = () => {
 
   useEffect(()=>{
     if(search.searchKeyword==''){
-      getCatalog()
+      
     }
   },[search.searchKeyword])
 
-  const getCatalog = async()=>{
-    await getCatalogOffline(setCatalog)
-  }
 
   console.log(catalog)
 

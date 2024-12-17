@@ -171,73 +171,65 @@ export const saveResourceOffline = async(data)=>{
 /*----------------------SAVE RESOURCES END-----------------*/
 
 //displays resources in catalog page
-export const getCatalogOffline = async (setCatalog)=>{
-    const db = await initDB()
-    const catalog = [];
+export const getCatalogDetailsOffline = async (setCatalog)=>{
+    const db = await initDB();
+    //get resources
+    const txRes = db.transaction('resources','readonly');
+    const resStore = txRes.objectStore('resources')
+    const resources = await resStore.getAll()
+    await txRes.done
+    console.log(resources)
 
-    //get resourceauthor
-    const txResourceAuthor = db.transaction('resourceauthors','readonly');
-    const resourceAuthorStore = txResourceAuthor.objectStore('resourceauthors')
-    const resourceAuthorsList = await resourceAuthorStore.getAll()
-    await txResourceAuthor.done
-
-    //get all resources
-    const txResource = db.transaction('resources','readonly')
-    const resourceStore = txResource.objectStore('resources')
-    const resources = await resourceStore.getAll()
-    await txResource.done
-
-    //get related type
-    const txType = db.transaction('resourcetype','readonly');
-    const typeStore = txType.objectStore('resourcetype');
-    const types = await typeStore.getAll()
-    await txType.done
-    
-    //get related author
-    const txAuthor = db.transaction('author','readonly');
-    const authorStore = txAuthor.objectStore('author')
-    const authors = await authorStore.getAll()
-    await txAuthor.done
-
-    //get department for the shelf no
+    //get shelf no from department
     const txDept = db.transaction('department','readonly');
     const deptStore = txDept.objectStore('department')
-    const department = await deptStore.getAll()
+    const  departments = await deptStore.getAll()
     await txDept.done
-    
+    console.log(departments)
 
-    for(const resource of resources){
-        //.find() returns the entire object if it finds a match.
-        //resource type
-        const resourceType = types.find(type => type.type_id == resource.type_id)?.type_name || '';
+    //store organized catalog
+    const catalog = [];
 
-        //resource shelf no
-        const shelfNo = department.find(dept=>dept.dept_id == resource.dept_id)?.dept_shelf_no||'';
+    resources.map(resource=>{
+        //get mediatype
+        const type = resource.mediaType;
+        let type_name;
 
-        //get authors 
-        //filter returns whole objet that matches the condition
-        //map returns the author id, therefore resoureAuthorId is an array that holds the id of authors
-        const resourceAuthorId = resourceAuthorsList.filter(ra=>ra.resource_id==resource.resource_id).map(ra => ra.author_id);
+        switch(type){
+            case '1':
+                type_name='book';
+                break;
+            case '2':
+                type_name='journal';
+                break;
+            case '3':
+                type_name='newsletter';
+                break;
+            case '4':
+                type_name='thesis'
+                break;
+            default: 
+                console.log('this type is not supported')
+        }
 
-        //get resource author
-        // filter returns the object of author (yung my lname and fname kapag yung author_id ay nag-eexist sa resourceAuthorId)
-        const resourceAuthors = authors
-            .filter(author => resourceAuthorId.includes(author.author_id))
-            .map(author => `${author.author_fname} ${author.author_lname}`)
+        // get shelf no
+        const shelfNo = departments.find(dept=>dept.dept_id == resource.department).dept_shelf_no
 
-
-        catalog.push({
+        const resourceDetails = {
             resource_id: resource.resource_id,
-            resource_title: resource.resource_title,
-            type_name: resourceType,
-            author_names: resourceAuthors.length>1?resourceAuthors.join(', '):resourceAuthors,
+            resource_title: resource.title,
+            type_name: type_name,
+            author_names: resource.authors,
             dept_shelf_no: shelfNo,
-            resource_quantity: resource.resource_quantity
-        })
+            resource_quantity: resource.quantity
 
-        console.log(resourceAuthors)
-    }
-    setCatalog(catalog) 
+        }
+
+        catalog.push(resourceDetails)
+    })
+
+    console.log(catalog)
+    setCatalog(catalog)
 }
 
 /*----------------------VIEW RESOURCES-----------------*/

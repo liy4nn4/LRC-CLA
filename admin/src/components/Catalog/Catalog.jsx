@@ -11,7 +11,7 @@ import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import { getResourcesCatalog } from '../../indexedDb'
 import io from 'socket.io-client';
-import { deleteSyncedData, getAllFromStore, getAllUnsyncedFromStore, markAsSynced } from '../../indexedDb2'
+import { deleteSyncedData, getAllFromStore, getAllUnsyncedFromStore, getCatalogDetailsOffline, markAsSynced } from '../../indexedDb2'
 import Loading from '../Loading/Loading'
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -30,14 +30,26 @@ const Catalog = () => {
     searchFilter: ''
   })
   
+
   useEffect(()=>{
-    console.log('display catalog')
-    getCatalog()
-    //Listen for the 'updateData' event from the server
-    socket.on('updateCatalog', ()=>{
-      console.log('update catalog')
-      getCatalog();
-    }); // Fetch updated appointments when event is emitted
+    if(search.searchKeyword==''&&navigator.onLine){
+      getCatalogOnline()
+    }
+  },[search.searchKeyword])
+
+  useEffect(()=>{
+    if(navigator.onLine){
+      setIsOnline(true)
+      getCatalogOnline()
+      //Listen for the 'updateData' event from the server
+      socket.on('updateCatalog', ()=>{
+        console.log('update catalog')
+        getCatalogOnline();
+      }); // Fetch updated appointments when event is emitted
+    }else{
+      setIsOnline(false)
+      getCatalogOffline()
+    }
 
     // Cleanup the event listener when the component unmounts
     return () => {
@@ -45,29 +57,17 @@ const Catalog = () => {
     };
   },[pagination])
 
-  console.log('pagination: ', pagination)
-
-  useEffect(()=>{
-    if(search.searchKeyword==''){
-      getCatalog()
-    }
-  },[search.searchKeyword])
-
-  useEffect(()=>{
-    if(navigator.onLine){
-      setIsOnline(true)
-    }else{
-      setIsOnline(false)
-    }
-  },[])
-
-  const getCatalog = async()=>{
+  const getCatalogOnline = async()=>{
     try {
       const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
       setCatalog(response)
     } catch (err) {
         console.log(err.message);
     }
+  }
+
+  const getCatalogOffline = async()=>{
+    await getCatalogDetailsOffline(setCatalog)
   }
 
   const handleSearch = async ()=>{
