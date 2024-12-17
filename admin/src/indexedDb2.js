@@ -97,7 +97,7 @@ export const initDB = async () => {
             topicStore.add({topic_name: "writing", topic_row_no: '1' });
             topicStore.add({topic_name: "communication", topic_row_no: '2' });
             topicStore.add({topic_name: "literature", topic_row_no: '3' });
-            topicStore.add({topic_name: "food preparation ng services", topic_row_no: '1' });
+            topicStore.add({topic_name: "food preparation and services", topic_row_no: '1' });
         }  
         }
     })

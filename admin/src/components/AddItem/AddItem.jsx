@@ -372,8 +372,8 @@ const AddItem = () => {
                     publisher_id: 0,
                     publisher: ''
                 });
-                
-                window.reload()
+
+                window.location.reload()
             }catch(err){
                 console.log('Cannot save resource. An error occurred: ',err.message);
             }

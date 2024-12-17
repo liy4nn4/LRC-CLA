@@ -1051,6 +1051,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     JOIN department ON department.dept_id = resources.dept_id
     GROUP BY resources.resource_id
+    ORDER BY resources.resource_title ASC
     LIMIT 5 OFFSET ?`;
 
     db.query(q,page,(err,results)=>{
@@ -1329,6 +1330,7 @@ const searchByType = (searchKeyword,res,type)=>{
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE resources.resource_title LIKE ? AND resources.type_id = ?
+        ORDER BY resources.resource_title ASC
         GROUP BY resources.resource_id`
 
         db.query(q, [`%${searchKeyword}%`,type],(err,results)=>{
@@ -1358,6 +1360,7 @@ const searchByTitle = (searchKeyword,res)=>{
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE resources.resource_title LIKE ?
+        ORDER BY resources.resource_title ASC
         GROUP BY resources.resource_id`
 
         db.query(q, [`%${searchKeyword}%`],(err,results)=>{
@@ -1387,8 +1390,9 @@ const searchByAuthor = (searchKeyword,res)=>{
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE author.author_fname LIKE ? OR author.author_lname LIKE ?
+        ORDER BY resources.resource_title ASC
         GROUP BY resources.resource_id`
-
+        
         db.query(q, [`%${searchKeyword}%`,`%${searchKeyword}%`],(err,results)=>{
             if(err) res.send(err)
             if(results.length>0){

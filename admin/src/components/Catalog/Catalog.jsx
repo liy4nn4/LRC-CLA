@@ -11,7 +11,7 @@ import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import { getResourcesCatalog } from '../../indexedDb'
 import io from 'socket.io-client';
-import { getAllFromStore, getAllUnsyncedFromStore, markAsSynced } from '../../indexedDb2'
+import { deleteSyncedData, getAllFromStore, getAllUnsyncedFromStore, markAsSynced } from '../../indexedDb2'
 import Loading from '../Loading/Loading'
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -107,6 +107,9 @@ const syncData2DB = async()=>{
       formData.append(key, value);
     });
     const response = await axios.post('http://localhost:3001/save', resource);
+
+    //delete resource_id
+    await deleteSyncedData(resource.resource_id)
   }
   setLoading(false)
 }
@@ -128,16 +131,16 @@ const syncData2DB = async()=>{
               </Link>
           </div>
           {/* sync*/}
-          {/* <div className="add-author-publisher"> */}
+          <div className="add-author-publisher">
               {/* sync to database */}
-              {/* <button className='btn sync-2-db' onClick={syncData2DB} disabled={isOnline==false} title='You need internet connection to sync to database.'>
+              <button className='btn sync-2-db' onClick={syncData2DB} disabled={isOnline==false} title='You need internet connection to sync to database.'>
                   Sync to database
-              </button> */}
+              </button>
               {/* sync from database */}
-              {/* <button className='btn sync-from-db' disabled={isOnline==false}>
+              <button className='btn sync-from-db' disabled={isOnline==false}>
                   Sync from database
               </button>
-           </div> */}
+           </div>
         </div>
         
         {/* search,filter,export */}
@@ -165,7 +168,7 @@ const syncData2DB = async()=>{
             <table className="cat-table">
               <thead>
                 <tr>
-                  <th >ID</th>
+                  {/* <th >ID</th> */}
                   <th >Title</th>
                   <th >Type</th>
                   <th >Authors</th>
@@ -177,7 +180,7 @@ const syncData2DB = async()=>{
               <tbody>
                 {catalog?catalog.length>0?catalog.map((item,key)=>(
                 <tr key={key}>
-                  <td>{item.resource_id}</td>
+                  {/* <td>{item.resource_id}</td> */}
                   <td>{item.resource_title}</td>
                   <td>{item.type_name}</td>
                   <td>{item.author_names>1?
