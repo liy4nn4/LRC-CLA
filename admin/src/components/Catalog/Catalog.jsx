@@ -11,6 +11,8 @@ import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import { getResourcesCatalog } from '../../indexedDb'
 import io from 'socket.io-client';
+import { getAllFromStore, getAllUnsyncedFromStore, markAsSynced } from '../../indexedDb2'
+import Loading from '../Loading/Loading'
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -20,7 +22,9 @@ const Catalog = () => {
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
-  const filterOptions = ['title','author']
+  const filterOptions = ['title','author','book','journal','newsletter','thesis']
+  const [isOnline, setIsOnline] = useState(false)
+  const [loading,setLoading] = useState(false)
   const [search, setSearch]=useState({
     searchKeyword: '',
     searchFilter: ''
@@ -48,6 +52,14 @@ const Catalog = () => {
       getCatalog()
     }
   },[search.searchKeyword])
+
+  useEffect(()=>{
+    if(navigator.onLine){
+      setIsOnline(true)
+    }else{
+      setIsOnline(false)
+    }
+  },[])
 
   const getCatalog = async()=>{
     try {
@@ -83,8 +95,22 @@ const Catalog = () => {
     }))
   }
 
+/*------SYNC DATA TO MYSQL------------ */
+//sync data
+const syncData2DB = async()=>{
+  setLoading(true)
+  const resources = await getAllFromStore('resources')
+  console.log(resources)
+  for(let resource of resources){
+    const formData = new FormData();
+    Object.entries(resource).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    const response = await axios.post('http://localhost:3001/save', resource);
+  }
+  setLoading(false)
+}
 
-  console.log(search)
 
   return (
     <div className='cat-container'>
@@ -101,20 +127,17 @@ const Catalog = () => {
                 </button>
               </Link>
           </div>
-          {/* add author and publisher*/}
+          {/* sync*/}
           {/* <div className="add-author-publisher"> */}
-              {/* add author */}
-
-              {/* <button className='btn cat-add-author' onClick={()=>setOpenAuthor(!openAuthor)}>
-                <i class="fa-solid fa-plus"></i>
-                  Add Author
+              {/* sync to database */}
+              {/* <button className='btn sync-2-db' onClick={syncData2DB} disabled={isOnline==false} title='You need internet connection to sync to database.'>
+                  Sync to database
               </button> */}
-              {/* add publisher */}
-              {/* <button className='btn cat-add-pub' onClick={()=>setOpenPublisher(!openPublisher)}>
-                <i class="fa-solid fa-plus" ></i>
-                  Add Publisher
-              </button> */}
-          {/* </div> */}
+              {/* sync from database */}
+              {/* <button className='btn sync-from-db' disabled={isOnline==false}>
+                  Sync from database
+              </button>
+           </div> */}
         </div>
         
         {/* search,filter,export */}
@@ -197,6 +220,7 @@ const Catalog = () => {
 
       <AuthorModal open={openAuthor} close={()=>setOpenAuthor(!openAuthor)}/>
       <PublisherModal open={openPublisher} close={()=>setOpenPublisher(!openPublisher)}/>
+      <Loading loading={loading}/>
     </div>
   )
 }

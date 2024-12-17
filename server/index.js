@@ -88,6 +88,7 @@ app.post('/file', upload.single('file'), (req, res) => {
 });
 
 app.post('/save', upload.single('file'), async (req, res) => {
+    console.log('saving resource...')
     const mediaType = req.body.mediaType;
     let adviserFname;
     let adviserLname;
@@ -131,10 +132,14 @@ app.post('/save', upload.single('file'), async (req, res) => {
         adviserLname = adviser[1];
     }
     
-    const authors = req.body.authors.split(',')
-
-    console.log("publisher: ", req.body.publisher); // pag walang value to, this is an empty string
-
+    //authors is in string
+    let authors;
+    if(Array.isArray(req.body.authors)){
+        authors = req.body.authors
+    }else{
+        authors = req.body.authors.split(',')
+    }
+   
     //call insertResources and pass req
     await insertResources(res,req,authors).then((data)=>{
         const resourceId = data
@@ -181,7 +186,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
 
                     //if no results found
                     if(results.length===0){
-
+                        console.log('inserting publishers')
                         const pubQ = 'INSERT INTO publisher (pub_name, pub_address, pub_email, pub_phone, pub_website) VALUES (?, ?, ?, ?, ?)';
 
                         const publisher = [
@@ -196,6 +201,8 @@ app.post('/save', upload.single('file'), async (req, res) => {
                             if (err) {
                                 return res.status(500).send(err); 
                             }
+
+                            console.log('publishers inserted successfully')
                             // Get the publisherId of the data you just inserted
                             const publisherId = results.insertId;
 
@@ -214,6 +221,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
                                     return res.status(500).send(err); 
                                 }
 
+                                console.log('book inserted successfully')
                                 // Optionally, delete the file from disk after saving it to the database
                                 // fs.unlink() method is used to delete files in Node.js
                                 // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
@@ -286,7 +294,6 @@ app.post('/save', upload.single('file'), async (req, res) => {
                 });
         }else{
             //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
-
             const checkIfAdviserExist = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
             const thesisQ = "INSERT INTO thesis (resource_id, adviser_id) VALUES (?,?)"
             const insertAdviser = "INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)"
@@ -362,63 +369,64 @@ const insertResources = async (res,req,authors)=>{
 //insert authors 
 const insertAuthors = async (res,authors,resourceId)=>{
     return new Promise((resolve,reject)=>{
-        //insert authors
-        const authorQ = 'INSERT INTO author (author_fname, author_lname) VALUES (?, ?)' 
-        const resourceAuthorQ = 'INSERT INTO resourceauthors (resource_id, author_id) VALUES (?, ?)'
-        const checkIfAuthorExist ='SELECT author_id FROM author WHERE author_fname = ? AND author_lname = ?'
+            //insert authors
+            const authorQ = 'INSERT INTO author (author_fname, author_lname) VALUES (?, ?)' 
+            const resourceAuthorQ = 'INSERT INTO resourceauthors (resource_id, author_id) VALUES (?, ?)'
+            const checkIfAuthorExist ='SELECT author_id FROM author WHERE author_fname = ? AND author_lname = ?'
 
-        authors.forEach(element => {
-            const nameParts = element.split(' '); 
-            const fname = nameParts.slice(0, -1).join(" "); // "John Michael"
-            const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
-            const authorValue = [
-                fname,
-                lname
-            ]
+            authors.forEach(element => {          
+                    const nameParts = element.split(' '); 
+                    const fname = nameParts.slice(0, -1).join(" "); // "John Michael"
+                    const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
+                    const authorValue = [
+                        fname,
+                        lname
+                    ]
 
-            // check if author already exist
-            db.query(checkIfAuthorExist,[fname,lname], (err,results)=>{
-                if (err) {
-                    return res.status(500).send(err); 
-                }
+                    // check if author already exist
+                    db.query(checkIfAuthorExist,[fname,lname], (err,results)=>{
+                        if (err) {
+                            return res.status(500).send(err); 
+                        }
+                        
+                        //pag walang nahanap, new author sa authors table
+                        if(results.length===0){
+                            db.query(authorQ,authorValue,(err,results)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
                 
-                //pag walang nahanap, new author sa authors table
-                if(results.length===0){
-                    db.query(authorQ,authorValue,(err,results)=>{
-                        if (err) {
-                            return res.status(500).send(err); 
+                                //authorId nung author info na kakainsert lang
+                                const authorId = results.insertId;
+                
+                                //if author is inserted, insert sa resourceAuthor table
+                                db.query(resourceAuthorQ,[resourceId,authorId],(req,res)=>{
+                                    if (err) {
+                                        return res.status(500).send(err); 
+                                    }
+    
+                                    resolve() 
+                                })
+                            })
+                        }else{
+                            //if author is inserted, insert sa resourceAuthor table
+                            //results look like this: 
+                            // [
+                            //     {
+                            //         author_id: 5
+                            //     }
+                            // ]
+                            //so you have to use index to access id
+                            db.query(resourceAuthorQ,[resourceId,results[0].author_id],(req,res)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
+                                resolve() 
+                            })
                         }
-        
-                        //authorId nung author info na kakainsert lang
-                        const authorId = results.insertId;
-        
-                        //if author is inserted, insert sa resourceAuthor table
-                        db.query(resourceAuthorQ,[resourceId,authorId],(req,res)=>{
-                            if (err) {
-                                return res.status(500).send(err); 
-                            }
-
-                            resolve() 
-                        })
-                    })
-                }else{
-                    //if author is inserted, insert sa resourceAuthor table
-                    //results look like this: 
-                    // [
-                    //     {
-                    //         author_id: 5
-                    //     }
-                    // ]
-                    //so you have to use index to access id
-                    db.query(resourceAuthorQ,[resourceId,results[0].author_id],(req,res)=>{
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-                        resolve() 
-                    })
-                }
-            })    
-        });
+                    })    
+                });
+           
     })
 }
 
@@ -1277,6 +1285,7 @@ app.get('/view',(req,res)=>{
     })
 })
 
+/*-----------DYNAMIC SEARCH IN CATALOG----------- */
 app.get('/catalog/search',(req,res)=>{
     const searchKeyword = req.query.searchKeyword || '';
     const searchFilter = req.query.searchFilter || '';
@@ -1288,8 +1297,50 @@ app.get('/catalog/search',(req,res)=>{
         case 'author':
             searchByAuthor(searchKeyword,res);
             break;
+        case 'book':
+            searchByType(searchKeyword,res,'1');
+            break
+        case 'journal':
+            searchByType(searchKeyword,res,'2');
+            break
+        case 'newsletter':
+            searchByType(searchKeyword,res,'3');
+            break;
+        case 'thesis':
+            searchByType(searchKeyword,res,'4');
+            break;
     }
 })
+
+
+const searchByType = (searchKeyword,res,type)=>{
+    const q = `
+        SELECT 
+            resources.resource_title, 
+            resources.resource_id, 
+            resourcetype.type_name, 
+            resources.resource_quantity, 
+            department.dept_shelf_no,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources 
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN topic ON resources.topic_id = topic.topic_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        WHERE resources.resource_title LIKE ? AND resources.type_id = ?
+        GROUP BY resources.resource_id`
+
+        db.query(q, [`%${searchKeyword}%`,type],(err,results)=>{
+            if(err) res.send(err)
+            if(results.length>0){
+                res.json(results)
+                // console.log(results)
+            }else{
+                res.send({})
+            }
+        })
+}
 
 const searchByTitle = (searchKeyword,res)=>{
     const q = `
@@ -1486,33 +1537,34 @@ app.post("/sync-publishers", (req, res) => {
 app.post("/sync-books", upload.single('file'), async (req, res) => {
     let imageFile;
     let filePath;
-    const book = req.body
+    const book = req.body;
+
 
     if(req.file){
         filePath = req.file.path; // Get the file path 
         imageFile = fs.readFileSync(filePath);
     }
+    
+    const q = `
+        INSERT INTO 
+            book (book_id, book_cover, book_isbn, resource_id, pub_id) 
+        VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+        UPDATE 
+            book_cover=VALUES(book_cover),
+            book_isbn=VALUES(book_isbn),
+            resource_id=VALUES(resource_id),
+            pub_id=VALUES(pub_id)`;
+            
 
-     const q = `
-     INSERT INTO 
-         book (book_id, book_cover, book_isbn, resource_id, pub_id) 
-     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
-     UPDATE 
-         book_cover=VALUES(book_cover),
-         book_isbn=VALUES(book_isbn),
-         resource_id=VALUES(resource_id),
-         pub_id=VALUES(pub_id)`;
- 
-     const values = [
-         book.book_id,
-         imageFile,
-         book.book_isbn,
-         book.resource_id,
-         book.pub_id
-     ];
-
-     console.log(book)
-   
+        const values = [
+            book.book_id,
+            imageFile,
+            book.book_isbn==null?'n/a':book.book_isbn,
+            book.resource_id,
+            book.pub_id
+        ]; 
+    
+     
      db.query(q, values, (err) => {
        if (err) {
          console.error("Error syncing book:", err);

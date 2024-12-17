@@ -6,7 +6,7 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
-import { editResourceOffline, getAllFromStore, initDB, saveResourceOffline, viewResourcesOffline } from '../../indexedDb2';
+import { editResourceOffline, getAllFromStore, initDB, saveResourceOffline, viewResourcesOffline } from '../../indexedDb2Original';
 import CatalogingOffline from '../Cataloging/CatalogingOffline';
 import CatalogInfoOffline from '../CatalogInfo/CatalogInfoOffline';
 

@@ -11,21 +11,7 @@ import { getGenreOffline } from '../../indexedDb'
 const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
-    const [selectedGenre,setSelectedGenre] = useState([])
-    const [viewSelectedGenre,setViewSelectedGenre] = useState([])
 
-    useEffect(()=>{ 
-        if(bookData.genre){
-            if (bookData.genre.length > 0) {
-                console.log('book genre');
-                const selected = bookData.genre.map(g => genreList.find(l => l.value === g))  // Find the genre in genreList
-                setViewSelectedGenre(selected);
-            }
-        }
-        
-    },[bookData.genre])
-
-    console.log(selectedGenre)
 
     //for displaying preview photo
     useEffect(()=>{
@@ -66,9 +52,6 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
           };
       },[bookData.url])
 
-      const handleGenre = (selected)=>{
-        setSelectedGenre(selected)
-      }
 
       console.log(bookData.mediaType)
    

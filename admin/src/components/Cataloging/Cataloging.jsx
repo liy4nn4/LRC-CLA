@@ -2,31 +2,41 @@
 import React, { useEffect, useState } from 'react'
 import './Cataloging.css'
 import axios from 'axios'
+import { getAllFromStore } from '../../indexedDb2'
 
-const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized,editMode}) => {
+
+const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized,editMode,isOnline}) => {
     const [department, setDepartment] = useState([])
     const [catalog, setCatalog] = useState([])
     const [topic,setTopic] = useState([])
 
     useEffect(() => {
+        if(isOnline){
+            getDataOnline()
+        }else{
+            getDataOffline()
+        }
+    }, [isOnline]);
+
+    const getDataOffline = async ()=>{
+            //get department
+            const dept = await getAllFromStore('department')
+            setDepartment(dept)
+    
+            // get topic 
+            const topic = await getAllFromStore('topic')
+            setTopic(topic)
+    }
+    
+    const getDataOnline = async()=>{
         getDept()
         getTopics()
-    }, []);
-    
+    }
 
     const getDept = async()=>{
         try{
             const response = await axios.get('http://localhost:3001/departments').then(res=>res.data)
             setDepartment(response)
-        }catch(err){
-            console.log(err.message)
-        }
-    }
-
-    const getCatalog = async()=>{
-        try{
-            const response = await axios.get('http://localhost:3001/catalog').then(res=>res.data)
-            setCatalog(response)
         }catch(err){
             console.log(err.message)
         }

@@ -1,7 +1,7 @@
 import { openDB } from "idb"
 
 const dbName = "LRCCLA";
-const version = 5;
+const version = 1;
 
 //initialize databse
 export const initDB = async () => {
@@ -13,32 +13,20 @@ export const initDB = async () => {
             resourcesStore.createIndex("sync_status", "sync_status", { unique: false });
         }
 
-        // Create "journalnewsletter" store
-        if (!db.objectStoreNames.contains("journalnewsletter")) {
-            const jnStore = db.createObjectStore("journalnewsletter", { keyPath: "jn_id",autoIncrement:true });
-            jnStore.createIndex("sync_status", "sync_status", { unique: false });
-            jnStore.createIndex("resource_id", "resource_id", { unique: false });
-        }
-
         // Create "publisher" store
         if (!db.objectStoreNames.contains("publisher")) {
-            const pubStore = db.createObjectStore("publisher", { keyPath: "pub_id",autoIncrement:true });
+            const pubStore = db.createObjectStore("publisher", { keyPath: "pub_id", autoIncrement: true });
             pubStore.createIndex("sync_status", "sync_status", { unique: false });
-        }
-
-        // Create "book" store
-        if (!db.objectStoreNames.contains("book")) {
-            const bookStore = db.createObjectStore("book", { keyPath: "book_id",autoIncrement:true });
-            bookStore.createIndex("sync_status", "sync_status", { unique: false });
-            bookStore.createIndex("resource_id", "resource_id", { unique: false });
-        }
-
-        // Create "thesis" store
-        if (!db.objectStoreNames.contains("thesis")) {
-            const thesisStore = db.createObjectStore("thesis", { keyPath: "thesis_id",autoIncrement:true });
-            thesisStore.createIndex("sync_status", "sync_status", { unique: false });
-            thesisStore.createIndex("resource_id", "resource_id", { unique: false });
-        }
+            
+            setPredefinedData('publisher',{
+                            pub_name: "n/a",
+                            pub_address: "n/a",
+                            pub_email: "n/a",
+                            pub_phone: "n/a",
+                            pub_website: "n/a"
+            })
+            
+          }
 
         // Create "adviser" store
         if (!db.objectStoreNames.contains("adviser")) {
@@ -49,12 +37,6 @@ export const initDB = async () => {
             adviserStore.createIndex("sync_status", "sync_status", { unique: false });
         }
 
-        // Create "resourceAuthors" store
-        if (!db.objectStoreNames.contains("resourceauthors")) {
-            const resourceAuthorsStore = db.createObjectStore("resourceauthors",{keyPath: "ra_id",autoIncrement:true});
-            resourceAuthorsStore.createIndex("sync_status", "sync_status", { unique: false });
-            resourceAuthorsStore.createIndex("resource_id", "resource_id", { unique: false });
-        }
 
         // Create "author" store
         if (!db.objectStoreNames.contains("author")) {
@@ -63,6 +45,10 @@ export const initDB = async () => {
                 unique:false
             })
             authorStore.createIndex("sync_status", "sync_status", { unique: false });
+             setPredefinedData('author',{
+                            author_fname: 'n/a',
+                            author_lname: 'n/a'
+                        })
         }
 
         // Create and populate "type" store
@@ -88,10 +74,10 @@ export const initDB = async () => {
             deptStore.add({dept_name: "social science", dept_shelf_no: '1' });
             deptStore.add({dept_name: "languages", dept_shelf_no: '2' });
             deptStore.add({dept_name: "business management ", dept_shelf_no: '3' });
-            deptStore.add({dept_name: "hospitality management", dept_shelf_no: '4' });
+            deptStore.add({dept_name: "hospitality and restaurant management", dept_shelf_no: '4' });
             deptStore.add({dept_name: "references", dept_shelf_no: '5' });
             deptStore.add({dept_name: "student output", dept_shelf_no: '6' });
-            deptStore.add({dept_name: "thesis", dept_shelf_no: '7' });
+            deptStore.add({dept_name: "thesis and dissertation", dept_shelf_no: '7' });
         }
 
         // create and populate 'topic' store
@@ -111,10 +97,20 @@ export const initDB = async () => {
             topicStore.add({topic_name: "writing", topic_row_no: '1' });
             topicStore.add({topic_name: "communication", topic_row_no: '2' });
             topicStore.add({topic_name: "literature", topic_row_no: '3' });
+            topicStore.add({topic_name: "food preparation ng services", topic_row_no: '1' });
         }  
         }
     })
 };
+
+//create predefined data in publisher
+export const setPredefinedData=async(storeName,data)=>{
+    const db = await initDB();
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    await store.put(data)
+    await tx.done
+}
 
 // Get all data from a store
 export const getAllFromStore = async (storeName) => {
@@ -151,228 +147,27 @@ export const markAsSynced = async (storeName,id) => {
     await tx.done;
 };
 
+//delete synced data
+export const deleteSyncedData = async (resourceId)=>{
+    const db = await initDB();
+    const tx = db.transaction('resources', "readwrite");
+    const store = tx.objectStore('resources');
+
+    await store.delete(resourceId);
+    await tx.done;
+}
 /*----------------------SAVE RESOURCES-----------------*/
 export const saveResourceOffline = async(data)=>{
     const mediaType = data.mediaType;
-    let existingPublisher;
-    let pub_name;
-    let pub_add;
-    let pub_email;
-    let pub_phone;
-    let pub_website;
-
-    let adviserFname;
-    let adviserLname;
-
-    //set variables depending on type
-    if(mediaType==='1'){
-        existingPublisher = data.publisher_id; //this is not 0 if pinili niya ay existing na publisher
-        pub_name = data.publisher;
-        pub_add = data.publisher_address;
-        pub_email = data.publisher_email;
-        pub_phone = data.publisher_number;
-        pub_website = data.publisher_website;
-    }else if(mediaType==='4'){
-        // split string
-        //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
-        const adviser = data.adviser.split(' ')
-        adviserFname = adviser.slice(0, -1).join(" ");
-        adviserLname = adviser.length > 1 ? adviser[adviser.length - 1] : '';
-    }
-
+   
     const db = await initDB();
-    const tx = db.transaction("resources", "readwrite");
-    const store = tx.objectStore("resources");
-
-    // resource
-    const resource = {
-        resource_title: data.title,
-        resource_description: data.description,
-        resource_published_date: data.publishedDate,
-        resource_quantity: data.quantity,
-        resource_is_circulation: data.isCirculation?1:0,
-        dept_id: data.department,
-        topic_id: data.topic,
-        type_id: data.mediaType,
-        avail_id: data.status,
-        sync_status: 0
-    }
-
-    // Save the resource and get the inserted ID
-    const resourceId = await store.put(resource);
-    await tx.done;
-    console.log(`Data saved in resources object store`);
-
-    const authors = data.authors
-    console.log('author',authors)
-    //pass resourceId and authors to saveAuthorsOffline
-    await saveAuthorsOffline(resourceId, authors).then(async ()=>{
-        //insert data based on their type
-        if(mediaType==='1'){
-            //check publisher
-            if(existingPublisher==0&&!pub_name&&!pub_add&&!pub_email&&!pub_phone&&!pub_website){
-                // if publisherid is 0 and walang nakaset sa pub details, insert to book then sed pub_id to nulll
-                await saveBookOffline(data.file, data.isbn, resourceId,null)
-            }else{
-                //if hindi 0 ung publisherID, check sa publisher id nageexist un
-                try {
-                    await checkPublisherIfExist(existingPublisher);
-                    await saveBookOffline(data.file, data.isbn, resourceId, existingPublisher);
-                } catch {
-                    const pubId = await savePublisherOffline(pub_name, pub_add, pub_email, pub_phone, pub_website);
-                    await saveBookOffline(data.file, data.isbn, resourceId, pubId);
-                }
-            }
-        }else if(mediaType==='2'||mediaType==='3'){
-            await saveJournalNewsletterOffline(data.volume,data.issue,data.file,resourceId)
-        }else{
-            await checkAdviserIfExist(adviserFname,adviserLname,resourceId)
-        }
-    })
-}
-
-const checkAdviserIfExist = async(adviserFname, adviserLname,resourceId)=>{
-    const db = await initDB();
-    const tx = db.transaction('adviser','readwrite');
-    const store = tx.objectStore('adviser');
-    const index = store.index('adviser_name')
-
-    const result = await index.get([adviserFname,adviserLname]);
-
-    if(!result){
-        //if adviser does nt exist, insert to adviser object store
-        const adviserId =  await store.put({adviser_fname: adviserFname, adviser_lname: adviserLname, sync_status:0});
-
-        //after inserting, pass to saveThesisOffline()
-        await saveThesisOffline(adviserId,resourceId)
-    }else{
-        //if nahanap
-        const adviserId = result.adviser_id;
-        await saveThesisOffline(adviserId,resourceId)
-    }
-
-}
-
-const saveThesisOffline = async (adId,resId)=>{
-    const db = await initDB()
-    const tx = db.transaction('thesis','readwrite')
-    const store = tx.objectStore('thesis')
-    await store.put({
-        resource_id:resId,
-        adviser_id:adId,
-        sync_status:0
-    })
-    await tx.done
-}
-
-const saveJournalNewsletterOffline = async(jnVol, jnIssue, jnCover, resourceId)=>{
-    const db = await initDB()
-    const tx = db.transaction('journalnewsletter','readwrite');
-    const store = tx.objectStore('journalnewsletter')
-    await store.put({
-        jn_volume:jnVol,
-        jn_issue:jnIssue,
-        file: jnCover,
-        resource_id:resourceId,
-        sync_status: 0
-    })
-    await tx.done
-}
-
-const savePublisherOffline = async(pubName, pubAdd, pubEmail, pubPhone, pubWeb) =>{
-     const db = await initDB();
-    const tx = db.transaction('publisher', 'readwrite');
-    const store = tx.objectStore('publisher');
-    const pubId = await store.put({
-        pub_name: pubName,
-        pub_add: pubAdd,
-        pub_email: pubEmail,
-        pub_phone: pubPhone,
-        pub_website: pubWeb,
-        sync_status:0
-    });
-    await tx.done;
-    return pubId;
-}
-
-const checkPublisherIfExist = async (pubId)=>{
-    const db = await initDB();
-    const tx = db.transaction('publisher', 'readonly');
-    const store = tx.objectStore('publisher');
-    const result = await store.get(pubId);
-
-    if (!result) {
-        throw new Error('Publisher not found');
-    }
-    return result;
-}
-
-const saveBookOffline = async (file,isbn,resourceId,pubId)=>{
-    const db = await initDB()
-    const tx = db.transaction('book','readwrite');
-    const store = tx.objectStore('book')
-    await store.put({
-        file:file,
-        book_isbn:!isbn?null:isbn,
-        resource_id:resourceId, 
-        pub_id:pubId,
-        sync_status:0
-    })
-    await tx.done
-}
-
-const saveAuthorsOffline = async (resourceId, authors) => {
-    const db = await initDB();
-    if(authors.length!=0){
-        // Loop through authors to check if they exist and add them if not
-        for (let element of authors) {
-            // Use 'readwrite' since you're potentially adding or modifying records
-            const tx = db.transaction("author", "readwrite");
-            const store = tx.objectStore("author");
-            const index = store.index("author_name");
-
-            const nameParts = element.split(' ');
-            const fname = nameParts.slice(0, -1).join(" ");  // "John Michael"
-            const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
-
-            const authorValue = [fname, lname];  // Create the key to search in the index
-            console.log(authorValue)
-
-            // Check if the author exists in the index
-            const result = await index.get(authorValue);
-            console.log(result)
-            //if walang nakitang author, insert author
-            if(!result){
-                //Save the author and get the inserted ID
-                const authorId =  await store.put({
-                    author_fname: fname, 
-                    author_lname: lname, 
-                    sync_status: 0});
-
-                //after inserting, pass the resourceId and authorId to saveResourceAuthorOffline()
-                await saveResourceAuthorOffline(resourceId,authorId)
-            }else{
-                //if may nahanap, get the authorId and pass to saveResourceAuthorOffline(resourceId,authorId) together with the resourceId
-                //result: {author_fname: 'sample', author_lname: 'sample', author_id: 1}
-                const authorId = result.author_id
-                await saveResourceAuthorOffline(resourceId,authorId)
-            }
-            await tx.done;  // Ensure the transaction completes
-        }
-        console.log("inserted to author and resourceauthor object store.");
-    }
+    const tx = db.transaction('resources','readwrite')
+    const store = tx.objectStore('resources')
+    await store.put(data)
     
-};
-
-const saveResourceAuthorOffline = async (resourceId,authorId)=>{
-    const db = await initDB()
-    const tx = db.transaction("resourceauthors", "readwrite");
-    const store = tx.objectStore("resourceauthors");
-
-    await store.put({resource_id: resourceId, author_id: authorId, sync_status:0})
-    await tx.done;
+    console.log('data',data)
+   await tx.done
 }
-
 /*----------------------SAVE RESOURCES END-----------------*/
 
 //displays resources in catalog page
@@ -654,212 +449,3 @@ const viewThesisOffline = async (resource,setBookData)=>{
 }
 /*----------------------VIEW RESOURCES END-----------------*/
 
-/*----------------------EDIT RESOURCES-----------------*/
-export const editResourceOffline = async (data,id)=>{
-    const resourceId = parseInt(id)
-    const mediaType = data.mediaType;
-    let existingPublisher;
-    let pub_name;
-    let pub_add;
-    let pub_email;
-    let pub_phone;
-    let pub_website;
-
-    let adviserFname;
-    let adviserLname;
-
-    //set variables depending on type
-    if(mediaType==='1'){
-        existingPublisher = data.publisher_id; //this is not 0 if pinili niya ay existing na publisher
-        pub_name = data.publisher;
-        pub_add = data.publisher_address;
-        pub_email = data.publisher_email;
-        pub_phone = data.publisher_number;
-        pub_website = data.publisher_website;
-    }else if(mediaType==='4'){
-        // split string
-        //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
-        const adviser = data.adviser.split(' ')
-        adviserFname = adviser.slice(0, -1).join(" ");
-        adviserLname = adviser.length > 1 ? adviser[adviser.length - 1] : '';
-    }
-
-    const db = await initDB();
-    const tx = db.transaction("resources", "readwrite");
-    const store = tx.objectStore("resources");
-
-    const updatedResource = {
-        resource_id: resourceId,
-        resource_title: data.title,
-        resource_description: data.description,
-        resource_published_date: data.publishedDate,
-        resource_quantity: data.quantity,
-        resource_is_circulation: data.isCirculation?1:0,
-        dept_id: data.department,
-        topic_id: data.topic,
-        type_id: data.mediaType,
-        avail_id: data.status,
-        sync_status: 0
-    }
-    
-    await store.put(updatedResource);
-    await tx.done
-
-    const authors = data.authors;
-
-    await editAuthorsOffline(resourceId, authors).then(async ()=>{
-        //insert data based on their type
-        if(mediaType==='1'){
-            //check publisher
-            if(existingPublisher==0&&!pub_name&&!pub_add&&!pub_email&&!pub_phone&&!pub_website){
-                // if publisherid is 0 and walang nakaset sa pub details, insert to book then sed pub_id to nulll
-                await editBookOffline(data.file, data.isbn, resourceId,null)
-            }else{
-                //if hindi 0 ung publisherID, check sa publisher id nageexist un
-                try {
-                    await checkPublisherIfExist(existingPublisher);
-                    await editBookOffline(data.file, data.isbn, resourceId, existingPublisher);
-                } catch {
-                    const pubId = await savePublisherOffline(pub_name, pub_add, pub_email, pub_phone, pub_website);
-                    await saveBookOffline(data.file, data.isbn, resourceId, pubId);
-                }
-            }
-        }else if(mediaType==='2'||mediaType==='3'){
-            await editJournalNewsletterOffline(data.volume,data.issue,data.file,resourceId)
-        }else{
-            await editCheckAdviserIfExist(adviserFname,adviserLname,resourceId)
-        }
-    })
-}
-
-const editAuthorsOffline = async (resourceId, authors) => {
-    const db = await initDB();
-    // Loop through authors to check if they exist and add them if not
-    for (let element of authors) {
-        // Use 'readwrite' since you're potentially adding or modifying records
-        const tx = db.transaction("author", "readwrite");
-        const store = tx.objectStore("author");
-        const index = store.index("author_name");
-
-        const nameParts = element.split(' ');
-        const fname = nameParts.slice(0, -1).join(" ");  // "John Michael"
-        const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
-
-        const authorValue = [fname, lname];  // Create the key to search in the index
-        console.log(authorValue)
-
-        // Check if the author exists in the index
-        const result = await index.get(authorValue);
-        console.log(result)
-        //if walang nakitang author, insert author
-        if(!result){
-            //Save the author and get the inserted ID
-            const authorId =  await store.put({
-                author_fname: fname, 
-                author_lname: lname, 
-                sync_status: 0});
-
-            //after inserting, pass the resourceId and authorId to saveResourceAuthorOffline()
-            await editResourceAuthorOffline(resourceId,authorId)
-        }else{
-            //if may nahanap, get the authorId and pass to saveResourceAuthorOffline(resourceId,authorId) together with the resourceId
-            //result: {author_fname: 'sample', author_lname: 'sample', author_id: 1}
-            const authorId = result.author_id
-            await editResourceAuthorOffline(resourceId,authorId)
-        }
-        await tx.done;  // Ensure the transaction completes
-    }
-    console.log("inserted to author and resourceauthor object store.");
-};
-
-const editBookOffline = async (file,isbn,resourceId,pubId)=>{
-    const db = await initDB()
-    const tx = db.transaction('book','readwrite');
-    const store = tx.objectStore('book')
-    const index = store.index('resource_id')
-
-    const book = await index.get(resourceId)
-    //get book that matches resourceId and delete
-
-    await store.put({
-        book_id: book.book_id,
-        file:file,
-        book_isbn:isbn,
-        resource_id:resourceId, 
-        pub_id:pubId,
-        sync_status:0
-    })
-    await tx.done
-}
-
-const editResourceAuthorOffline = async (resourceId,authorId)=>{
-    const db = await initDB()
-    const tx = db.transaction("resourceauthors", "readwrite");
-    const store = tx.objectStore("resourceauthors");
-    const index = store.index("resource_id")
-
-    const ra = await index.get(resourceId)
-    await store.delete(ra.ra_id)
-
-    await store.put({resource_id: resourceId, author_id: authorId, sync_status:0})
-    await tx.done;
-}
-
-const editJournalNewsletterOffline = async(jnVol, jnIssue, jnCover, resourceId)=>{
-    const db = await initDB()
-    const tx = db.transaction('journalnewsletter','readwrite');
-    const store = tx.objectStore('journalnewsletter');
-    const index = store.index('resource_id');
-
-    //retrieve jn that matches the resourceID
-    const jn = await index.get(resourceId)
-
-    await store.put({
-        jn_id: jn.jn_id,
-        jn_volume:jnVol,
-        jn_issue:jnIssue,
-        file: jnCover,
-        resource_id:resourceId,
-        sync_status: 0
-    })
-    await tx.done
-}
-
-const editCheckAdviserIfExist = async(adviserFname, adviserLname,resourceId)=>{
-    const db = await initDB();
-    const tx = db.transaction('adviser','readwrite');
-    const store = tx.objectStore('adviser');
-    const index = store.index('adviser_name')
-
-    const result = await index.get([adviserFname,adviserLname]);
-
-    if(!result){
-        //if adviser does nt exist, insert to adviser object store
-        const adviserId =  await store.put({adviser_fname: adviserFname, adviser_lname: adviserLname, sync_status:0});
-
-        //after inserting, pass to saveThesisOffline()
-        await editThesisOffline(adviserId,resourceId)
-    }else{
-        //if nahanap
-        const adviserId = result.adviser_id;
-        await editThesisOffline(adviserId,resourceId)
-    }
-}
-
-const editThesisOffline = async (adId,resId)=>{
-    const db = await initDB()
-    const tx = db.transaction('thesis','readwrite')
-    const store = tx.objectStore('thesis')
-    const index = store.index('resource_id')
-
-    // retrive thesis that matches the resource_id
-    const thesis = await index.get(resId);
-    
-    await store.put({
-        thesis_id: thesis.thesis_id,
-        resource_id:resId,
-        adviser_id:adId,
-        sync_status:0
-    })
-    await tx.done
-}

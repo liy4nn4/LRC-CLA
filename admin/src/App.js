@@ -34,9 +34,9 @@ const App = () => {
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>
           <Route path='/admin' element={<Admin/>}/>
-          <Route path='/catalog' element={<CatalogPageOffline/>}/>
-          <Route path='/add-item' element={<AddItemPageOffline/>}/>
-          <Route path='/view-item/:id' element={<AddItemPageOffline/>}/>
+          <Route path='/catalog' element={<CatalogPage/>}/>
+          <Route path='/add-item' element={<AddItemPage/>}/>
+          <Route path='/view-item/:id' element={<AddItemPage/>}/>
         </Routes>
       </BrowserRouter>
     </div>

@@ -107,6 +107,7 @@ const CatalogOffline = () => {
 
     //sync book
     const books = await getAllUnsyncedFromStore('book')
+    console.log('books:',books)
     for(let book of books){
         try{
           const formData = new FormData();

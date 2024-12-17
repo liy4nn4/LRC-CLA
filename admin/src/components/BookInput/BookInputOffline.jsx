@@ -7,40 +7,68 @@ import Select from 'react-select'
 
 const BookInputOffline = ({disabled,handleChange,bookData,addAuthor,setBookData,formValidation,error,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList}) => {
     const [isbn, setIsbn] = useState("");
-    const [open, setOpen] = useState(false)
-    // dito ko muna isstore ung publisher details then kapag clinick ung save, tsaka lang sya masstore sa bookdata
-    const [publisherDetails, setPublisherDetails] = useState({})
+        const [open, setOpen] = useState(false)
+        // dito ko muna isstore ung publisher details then kapag clinick ung save, tsaka lang sya masstore sa bookdata
+        const [publisherDetails, setPublisherDetails] = useState({})
+        
+        useEffect(()=>{
+            if(bookData.isbn&&!disabled&&navigator.onLine){
+                if(bookData.isbn.length){
+                   getBookData(); 
+                }
+            }
+            
+        },[bookData.isbn])
     
-
-    useEffect(() => {
-        if (bookData.publisher=== '') {
-          setPublisherDetails({});
+        useEffect(() => {
+            if (bookData.publisher=== '') {
+              setPublisherDetails({});
+            }
+          }, [bookData.publisher]);
+        
+        // handle publisher
+        const handlePublisher = (e) =>{
+            const {name,value} = e.target
+            setPublisherDetails({...publisherDetails,[name]:value
+            })
         }
-      }, [bookData.publisher]);
     
-    // handle publisher
-    const handlePublisher = (e) =>{
-        const {name,value} = e.target
-        setPublisherDetails({...publisherDetails,[name]:value
-        })
-    }
-
-    const handleSelectedPublisher = (item)=>{
-        console.log(item)
-        if(item){
-            setBookData((prevdata)=>({...prevdata,
-                publisher_id:item.value,
-                publisher: '',
-                publisher_address:'',
-                publisher_email:'',
-                publisher_number:'',
-                publisher_website:'',
-            }))
-        }else{
-            setBookData({...bookData,publisher_id:0})
-        }       
-    }
-
+        // for getting info sa google books api
+        const getBookData = async()=>{
+            try{
+                    const response = await fetch(`http://localhost:3001/bookData/${bookData.isbn}`).then(data=>data.json()).then(data=>data.items[0].volumeInfo)
+                    console.log(response);
+                    // // store retrieve data sa book object
+                    setBookData((prevdata)=>({
+                        ...prevdata,
+                        title: response.title || '',
+                        authors: response.authors || [],
+                        publishedDate: response.publishedDate || '',
+                        url: response.imageLinks?response.imageLinks.thumbnail :'',
+                        description: response.description || ''
+                    }))
+                }catch(err){
+                    console.log(err.message)
+                }
+            
+        }
+    
+        const handleSelectedPublisher = (item)=>{
+            console.log(item)
+            if(item){
+                setBookData((prevdata)=>({...prevdata,
+                    publisher_id:item.value,
+                    publisher: '',
+                    publisher_address:'',
+                    publisher_email:'',
+                    publisher_number:'',
+                    publisher_website:'',
+                }))
+            }else{
+                setBookData({...bookData,publisher_id:0})
+            }       
+        }
+    
 
   return (
     <div className='row'>
