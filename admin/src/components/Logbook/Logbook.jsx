@@ -6,6 +6,7 @@ import search from '../../assets/Management System/logbook/search.svg'
 import exportIcon from '../../assets/Management System/logbook/export.svg'
 import left from '../../assets/Management System/logbook/arrow-left-red.svg'
 import right from '../../assets/Management System/logbook/arrow-right-red.svg'
+import * as XLSX from 'xlsx'; // Import xlsx for Excel export
 
 const Logbook = () => {
     const [patron, setPatron] = useState([]);
@@ -57,17 +58,43 @@ const Logbook = () => {
         getPatron();
     };
 
-    // Handle page navigation
-    const nextPage = () => {
-        if (currentPage < Math.ceil(totalEntries / entriesPerPage)) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
+    const exportToExcel = () => {
+        const headers = [
+            'Number',
+            'TUP ID',
+            'First Name',
+            'Last Name',
+            'Gender',
+            'Phone No.',
+            'Email',
+            'Course',
+            'College',
+            'Date',
+            'Time in',
+        ];
 
-    const prevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
+        // Format data for Excel
+        const data = patron.map((item, index) => ({
+            'Number': index + 1,
+            'TUP ID': item.tup_id,
+            'First Name': item.patron_fname,
+            'Last Name': item.patron_lname,
+            'Gender': item.patron_sex,
+            'Phone No.': item.patron_mobile,
+            'Email' : item.patron_email,
+            'Course': item.course,
+            'College': item.college,
+            'Date': new Date(item.att_date).toLocaleDateString('en-CA'),
+            'Time in': item.att_log_in_time,
+        }));
+
+        // Create a worksheet and a workbook
+        const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Logbook');
+
+        // Export to Excel file
+        XLSX.writeFile(workbook, 'Logbook.xlsx');
     };
 
     /* useEffect(()=>{
@@ -89,7 +116,7 @@ const Logbook = () => {
                   Search</button>
             </div>
             {/* export button */}
-            <button className='btn logbook-export-button'>
+            <button className='btn logbook-export-button' onClick={exportToExcel}>
                 <img src={exportIcon} alt="" />
                 Export
             </button>
@@ -143,7 +170,7 @@ const Logbook = () => {
                 <tbody>
                     {patron?patron.length>0?patron.map((item,key)=>(
                     <tr key={key}>
-                        <td>{item.patron_id}</td>
+                        <td>{key + 1}</td>
                         <td>{item.tup_id}</td>
                         <td>{item.patron_fname}</td>
                         <td>{item.patron_lname}</td>
