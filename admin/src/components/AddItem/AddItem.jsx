@@ -6,7 +6,7 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
-import { getAllFromStore, initDB, saveResourceOffline, setPredefinedData, viewResourcesOffline } from '../../indexedDb2';
+import { editResourceOffline, getAllFromStore, initDB, saveResourceOffline, setPredefinedData, viewResourcesOffline } from '../../indexedDb2';
 
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -63,24 +63,28 @@ const AddItem = () => {
     }, [bookData.mediaType]);
 
     useEffect(()=>{
-        if(navigator.onLine&&!id){
-            alert("You're online")
-            getOnlineData()
-            setIsOnline(true)
-        }else{
-            alert("You're offline")
-            getOfflineData()
-            setIsOnline(false)
+        if(!id){
+            if(navigator.onLine){
+                alert("You're online")
+                getOnlineData()
+                setIsOnline(true)
+            }else{
+                alert("You're offline")
+                getOfflineData()
+                setIsOnline(false)
+            }
         }
-
+        
         //pag may id sa url,for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
             if(navigator.onLine){
                 console.log('viewing resource online')
+                getOnlineData()
                 viewResourceOnline();
             }else{
                 console.log('view resource offline')
+                getOfflineData()
                 viewResourceOffline()
             }
         }
@@ -427,8 +431,8 @@ const AddItem = () => {
     };
 
 /*-------------------EDIT RESOURCE---------------------- */
-    // Handle resource save
-    const handleEditResource = async () => {
+    // Handle resource save online
+    const handleEditResourceOnline = async () => {
         console.log('edit resource')
             try{
                 setLoading(true)
@@ -441,7 +445,18 @@ const AddItem = () => {
                 setLoading(false)
                 window.location.reload();            
             }catch(err){
-                console.log('Cannot save resource. An error occurred: ',err.message);
+                console.log('Cannot edit resource online. An error occurred: ',err.message);
+            }
+    };
+
+    //handle resource save offline
+    const handleEditResourceOffline = async () => {
+        console.log('editing resource offline')
+            try{
+                await editResourceOffline(parseInt(id),bookData)
+                console.log('resource edited')
+            }catch(err){
+                console.log('Cannot edit resource offline. An error occurred: ',err.message);
             }
     };
 
@@ -646,7 +661,11 @@ const AddItem = () => {
                         }
                     }else{
                         //update/edit resource
-                        handleEditResource()
+                        if(isOnline){
+                            handleEditResourceOnline()
+                        }else{
+                            handleEditResourceOffline()
+                        }
                     }
                 }} disabled={Object.values(error).length>=1&&!editMode}>
                     <i className="fa-regular fa-floppy-disk"></i>

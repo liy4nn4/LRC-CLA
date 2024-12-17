@@ -59,7 +59,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
       },[bookData.url])
 
 
-      console.log(bookData.mediaType)
+      console.log(bookData)
    
   return (
     <div className='cat-info'>

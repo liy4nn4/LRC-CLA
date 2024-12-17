@@ -248,3 +248,14 @@ export const viewResourcesOffline =async(resourceId,setBookData)=>{
     await txResource.done
 }
 
+/*----------------------EDIT RESOURCES-----------------*/
+export const editResourceOffline = async (resourceId,updatedData)=>{
+    const db = await initDB()
+    const tx = db.transaction('resources','readwrite');
+    const store = tx.objectStore('resources')
+
+    //update resource
+    await store.put(updatedData)
+    await tx.done
+}
+

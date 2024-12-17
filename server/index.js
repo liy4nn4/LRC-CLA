@@ -1051,8 +1051,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     JOIN department ON department.dept_id = resources.dept_id
     GROUP BY resources.resource_id
-    ORDER BY resources.resource_title ASC
-    LIMIT 5 OFFSET ?`;
+    ORDER BY resources.resource_title ASC`;
 
     db.query(q,page,(err,results)=>{
         if(err) return res.send(err)
