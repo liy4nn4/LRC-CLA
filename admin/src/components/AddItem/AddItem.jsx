@@ -6,7 +6,7 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
-import { getAllFromStore, initDB, saveResourceOffline, setPredefinedData } from '../../indexedDb2';
+import { getAllFromStore, initDB, saveResourceOffline, setPredefinedData, viewResourcesOffline } from '../../indexedDb2';
 
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -63,7 +63,7 @@ const AddItem = () => {
     }, [bookData.mediaType]);
 
     useEffect(()=>{
-        if(navigator.onLine){
+        if(navigator.onLine&&!id){
             alert("You're online")
             getOnlineData()
             setIsOnline(true)
@@ -76,11 +76,17 @@ const AddItem = () => {
         //pag may id sa url,for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
-            viewResource();
+            if(navigator.onLine){
+                console.log('viewing resource online')
+                viewResourceOnline();
+            }else{
+                console.log('view resource offline')
+                viewResourceOffline()
+            }
         }
     },[])
 
-    console.log(Array.isArray(bookData.authors))
+    console.log(id)
 
 /*-----------------INITIALIZE INPUT---------------------- */
     //get offline data
@@ -112,7 +118,7 @@ const AddItem = () => {
     }
 
 /*-------------------VIEW RESOURCE---------------------- */
-    const viewResource = async()=>{
+    const viewResourceOnline = async()=>{
         console.log('view resource')
         try{
             const response = await axios.get(`http://localhost:3001/view/${id}`);
@@ -183,6 +189,16 @@ const AddItem = () => {
                 default:
                     console.log('Media type not allowed.')
             }
+            
+        }catch(err){
+            console.log('Cannot view resource. An error occurred: ', err.message)
+        }
+    }
+
+    const viewResourceOffline = async()=>{
+        console.log('viewing resource offline')
+        try{
+           await viewResourcesOffline(parseInt(id),setBookData)
             
         }catch(err){
             console.log('Cannot view resource. An error occurred: ', err.message)
@@ -594,6 +610,7 @@ const AddItem = () => {
                     deleteAdviser={deleteAdviser}
                     resourceStatus={resourceStatus}
                     editMode={editMode}
+                    isOnline={isOnline}
                 />
             </div>
 

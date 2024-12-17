@@ -8,7 +8,7 @@ import ThesisInput from '../ThesisInput/ThesisInput'
 import axios from 'axios'
 import { getGenreOffline } from '../../indexedDb'
 
-const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode}) => {
+const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode,isOnline}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
 
@@ -17,15 +17,21 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
     useEffect(()=>{
         let objectUrl;
 
-        if(bookData.file&&!disabled){
-            // If data.file is a File object, create an Object URL for it
+        if(isOnline){
+            if(bookData.file&&!disabled){
+                // If data.file is a File object, create an Object URL for it
+                objectUrl = URL.createObjectURL(bookData.file);
+                setPreview(objectUrl);
+            }else if(bookData.file&&disabled){
+                const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
+                objectUrl = URL.createObjectURL(blob);
+                setPreview(objectUrl)
+            }
+        }else{
             objectUrl = URL.createObjectURL(bookData.file);
             setPreview(objectUrl);
-        }else if(bookData.file&&disabled){
-            const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
-            objectUrl = URL.createObjectURL(blob);
-            setPreview(objectUrl)
         }
+        
 
         //reset URl
         //pag may naupload na file, wala dapat url
