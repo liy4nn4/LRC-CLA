@@ -1285,6 +1285,72 @@ db.query(q, (err, results) => {
 });
 });
 
+app.get('/patronSort', (req, res) => {
+    const { search, startDate, endDate, limit } = req.query;
+    
+    // Base query with JOINs
+    let q = `
+        SELECT 
+            patron.patron_id, 
+            patron.tup_id, 
+            patron.patron_fname, 
+            patron.patron_lname, 
+            patron.patron_sex, 
+            patron.patron_mobile, 
+            course.course_name AS course, 
+            college.college_name AS college, 
+            DATE(attendance.att_date) AS att_date, 
+            attendance.att_log_in_time 
+        FROM patron 
+        JOIN course ON patron.course_id = course.course_id 
+        JOIN college ON patron.college_id = college.college_id 
+        JOIN attendance ON patron.patron_id = attendance.patron_id 
+        WHERE 1=1
+    `;
+
+    const params = [];
+
+    // Add search filter if provided
+    if (search) {
+        q += ` AND (patron.tup_id LIKE ? OR patron.patron_fname LIKE ? OR patron.patron_lname LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+        q += ` AND DATE(attendance.att_date) >= ?`;
+        params.push(startDate);
+    }
+
+    if (endDate) {
+        q += ` AND DATE(attendance.att_date) <= ?`;
+        params.push(endDate);
+    }
+
+    // Add ordering
+    q += ` ORDER BY att_date DESC, att_log_in_time DESC`;
+
+    // Add limit for pagination
+    if (limit) {
+        q += ` LIMIT ?`;
+        params.push(parseInt(limit));
+    }
+
+    // Execute query
+    db.query(q, params, (err, results) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).send('Database error: ' + err.message);
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons found' });
+        }
+    });
+});
+
+
+
 app.get('/catalog/search',(req,res)=>{
     const searchKeyword = req.query.searchKeyword || '';
     const searchFilter = req.query.searchFilter || '';

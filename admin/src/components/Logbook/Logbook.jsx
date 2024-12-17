@@ -8,14 +8,39 @@ import left from '../../assets/Management System/logbook/arrow-left-red.svg'
 import right from '../../assets/Management System/logbook/arrow-right-red.svg'
 
 const Logbook = () => {
-    const [patron, setPatron] = useState([])
+    const [patron, setPatron] = useState([]);
+    const [searchInput, setSearchInput] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [entriesPerPage, setEntriesPerPage] = useState(5);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalEntries, setTotalEntries] = useState(0);
 
     useEffect(()=>{
         getPatron()
         
-      },[])
+      },[currentPage, entriesPerPage])
 
     const getPatron = async()=>{
+        try {
+            const params = {
+                search: searchInput,
+                startDate,
+                endDate,
+                limit: entriesPerPage,
+                //offset: (currentPage - 1) * entriesPerPage,
+            };
+          const query = new URLSearchParams(params).toString();
+          const response = await axios.get(`http://localhost:3001/patronSort?${query}`).then(res=>res.data);
+          setPatron(response)
+          setTotalEntries(response.data.totalCount);
+          console.log(response)
+        } catch (err) {
+            console.log(err.message);
+        }
+      }
+
+      const getPatron11 = async()=>{
         try {
           const response = await axios.get(`http://localhost:3001/patron`).then(res=>res.data);
           setPatron(response)
@@ -25,6 +50,26 @@ const Logbook = () => {
         }
       }
     
+      const handleClear = () => {
+        setSearchInput('');
+        setStartDate('');
+        setEndDate('');
+        getPatron();
+    };
+
+    // Handle page navigation
+    const nextPage = () => {
+        if (currentPage < Math.ceil(totalEntries / entriesPerPage)) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const prevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
     /* useEffect(()=>{
         getPatron()
         console.log(patron)
@@ -38,11 +83,11 @@ const Logbook = () => {
         {/* search bar and export button */}
         <div className="search-export">
             {/* search bar */}
-            <form class="d-flex " role="search">
-                  <input class="form-control me-2 log-search-bar" type="search" placeholder="Enter Student ID or Student Name" aria-label="Search"/>
+            <div class="d-flex " role="search">
+                  <input class="form-control me-2 log-search-bar" type="search" placeholder="Enter Student ID or Student Name" aria-label="Search" value={searchInput} onChange={(e) => setSearchInput(e.target.value)}/>
                   <button class="btn log-search-button" onClick={getPatron}><img src={search} alt="" />
                   Search</button>
-            </form>
+            </div>
             {/* export button */}
             <button className='btn logbook-export-button'>
                 <img src={exportIcon} alt="" />
@@ -55,25 +100,25 @@ const Logbook = () => {
             {/* logbook entries per page */}
             <div className="logbook-entries-page">
                 <label htmlFor="entries">Entries per page</label>
-                <div class="dropdown">
-                  <button class="btn log-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    1
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Action</a></li>
-                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                  </ul>
-                </div>
+                <select
+                    className="form-select"
+                    value={entriesPerPage}
+                    onChange={(e) => setEntriesPerPage(e.target.value)}
+                >
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
             </div>
 
             {/* date filter */}
             <div className="logbook-date-filter">
                 <label htmlFor="" >Date Filter</label>
-                <input type="date" className='logbook-filter-date'/>
+                <input type="date" className='logbook-filter-date' value={startDate} onChange={(e) => setStartDate(e.target.value)}/>
                 <p>to</p>
-                <input type="date" className='logbook-filter-date'/>
-                <button className='btn logbook-clear-button'>Clear</button>
+                <input type="date" className='logbook-filter-date' value={endDate} onChange={(e) => setEndDate(e.target.value)}/>
+                <button className='btn logbook-go-button' onClick={getPatron}>Go</button>
+                <button className='btn logbook-clear-button' onClick={handleClear}>Clear</button>
             </div>
         </div>
 
@@ -141,7 +186,8 @@ const Logbook = () => {
             </div>
         </div>
 
-
+             
+            
       
     </div>
   )
