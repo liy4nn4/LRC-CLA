@@ -143,6 +143,16 @@
     color: var(--white) !important;
 }
 
+.logbook-go-button{
+    background-color: green;
+    color: var(--white);
+}
+
+.logbook-go-button:hover,.logbook-go-button:focus{
+    background-color: var(--green) !important;
+    color: var(--white) !important;
+}
+
 .logbook-table-box{
     width: 100%;
     border-radius: 10px;
