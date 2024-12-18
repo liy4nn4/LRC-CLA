@@ -1,0 +1,471 @@
+import React, { useEffect, useState } from 'react';
+import './AddItem.css';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import CatalogInfo from '../CatalogInfo/CatalogInfo';
+import Cataloging from '../Cataloging/Cataloging';
+import axios from 'axios';
+import Loading from '../Loading/Loading';
+import io from 'socket.io-client';
+import { editResourceOffline, getAllFromStore, initDB, saveResourceOffline, viewResourcesOffline } from '../../indexedDb2Original';
+import CatalogingOffline from '../Cataloging/CatalogingOffline';
+import CatalogInfoOffline from '../CatalogInfo/CatalogInfoOffline';
+
+// const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+
+const AddItemOffline = () => {
+    //pag may id, nagiging view ung purpose ng add item component
+    const {id} = useParams()
+
+    const navigate = useNavigate()
+    // initialize offline database
+    const [disabled,setDisabled] = useState(false)
+    const [type, setType] = useState('');
+    const [bookData, setBookData] = useState({
+        mediaType: '1',
+        authors: [],
+        isCirculation: false,
+        publisher_id: 0,
+        publisher: '',
+    });
+    const [error, setError] = useState({});
+    const [publishers, setPublishers] = useState([]);
+    // authorlist and adviserlist are for the <Select>. These are the options to be displayed
+    const [authorList, setAuthorList] = useState([]);
+    const [adviserList, setAdviserList] = useState([]);
+    // for loading modal
+    const [loading,setLoading] = useState(false)
+    const [resourceType,setResourceType]=useState([])
+    // Reset bookData when mediaType changes
+    //console.log(resourceId)
+    const [resourceStatus,setResourceStatus] = useState([])
+    const [editMode, setEditMode] = useState(false)
+
+    useEffect(() => {
+        if(!disabled){
+            if (bookData.mediaType== 1) {
+                setBookData({
+                    mediaType: bookData.mediaType, // keep the changed mediaType
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+            } else {
+                setBookData({
+                    mediaType: bookData.mediaType, // keep the changed mediaType
+                    authors: [],
+                    isCirculation: false,
+                });
+            }
+        }
+    }, [bookData.mediaType]);
+
+    useEffect(()=>{
+        initDB()
+        getOfflineData()
+
+        //pag may id sa url,for viewing yung purpose ng add item component
+        if(id){
+            setDisabled(true)
+            viewResourceOffline()
+        }
+    },[])
+
+    //initialize data
+    const getOfflineData = async ()=>{
+        //get type
+        const type = await getAllFromStore('resourcetype')
+        setResourceType(type)
+
+        // get availability
+        const avail = await getAllFromStore('availability')
+        setResourceStatus(avail)
+
+        //get authors
+        getAuthorsOffline()
+
+        //get publishers
+        getPublishersOffline()
+
+        //get advisers
+        getAdvisersOffline()
+        
+    }
+
+    // view resource offline
+    const viewResourceOffline=async ()=>{
+        console.log('view resource offline')
+        const result = await viewResourcesOffline(parseInt(id),setBookData)
+    }
+
+    console.log(bookData.file)
+
+    // Handle input changes
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setBookData({ ...bookData, [name]: value });
+        formValidation();
+    };
+
+    // Add author
+    const addAuthor = (author) => {
+        if (author.length !== 1) {
+            if(!bookData.authors.includes(author)){
+                 setBookData((prevData) => ({
+                    ...prevData,
+                    authors: [...prevData.authors, author]
+                }));
+                return true
+            }else{
+                console.log('you inserted it already!')
+            }
+           
+        } else {
+            console.log('Please enter valid author data');
+        }
+    };
+
+    // delete author 
+    const deleteAuthor = (index)=>{
+        //(_,i) is the index of each element in authors
+        //pag true ung condition marereturn sa updatedAuthors
+        setBookData(prevData => ({
+            ...prevData,
+            authors: prevData.authors.filter((_, i) => i !== index)
+          }));
+    }
+
+    // delete adviser 
+    const deleteAdviser = ()=>{
+       
+        setBookData(prevData => ({
+            ...prevData,
+            adviser: ''
+        }));
+    }
+
+    // Add publisher
+    const addPublisher = (publisher) => {
+        if (publisher.length !== 1) {
+            setBookData((prevData) => ({
+                ...prevData,
+                publisher
+            }));
+        } else {
+            console.log('Please enter valid publisher data');
+        }
+    };
+
+    // Add adviser
+    const addAdviser = (adviser) => {
+        console.log(adviser)
+        setBookData((prevdata)=>({
+            ...prevdata,
+            adviser: adviser
+        }))
+    };
+
+    // Handle file input
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];  // Get the first file from the input
+        console.log(file)
+        if (file) {  // Check if a file was selected
+            const blob = new Blob([file], { type: file.type });  // Create a Blob from the file
+
+            setBookData((prevData) => ({
+                ...prevData,
+                file: blob  // Store the Blob in the bookData state
+            }));
+        }
+    };
+
+    // Form validation
+    const formValidation = () => {
+        const err = {};
+
+        if (!bookData.quantity || bookData.quantity === 0) {
+            err.quantity = 'Please enter quantity';
+        }
+        if (!bookData.status) {
+            err.status = 'Please select status';
+        }
+        if (!bookData.title || bookData.title.length === 0) {
+            err.title = 'Please enter title';
+        }
+        if (!bookData.description) {
+            err.description = 'Please enter description';
+        }
+        if (!bookData.department) {
+            err.department = 'Please select department';
+        }
+        if (!bookData.topic) {
+            err.topic = 'Please select topic';
+        }
+
+        if (bookData.mediaType === '1') {
+            if (!bookData.file&&!bookData.url) {
+                err.file = 'Please select cover';
+            }
+            // if (!bookData.authors || bookData.authors.length === 0) {
+            //     err.authors = 'Please specify author/s';
+            // }
+            /* if (!bookData.isbn) {
+                err.isbn = 'Please enter ISBN';
+            } */
+            // if (bookData.publisher_id === 0 && bookData.publisher === '') {
+            //     err.publisher = 'Please enter publisher';
+            // }
+            if (!bookData.publishedDate) {
+                err.publishedDate = 'Please enter publish date';
+            }
+        }else if(bookData.mediaType==='2'||bookData.mediaType==='3'){
+            if (!bookData.file&&!bookData.url) {
+                err.file = 'Please select cover';
+            }
+            // if (!bookData.authors || bookData.authors.length === 0) {
+            //     err.authors = 'Please specify author/s';
+            // }
+            if(!bookData.volume){
+                err.volume = 'Please enter volume'
+            }
+            if(!bookData.issue){
+                err.issue = 'Please enter issue'
+            }
+            if (!bookData.publishedDate) {
+                err.publishedDate = 'Please enter publish date';
+            }
+        }else if(bookData.mediaType==='4'){
+            // if (!bookData.authors || bookData.authors.length === 0) {
+            //     err.authors = 'Please specify author/s';
+            // }
+            if(!bookData.adviser){
+                err.adviser = 'Please specify adviser';
+            }
+            if (!bookData.publishedDate) {
+                err.publishedDate = 'Please enter publish date';
+            }
+        }
+
+        setError(err);
+
+        return Object.keys(err).length === 0;
+    };
+
+    // Handle resource save
+    const handleSaveResource = async () => {
+        if (formValidation() === true) {
+            setLoading(true)
+            try{
+                const response = await saveResourceOffline(bookData)
+                console.log(response)
+
+                //close loading
+                setLoading(false)
+                 // Reset bookData if saved successfully
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+                window.location.reload(); // Optionally reload the page   
+            }catch(err){
+                console.log('Cannot save resource. An error occurred: ',err.message);
+            }
+        } else {
+            console.log("Please enter complete information");
+        }
+    };
+
+    // Handle resource save
+    const handleEditResource = async () => {
+        if (formValidation() === true) {
+            setLoading(true)
+            try{
+                const response = await editResourceOffline(bookData,id)
+                console.log(response)
+
+                //close loading
+                setLoading(false)
+                 // Reset bookData if saved successfully
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+                window.location.reload(); // Optionally reload the page   
+            }catch(err){
+                console.log('Cannot save resource. An error occurred: ',err.message);
+            }
+        } else {
+            console.log("Please enter complete information");
+        }
+    };
+
+    // Handle resource save
+    // const handleEditResource = async () => {
+    //     console.log('edit resource')
+    //         try{
+    //             setLoading(true)
+    //             const formData = new FormData();
+    //             Object.entries(bookData).forEach(([key, value]) => {
+    //                 formData.append(key, value);  
+    //             });
+
+    //             const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
+    //             setLoading(false)
+    //             window.location.reload();            
+    //         }catch(err){
+    //             console.log('Cannot save resource. An error occurred: ',err.message);
+    //         }
+    // };
+
+    // Handle toggle buttons
+    const handleToggle = (e) => {
+        const { name, checked } = e.target;
+        setBookData((prevData) => ({
+            ...prevData,
+            [name]: checked?1:0
+        }));
+    };
+
+    // Fetch publishers from the backend
+    const getPublishersOffline = async () => {
+        console.log('publishers online')
+        const pubs = [];
+        try {
+            const publishers = await getAllFromStore('publisher');
+            publishers.forEach(item => {
+                pubs.push({
+                    value: item.pub_id,
+                    label: item.pub_name
+                });
+            });
+            setPublishers(pubs);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+
+    // Fetch publishers from the backend
+    const getAuthorsOffline = async () => {
+        const auth = [];
+        try {
+            const authors = await getAllFromStore('author');
+            console.log(authors)
+            authors.forEach(item => {
+                auth.push({
+                    value: `${item.author_fname} ${item.author_lname}`,
+                    label: `${item.author_fname} ${item.author_lname}`
+                });
+            });
+            setAuthorList(auth);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+
+    //Fetch advisers
+    const getAdvisersOffline = async () => {
+        const adv = [];
+        try {
+            const advisers = await getAllFromStore('adviser')
+            console.log(advisers)
+            advisers.forEach(item => {
+                adv.push({
+                    value: `${item.adviser_fname} ${item.adviser_lname}`,
+                    label: `${item.adviser_fname} ${item.adviser_lname}`
+                });
+            });
+            setAdviserList(adv);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+
+    console.log(bookData)
+    
+    return (
+        <div className='add-item-container'>
+            <h1 className='m-0'>Cataloging</h1>
+
+            <div className='add-item-path-button'>
+                <Link to='/catalog'>
+                    <button className='btn add-item-back-button'>
+                        <i className="fa-solid fa-arrow-left"></i>
+                        Back
+                    </button>
+                </Link>
+                <div className="add-item-path">
+                    <p>Cataloging / <span>{disabled?'View':editMode?'Edit':'Add new'} Item</span></p>
+                </div>
+            </div>
+
+            <div className='item-information'>
+                <CatalogInfoOffline
+                    disabled={disabled}
+                    handleChange={handleChange}
+                    bookData={bookData}
+                    addAuthor={addAuthor}
+                    setType={setType}
+                    addAdviser={addAdviser}
+                    setBookData={setBookData}
+                    handleFileChange={handleFileChange}
+                    formValidation={formValidation}
+                    error={error}
+                    publishers={publishers}
+                    deleteAuthor={deleteAuthor}
+                    authorList={authorList}
+                    resourceType={resourceType}
+                    adviserList={adviserList}
+                    deleteAdviser={deleteAdviser}
+                    resourceStatus={resourceStatus}
+                    editMode={editMode}
+                />
+            </div>
+
+            <div className="cataloging">
+                <CatalogingOffline
+                    disabled={disabled}
+                    handleChange={handleChange}
+                    bookData={bookData}
+                    handleToggle={handleToggle}
+                    formValidation={formValidation}
+                    error={error}
+                    editMode={editMode}
+                />
+            </div>
+
+            {disabled?<div className='edit-btn-cont'><button className="btn edit-item" onClick={()=>{
+                setDisabled(false);
+                setEditMode(true);
+                }}>
+                    Edit
+                </button></div>:<div className="cancel-save">
+                <button className="btn add-item-cancel">
+                    Cancel
+                </button>
+                <button className="btn add-item-save" onClick={()=>{
+                    //if not in edit mode, save resource
+                    if(!editMode){
+                        handleSaveResource()
+                        
+                    }else{
+                        //update/edit resource
+                        handleEditResource()
+                    }
+                }} disabled={Object.values(error).length>=1&&!editMode}>
+                    <i className="fa-regular fa-floppy-disk"></i>
+                    <span>Save</span>
+                </button>
+            </div>}
+            
+            <Loading loading={loading}/>
+        </div>
+    );
+};
+
+export default AddItemOffline;

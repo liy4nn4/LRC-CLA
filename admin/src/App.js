@@ -16,6 +16,10 @@ import AddItemPage from './pages/AddItemPage/AddItemPage';
 import ViewItem from './components/ViewItem/ViewItem';
 import ViewItemPage from './pages/ViewItemPage/ViewItemPage';
 import AttendancePage from './pages/AttendancePage/AttendancePage';
+import AddItemOffline from './components/AddItem/AddItemOffline';
+import AddItemPageOffline from './pages/AddItemPageOffline/AddItemPageOffline';
+import CatalogPageOffline from './pages/CatalogPageOffline/CatalogPageOffline';
+
 
 const App = () => {
   

@@ -7,31 +7,23 @@ import JournalInput from '../JournalInput/JournalInput'
 import ThesisInput from '../ThesisInput/ThesisInput'
 import axios from 'axios'
 import { getGenreOffline } from '../../indexedDb'
+import BookInputOffline from '../BookInput/BookInputOffline'
+import JournalInputOffline from '../JournalInput/JournalInputOffline'
+import ThesisInputOffline from '../ThesisInput/ThesisInputOffline'
 
-const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode,isOnline}) => {
+const CatalogInfoOffline = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
-
 
     //for displaying preview photo
     useEffect(()=>{
         let objectUrl;
 
-        if(isOnline){
-            if(bookData.file&&!disabled){
-                // If data.file is a File object, create an Object URL for it
-                objectUrl = URL.createObjectURL(bookData.file);
-                setPreview(objectUrl);
-            }else if(bookData.file&&disabled){
-                const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
-                objectUrl = URL.createObjectURL(blob);
-                setPreview(objectUrl)
-            }
-        }else{
+        if(bookData.file){
+            // If data.file is a File object, create an Object URL for it
             objectUrl = URL.createObjectURL(bookData.file);
             setPreview(objectUrl);
         }
-        
 
         //reset URl
         //pag may naupload na file, wala dapat url
@@ -59,7 +51,7 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
       },[bookData.url])
 
 
-      console.log(bookData)
+      console.log(bookData.file)
    
   return (
     <div className='cat-info'>
@@ -106,32 +98,10 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                         </div>
                         {/* input field changes depending on type */}
                         <div className="col-12">
-                            {bookData.mediaType==='2'||bookData.mediaType==='3'?<JournalInput disabled={disabled} handleChange={handleChange} bookData={bookData} addAuthor={addAuthor} setBookData={setBookData} formValidation={formValidation} error={error} publishers={publishers} authorOptions={authorOptions} handleAddAuthor={handleAddAuthor}
-                            selectedOptions={selectedOptions} deleteAuthor={deleteAuthor} authorList={authorList}/>:bookData.mediaType==='4'?<ThesisInput disabled={disabled} handleChange={handleChange} bookData={bookData} addAuthor={addAuthor} authorOptions={authorOptions} setBookData={setBookData} handleAddAuthor={handleAddAuthor} selectedOptions={selectedOptions} deleteAuthor={deleteAuthor} authorList={authorList} addAdviser={addAdviser} adviserList={adviserList} deleteAdviser={deleteAdviser} formValidation={formValidation} error={error}/>:<BookInput disabled={disabled} handleChange={handleChange} bookData={bookData} addAuthor={addAuthor} setBookData={setBookData} formValidation={formValidation} error={error} publishers={publishers} authorOptions={authorOptions} handleAddAuthor={handleAddAuthor}
+                            {bookData.mediaType==='2'||bookData.mediaType==='3'?<JournalInputOffline disabled={disabled} handleChange={handleChange} bookData={bookData} addAuthor={addAuthor} setBookData={setBookData} formValidation={formValidation} error={error} publishers={publishers} authorOptions={authorOptions} handleAddAuthor={handleAddAuthor}
+                            selectedOptions={selectedOptions} deleteAuthor={deleteAuthor} authorList={authorList}/>:bookData.mediaType==='4'?<ThesisInputOffline disabled={disabled} handleChange={handleChange} bookData={bookData} addAuthor={addAuthor} authorOptions={authorOptions} setBookData={setBookData} handleAddAuthor={handleAddAuthor} selectedOptions={selectedOptions} deleteAuthor={deleteAuthor} authorList={authorList} addAdviser={addAdviser} adviserList={adviserList} deleteAdviser={deleteAdviser} formValidation={formValidation} error={error}/>:<BookInputOffline disabled={disabled} handleChange={handleChange} bookData={bookData} addAuthor={addAuthor} setBookData={setBookData} formValidation={formValidation} error={error} publishers={publishers} authorOptions={authorOptions} handleAddAuthor={handleAddAuthor}
                             selectedOptions={selectedOptions} deleteAuthor={deleteAuthor} authorList={authorList}/>}
-                        </div>
-                        {/* genre */}
-                        {/* {bookData.mediaType==='1'?
-                        <div className="col-12 info-input-box mb-3">
-                            <label htmlFor="">Genre</label>
-                            <Select
-                                isMulti
-                                name="genre"
-                                options={genreList}
-                                className="basic-multi-select"
-                                classNamePrefix="select"
-                                placeholder="Enter to add genre/s"
-                                isDisabled={disabled}
-                                onChange={(selected)=>{
-                                    addGenre(selected);
-                                    handleGenre(selected)
-                                }}
-                                onBlur={formValidation}
-                                value={disabled?viewSelectedGenre:selectedGenre}
-                            />
-                            <p className='resource-error'>{error.genre}</p>
-                        </div> 
-                        :''} */}           
+                        </div>      
                     </div>
 
                 </div>
@@ -171,12 +141,9 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                 </div>
 
             </div>
-
-
         </div>
-        
     </div>
   )
 }
 
-export default CatalogInfo
+export default CatalogInfoOffline

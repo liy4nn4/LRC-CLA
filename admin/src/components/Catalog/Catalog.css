@@ -13,7 +13,6 @@
 }
 
 
-
 :root{
     --black:#1F1F1F;
     --tup-color: #94152B;
@@ -42,6 +41,7 @@
     overflow-x: hidden;   
 }
 
+
 .cat-container h1{
     font-size: 2.5rem;
     font-weight: 700;
@@ -49,18 +49,23 @@
     margin: 0;
 }
 
-.cat-buttons{
+.cat-container .cat-buttons{
     display: flex;
     justify-content: space-between;
 }
 
-.add-scan-item, .add-author-publisher{
+.cat-container .add-scan-item, .add-author-publisher{
     display: flex;
     gap: 10px;
     
 }
 
-.cat-add-item, .cat-scan-item,.cat-add-author,.cat-add-pub,.cat-search-button,.cat-view{
+.cat-container .cat-add-item, 
+.cat-container .cat-scan-item,
+.cat-container .cat-add-author,
+.cat-container .cat-add-pub,
+.cat-container .cat-search-button,
+.cat-container .cat-view{
    color: var(--white);
    font-size: 1rem;
     background-color: var(--tup-color);
@@ -68,44 +73,48 @@
 }
 
 
-.cat-scan-item{
+.cat-container .cat-scan-item{
     width: 130px !important;
 }
 
-.cat-add-item:hover, .cat-add-item:focus, 
-.cat-add-author:hover,.cat-add-author:focus,
-.cat-add-pub:hover, .cat-add-pub:focus,
-.cat-search-button:hover, .cat-search-button:focus,
-.cat-view:hover, .cat-view:focus{
+.cat-container .cat-add-item:hover,
+.cat-container .cat-add-item:focus, 
+.cat-container .cat-add-author:hover,
+.cat-container .cat-add-author:focus,
+.cat-container .cat-add-pub:hover, 
+.cat-container .cat-add-pub:focus,
+.cat-container .cat-search-button:hover, 
+.cat-container .cat-search-button:focus,
+.cat-container .cat-view:hover, 
+.cat-container .cat-view:focus{
     background-color: var(--button-hover) !important;
     border-color: var(--button-hover) !important;
     color: var(--white) !important;
 }
 
-.search-filter-export{
+.cat-container .search-filter-export{
     display: flex;
     justify-content: space-between;
 }
 
-
-
-.cat-search-bar:active,.cat-search-bar:focus{
+.cat-container .cat-search-bar:active,
+.cat-container .cat-search-bar:focus{
     border: 1px solid var(--tup-color);
     outline: none;
     
 }
 
-.search-filter{
+.cat-container .search-filter{
     display: flex;
     align-items: center;
     gap: 13px;
 }
 
-.search-filter .dropdown-menu{
+.cat-container .search-filter .dropdown-menu{
     text-transform: capitalize;
 }
 
-.cat-search-button{
+.cat-container .cat-search-button{
     height: 40px;
     border: none;
     background-color: var(--tup-color);
@@ -122,23 +131,23 @@
     transition: all 0.1s linear;
 }
 
-.cat-search-button:hover{
+.cat-container .cat-search-button:hover{
     background-color: var(--button-hover);
 }
 
-.cat-dropdown{
+.cat-container .cat-dropdown{
     border: 1px solid var(--tup-color);
     text-transform: capitalize;
 }
 
-.cat-dropdown:hover{
+.cat-container .cat-dropdown:hover{
     background-color: var(--tup-color) !important;
     border-color: var(--tup-color) !important;
     color: var(--white) !important;
 }
 
 
-.cat-table{
+.cat-container .cat-table{
     text-align: center;
     border-radius: 8px;
     overflow: hidden;
@@ -148,37 +157,44 @@
     
 }
 
-.cat-table thead tr th{
+.cat-container .cat-table thead tr th{
     background-color: var(--tup-color) !important;
     color: var(--white);
     width: 70px;
     /* font-size: 1rem !important; */
 }
 
-.cat-table tbody tr td{
+.cat-container .cat-table tbody tr td{
     vertical-align: middle;
     /* font-size: 1rem !important; */
     border-bottom: none;
 }
 
-.cat-table tbody tr:nth-child(even){
-    background-color: var(--light-red) !important;
-}
 
-.cat-table tbody tr:nth-child(odd){
+
+.cat-container .cat-table tbody tr:nth-child(odd){
     background-color: var(--white) !important;
 }
 
-.pagination .btn:disabled{
+.cat-container .cat-table tbody tr:nth-child(even){
+    background-color: var(--light-red) !important;
+}
+
+.cat-container .pagination .btn:disabled{
     border: none !important;
     background-color: var(--disabled);
 }
 
-.pagination .btn:enabled{
+.cat-container .pagination .btn:enabled{
     background-color: var(--tup-color);
     color: var(--white);
 }
 
-.pagination{
+.cat-container .pagination{
     gap: 5px;
+}
+
+.cat-container .sync-2-db, .cat-container .sync-from-db{
+    background-color: var(--tup-color);
+    color: var(--white);
 }

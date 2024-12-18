@@ -87,8 +87,8 @@ app.post('/file', upload.single('file'), (req, res) => {
     });
 });
 
-
 app.post('/save', upload.single('file'), async (req, res) => {
+    console.log('saving resource...')
     const mediaType = req.body.mediaType;
     let adviserFname;
     let adviserLname;
@@ -132,10 +132,14 @@ app.post('/save', upload.single('file'), async (req, res) => {
         adviserLname = adviser[1];
     }
     
-    const authors = req.body.authors.split(',')
-
-    console.log("publisher: ", req.body.publisher); // pag walang value to, this is an empty string
-
+    //authors is in string
+    let authors;
+    if(Array.isArray(req.body.authors)){
+        authors = req.body.authors
+    }else{
+        authors = req.body.authors.split(',')
+    }
+   
     //call insertResources and pass req
     await insertResources(res,req,authors).then((data)=>{
         const resourceId = data
@@ -182,7 +186,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
 
                     //if no results found
                     if(results.length===0){
-
+                        console.log('inserting publishers')
                         const pubQ = 'INSERT INTO publisher (pub_name, pub_address, pub_email, pub_phone, pub_website) VALUES (?, ?, ?, ?, ?)';
 
                         const publisher = [
@@ -197,6 +201,8 @@ app.post('/save', upload.single('file'), async (req, res) => {
                             if (err) {
                                 return res.status(500).send(err); 
                             }
+
+                            console.log('publishers inserted successfully')
                             // Get the publisherId of the data you just inserted
                             const publisherId = results.insertId;
 
@@ -215,6 +221,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
                                     return res.status(500).send(err); 
                                 }
 
+                                console.log('book inserted successfully')
                                 // Optionally, delete the file from disk after saving it to the database
                                 // fs.unlink() method is used to delete files in Node.js
                                 // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
@@ -287,7 +294,6 @@ app.post('/save', upload.single('file'), async (req, res) => {
                 });
         }else{
             //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
-
             const checkIfAdviserExist = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
             const thesisQ = "INSERT INTO thesis (resource_id, adviser_id) VALUES (?,?)"
             const insertAdviser = "INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)"
@@ -363,65 +369,68 @@ const insertResources = async (res,req,authors)=>{
 //insert authors 
 const insertAuthors = async (res,authors,resourceId)=>{
     return new Promise((resolve,reject)=>{
-        //insert authors
-        const authorQ = 'INSERT INTO author (author_fname, author_lname) VALUES (?, ?)' 
-        const resourceAuthorQ = 'INSERT INTO resourceauthors (resource_id, author_id) VALUES (?, ?)'
-        const checkIfAuthorExist ='SELECT author_id FROM author WHERE author_fname = ? AND author_lname = ?'
+            //insert authors
+            const authorQ = 'INSERT INTO author (author_fname, author_lname) VALUES (?, ?)' 
+            const resourceAuthorQ = 'INSERT INTO resourceauthors (resource_id, author_id) VALUES (?, ?)'
+            const checkIfAuthorExist ='SELECT author_id FROM author WHERE author_fname = ? AND author_lname = ?'
 
-        authors.forEach(element => {
-            const nameParts = element.split(' '); 
-            const fname = nameParts.slice(0, -1).join(" "); // "John Michael"
-            const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
-            const authorValue = [
-                fname,
-                lname
-            ]
+            authors.forEach(element => {          
+                    const nameParts = element.split(' '); 
+                    const fname = nameParts.slice(0, -1).join(" "); // "John Michael"
+                    const lname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''; // "Doe"
+                    const authorValue = [
+                        fname,
+                        lname
+                    ]
 
-            // check if author already exist
-            db.query(checkIfAuthorExist,[fname,lname], (err,results)=>{
-                if (err) {
-                    return res.status(500).send(err); 
-                }
+                    // check if author already exist
+                    db.query(checkIfAuthorExist,[fname,lname], (err,results)=>{
+                        if (err) {
+                            return res.status(500).send(err); 
+                        }
+                        
+                        //pag walang nahanap, new author sa authors table
+                        if(results.length===0){
+                            db.query(authorQ,authorValue,(err,results)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
                 
-                //pag walang nahanap, new author sa authors table
-                if(results.length===0){
-                    db.query(authorQ,authorValue,(err,results)=>{
-                        if (err) {
-                            return res.status(500).send(err); 
+                                //authorId nung author info na kakainsert lang
+                                const authorId = results.insertId;
+                
+                                //if author is inserted, insert sa resourceAuthor table
+                                db.query(resourceAuthorQ,[resourceId,authorId],(req,res)=>{
+                                    if (err) {
+                                        return res.status(500).send(err); 
+                                    }
+    
+                                    resolve() 
+                                })
+                            })
+                        }else{
+                            //if author is inserted, insert sa resourceAuthor table
+                            //results look like this: 
+                            // [
+                            //     {
+                            //         author_id: 5
+                            //     }
+                            // ]
+                            //so you have to use index to access id
+                            db.query(resourceAuthorQ,[resourceId,results[0].author_id],(req,res)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
+                                resolve() 
+                            })
                         }
-        
-                        //authorId nung author info na kakainsert lang
-                        const authorId = results.insertId;
-        
-                        //if author is inserted, insert sa resourceAuthor table
-                        db.query(resourceAuthorQ,[resourceId,authorId],(req,res)=>{
-                            if (err) {
-                                return res.status(500).send(err); 
-                            }
-
-                            resolve() 
-                        })
-                    })
-                }else{
-                    //if author is inserted, insert sa resourceAuthor table
-                    //results look like this: 
-                    // [
-                    //     {
-                    //         author_id: 5
-                    //     }
-                    // ]
-                    //so you have to use index to access id
-                    db.query(resourceAuthorQ,[resourceId,results[0].author_id],(req,res)=>{
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-                        resolve() 
-                    })
-                }
-            })    
-        });
+                    })    
+                });
+           
     })
 }
+
+/*-----------EDIT RESOURCE-----------*/
 
 app.put('/file', upload.single('file'), (req, res) => {
     console.log(req.file); // Log the uploaded file details
@@ -919,7 +928,6 @@ const editAuthors = async (res,authors,resourceId)=>{
     })
 }
 
-
 // retrieve book information from google books api using isbn
 app.get('/bookData/:isbn',async (req,res)=>{
     const isbn = req.params.isbn
@@ -1043,7 +1051,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     JOIN department ON department.dept_id = resources.dept_id
     GROUP BY resources.resource_id
-    LIMIT 5 OFFSET ?`;
+    ORDER BY resources.resource_title ASC`;
 
     db.query(q,page,(err,results)=>{
         if(err) return res.send(err)
@@ -1054,7 +1062,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     })
 })
 
-// //get specific resource for viewing purposes
+/*          VIEW RESOURCE FROM CATALOG              */ 
 app.get('/view/:id',(req,res)=>{
     const id = req.params.id;
 
@@ -1187,6 +1195,7 @@ const getThesisResource = (id,res)=>{
         return res.json(result)
     })
 }
+/*----------------------END--------------------------------*/ 
 
 app.get('/resource/search', async (req, res) => {
     const searchQuery = req.query.q;
@@ -1366,11 +1375,10 @@ app.get('/patronSort', (req, res) => {
         } else {
             res.json({ message: 'No patrons found' });
         }
-    });
-});
+    })
+})
 
-
-
+/*-----------DYNAMIC SEARCH IN CATALOG----------- */
 app.get('/catalog/search',(req,res)=>{
     const searchKeyword = req.query.searchKeyword || '';
     const searchFilter = req.query.searchFilter || '';
@@ -1382,8 +1390,51 @@ app.get('/catalog/search',(req,res)=>{
         case 'author':
             searchByAuthor(searchKeyword,res);
             break;
+        case 'book':
+            searchByType(searchKeyword,res,'1');
+            break
+        case 'journal':
+            searchByType(searchKeyword,res,'2');
+            break
+        case 'newsletter':
+            searchByType(searchKeyword,res,'3');
+            break;
+        case 'thesis':
+            searchByType(searchKeyword,res,'4');
+            break;
     }
 })
+
+
+const searchByType = (searchKeyword,res,type)=>{
+    const q = `
+        SELECT 
+            resources.resource_title, 
+            resources.resource_id, 
+            resourcetype.type_name, 
+            resources.resource_quantity, 
+            department.dept_shelf_no,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources 
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN topic ON resources.topic_id = topic.topic_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        WHERE resources.resource_title LIKE ? AND resources.type_id = ?
+        ORDER BY resources.resource_title ASC
+        GROUP BY resources.resource_id`
+
+        db.query(q, [`%${searchKeyword}%`,type],(err,results)=>{
+            if(err) res.send(err)
+            if(results.length>0){
+                res.json(results)
+                // console.log(results)
+            }else{
+                res.send({})
+            }
+        })
+}
 
 const searchByTitle = (searchKeyword,res)=>{
     const q = `
@@ -1401,11 +1452,12 @@ const searchByTitle = (searchKeyword,res)=>{
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE resources.resource_title LIKE ?
+        ORDER BY resources.resource_title ASC
         GROUP BY resources.resource_id`
 
         db.query(q, [`%${searchKeyword}%`],(err,results)=>{
             if(err) res.send(err)
-            if(results.length>0){
+            if(results){
                 res.json(results)
                 // console.log(results)
             }else{
@@ -1430,60 +1482,301 @@ const searchByAuthor = (searchKeyword,res)=>{
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE author.author_fname LIKE ? OR author.author_lname LIKE ?
+        ORDER BY resources.resource_title ASC
         GROUP BY resources.resource_id`
 
         db.query(q, [`%${searchKeyword}%`,`%${searchKeyword}%`],(err,results)=>{
             if(err) res.send(err)
             if(results.length>0){
-                res.json(results)
+                res.send(results)
             }else{
                 res.send({})
             }
         })
 }
 
-app.post("/attendance", (req, res) => {
-    //const { studentId, date, time } = req.body;
-    const studentId = req.body.studentId;
-    const date = req.body.date;
-    const time = req.body.time;
- 
+/*              SYNC DATA               */
+//sync resources table
+app.post("/sync-resources", (req, res) => {
+    const resource = req.body;
+    const q = `
+    INSERT INTO 
+        resources (resource_id, resource_title,resource_description,resource_published_date,resource_quantity,resource_is_circulation,dept_id,topic_id,type_id,avail_id) 
+    VALUES (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_title=VALUES(resource_title),
+        resource_description=VALUES(resource_description),
+        resource_published_date=VALUES(resource_published_date),
+        resource_quantity=VALUES(resource_quantity),
+        resource_is_circulation=VALUES(resource_is_circulation),
+        dept_id=VALUES(dept_id),
+        topic_id=VALUES(topic_id),
+        type_id=VALUES(type_id),
+        avail_id=VALUES(avail_id)`;
+
+    const values = [
+        resource.resource_id,
+        resource.resource_title,
+        resource.resource_description,
+        resource.resource_published_date,
+        resource.resource_quantity,
+        resource.resource_is_circulation,
+        resource.dept_id,
+        resource.topic_id,
+        resource.type_id,
+        resource.avail_id
+    ];
   
-    if (!studentId) {
-      return res.status(400).json({ success: false, message: "Student ID is required." });
-    }
-  
-    // Step 1: Fetch Student Name
-    const getPatronIdQuery = "SELECT patron_id, patron_fname, patron_lname FROM patron WHERE tup_id = ?";
-    db.query(getPatronIdQuery, [studentId], (err, results) => {
-    if (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: "Error retrieving patron ID." });
-    }
-    if (results.length === 0) {
-        return res.status(404).json({ success: false, message: "Student not found." });
-    }
-
-    const patronId = results[0].patron_id;
-    const studentName = `${results[0].patron_fname} ${results[0].patron_lname}`;
-
-    const logAttendanceQuery = "INSERT INTO attendance (att_log_in_time, att_date, patron_id) VALUES ( ?, ?, ?)";
-    db.query(logAttendanceQuery, [time, date, patronId], (err) => {
-        if (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: "Failed to log attendance." });
-        }
-
-        return res.status(200).json({
-        success: true,
-        studentName: studentName,
-        message: "Attendance logged successfully.",
-        });
-      });
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing resources:", err);
+        res.status(500).send("Failed to sync resources.");
+      } else {
+        console.log("resources synced successfully.");
+        res.status(200).send("resources synced successfully.");
+      }
     });
-  });
+});
+
+//sync resources table
+app.post("/sync-authors", (req, res) => {
+    const author = req.body;
+    const q = `
+    INSERT INTO 
+        author (author_id, author_fname, author_lname) 
+    VALUES (?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        author_fname=VALUES(author_fname),
+        author_lname=VALUES(author_lname)`;
+
+    const values = [
+        author.author_id,
+        author.author_fname,
+        author.author_lname
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing authors:", err);
+        res.status(500).send("Failed to sync authors.");
+      } else {
+        console.log("authors synced successfully.");
+        res.status(200).send("authors synced successfully.");
+      }
+    });
+});
+
+//sync resourceauthors table
+app.post("/sync-resourceauthors", (req, res) => {
+    const ra = req.body;
+    const q = `
+    INSERT INTO 
+        resourceauthors (resource_id,author_id) 
+    VALUES (?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_id=VALUES(resource_id),
+        author_id=VALUES(author_id)
+        `;
+
+    const values = [
+        ra.resource_id,
+        ra.author_id
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing resourceauthors:", err);
+        res.status(500).send("Failed to sync resourceauthors.");
+      } else {
+        console.log("resourceauthors synced successfully.");
+        res.status(200).send("authors synced successfully.");
+      }
+    });
+});
+
+//sync publishers table
+app.post("/sync-publishers", (req, res) => {
+    const publisher = req.body;
+    const q = `
+    INSERT INTO 
+        publisher (pub_id,pub_name,pub_address,pub_email,pub_phone,pub_website) 
+    VALUES (?,?,?,?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        pub_name=VALUES(pub_name),
+        pub_address=VALUES(pub_address),
+        pub_email=VALUES(pub_email),
+        pub_phone=VALUES(pub_phone),
+        pub_website=VALUES(pub_website)
+        `;
+
+    const values = [
+        publisher.pub_id,
+        publisher.pub_name,
+        publisher.pub_add,
+        publisher.pub_email,
+        publisher.pub_phone,
+        publisher.pub_website
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing publishers:", err);
+        res.status(500).send("Failed to sync publishers.");
+      } else {
+        console.log("publishers synced successfully.");
+        res.status(200).send("publishers synced successfully.");
+      }
+    });
+});
+
+//sync books table
+app.post("/sync-books", upload.single('file'), async (req, res) => {
+    let imageFile;
+    let filePath;
+    const book = req.body;
+
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        imageFile = fs.readFileSync(filePath);
+    }
+    
+    const q = `
+        INSERT INTO 
+            book (book_id, book_cover, book_isbn, resource_id, pub_id) 
+        VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+        UPDATE 
+            book_cover=VALUES(book_cover),
+            book_isbn=VALUES(book_isbn),
+            resource_id=VALUES(resource_id),
+            pub_id=VALUES(pub_id)`;
+            
+
+        const values = [
+            book.book_id,
+            imageFile,
+            book.book_isbn==null?'n/a':book.book_isbn,
+            book.resource_id,
+            book.pub_id
+        ]; 
+    
+     
+     db.query(q, values, (err) => {
+       if (err) {
+         console.error("Error syncing book:", err);
+         res.status(500).send("Failed to sync book.");
+       } else {
+         console.log("book synced successfully.");
+         res.status(200).send("book synced successfully.");
+       }
+     });
+     
+});
+
+//sync journal/newsletter table
+app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
+    let imageFile;
+    let filePath;
+    const jn = req.body
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        imageFile = fs.readFileSync(filePath);
+    }
+
+     const q = `
+     INSERT INTO 
+         journalnewsletter (jn_id, jn_volume, jn_issue, jn_cover, resource_id) 
+     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+     UPDATE 
+         jn_volume=VALUES(jn_volume),
+         jn_issue=VALUES(jn_issue),
+         jn_cover=VALUES(jn_cover),
+         resource_id=VALUES(resource_id)`;
+ 
+     const values = [
+         jn.jn_id,
+         jn.jn_volume,
+         jn.jn_issue,
+         imageFile,
+         jn.resource_id
+     ];
+   
+     db.query(q, values, (err) => {
+       if (err) {
+         console.error("Error syncing journal/newsletter:", err);
+         res.status(500).send("Failed to sync journal/newsletter.");
+       } else {
+         console.log("journal/newsletter synced successfully.");
+         res.status(200).send("journal/newsletter synced successfully.");
+         
+        fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        }); 
+       }
+     });
+});
+
+//sync theses 
+app.post("/sync-advisers",(req,res)=>{
+    const adviser = req.body;
+    const q = `
+    INSERT INTO 
+        adviser (adviser_id, adviser_fname, adviser_lname) 
+    VALUES (?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        adviser_fname=VALUES(adviser_fname),
+        adviser_lname=VALUES(adviser_lname)
+        `;
+
+    const values =[
+        adviser.adviser_id,
+        adviser.adviser_fname,
+        adviser.adviser_lname
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing adviser:", err);
+        res.status(500).send("Failed to sync adviser.");
+      } else {
+        console.log("adviser synced successfully.");
+        res.status(200).send("adviser synced successfully.");
+      }
+    });
+})
+
+//sync theses 
+app.post("/sync-theses",(req,res)=>{
+    const thesis = req.body;
+    const q = `
+    INSERT INTO 
+        thesis (thesis_id, resource_id, adviser_id) 
+    VALUES (?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_id=VALUES(resource_id),
+        adviser_id=VALUES(adviser_id)
+        `;
+
+    const values = [
+        thesis.thesis_id,
+        thesis.resource_id,
+        thesis.adviser_id
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing thesis:", err);
+        res.status(500).send("Failed to sync thesis.");
+      } else {
+        console.log("thesis synced successfully.");
+        res.status(200).send("thesis synced successfully.");
+      }
+    });
+})
 
 server.listen(3001,()=>{
     console.log('this is the backend')
 })
+
 
