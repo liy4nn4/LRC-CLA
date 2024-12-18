@@ -1272,7 +1272,23 @@ app.get('/patron', (req, res) => {
 
 //const q = 'SELECT * FROM patron';
 
-const q = "SELECT patron.patron_id, patron.tup_id, patron.patron_fname, patron.patron_lname, patron.patron_sex, patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) AS att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id ORDER BY att_date DESC, att_log_in_time DESC";
+//const q = "SELECT patron.patron_id, patron.tup_id, patron.patron_fname, patron.patron_lname, patron.patron_sex, patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) AS att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id ORDER BY att_date DESC, att_log_in_time DESC";
+const q = `SELECT 
+    p.tup_id,
+    p.patron_fname,
+    p.patron_lname,
+    p.patron_email,
+    p.category,
+    COUNT(c.checkout_id) AS total_checkouts
+FROM 
+    patron p
+LEFT JOIN 
+    checkout c 
+ON 
+    p.patron_id = c.patron_id
+GROUP BY 
+    p.tup_id, p.patron_fname, p.patron_lname, p.patron_email;
+`;
 
 db.query(q, (err, results) => {
     if (err) {
@@ -1284,6 +1300,9 @@ db.query(q, (err, results) => {
     }
 });
 });
+
+
+
 
 app.get('/patronSort', (req, res) => {
     const { search, startDate, endDate, limit } = req.query;
