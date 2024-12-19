@@ -1017,7 +1017,46 @@ app.get('/status',(req,res)=>{
     })
 })
 
-/*-----RETRIEVE CATALOG TO DISPLAY IN CATALOG PAGE RESOURCE ONLINE---------*/
+app.get("/getTotalVisitors", (req, res) => {
+    const { date } = req.query;
+  
+    if (!date) {
+      return res.status(400).json({ message: "Date is required" });
+    }
+  
+    const query = `SELECT COUNT(*) AS total_attendance FROM attendance WHERE DATE(att_date) = ?`;
+  
+    db.query(query, [date], (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+  
+      const total_attendance = result[0]?.total_attendance || 0;
+      res.json({ total_attendance });
+    });
+  });
+
+app.get("/getBorrowedBooks", (req, res) => {
+const { date } = req.query;
+
+if (!date) {
+    return res.status(400).json({ message: "Date is required" });
+}
+
+const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ?`;
+
+db.query(query, [date], (err, result) => {
+    if (err) {
+    console.error("Database error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+    }
+
+    const total_borrowed = result[0]?.total_borrowed || 0;
+    res.json({ total_borrowed });
+});
+});
+
 //get catalog details 
 app.get('/catalogdetails/:pagination',(req,res)=>{
     const page = parseInt(req.params.pagination,10)
@@ -1250,12 +1289,175 @@ app.get('/resource/:id', (req,res)=>{
             return res.json(result)
     })
 })
-app.get('/view',(req,res)=>{
-    const q = 'SELECT book_cover FROM book'
-    db.query(q,(err,results)=>{
-        if(err) res.send(err)
-        if(results.length>0){
-            res.json(results[0])
+
+
+
+app.get('/patron', (req, res) => {
+
+//const q = 'SELECT * FROM patron';
+
+//const q = "SELECT patron.patron_id, patron.tup_id, patron.patron_fname, patron.patron_lname, patron.patron_sex, patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) AS att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id ORDER BY att_date DESC, att_log_in_time DESC";
+const q = `SELECT 
+    p.tup_id,
+    p.patron_fname,
+    p.patron_lname,
+    p.patron_email,
+    p.category,
+    COUNT(c.checkout_id) AS total_checkouts
+FROM 
+    patron p
+LEFT JOIN 
+    checkout c 
+ON 
+    p.patron_id = c.patron_id
+GROUP BY 
+    p.tup_id, p.patron_fname, p.patron_lname, p.patron_email;
+`;
+
+db.query(q, (err, results) => {
+    if (err) {
+    res.send(err);
+    } else if (results.length > 0) {
+    res.json(results);
+    } else {
+    res.json({ message: 'No patrons found' });
+    }
+});
+});
+
+app.get('/getBorrowers', (req, res) => {
+    const q = `SELECT 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
+            course.course_name AS course, 
+            COUNT(c.checkout_id) AS total_checkouts
+        FROM 
+            patron p
+        INNER JOIN 
+            checkout c ON p.patron_id = c.patron_id
+        INNER JOIN 
+            resources r ON c.resource_id = r.resource_id
+        JOIN 
+            course ON p.course_id = course.course_id
+        GROUP BY 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            course.course_name
+        ORDER BY 
+            MAX(c.checkout_date) DESC
+        LIMIT 5;
+
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
+
+app.get('/getAddedBooks', (req, res) => {
+    const q = `SELECT 
+        r.resource_id, 
+        r.resource_title, 
+        r.resource_quantity, 
+        GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', \n ') AS authors
+    FROM 
+        resources AS r
+    JOIN 
+        resourceauthors AS ra ON r.resource_id = ra.resource_id
+    JOIN 
+        author AS a ON ra.author_id = a.author_id
+    GROUP BY 
+        r.resource_id, r.resource_title, r.resource_quantity;
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
+
+
+app.get('/patronSort', (req, res) => {
+    const { search, startDate, endDate, limit } = req.query;
+    
+    // Base query with JOINs
+    let q = `
+        SELECT 
+            patron.patron_id, 
+            patron.tup_id, 
+            patron.patron_fname, 
+            patron.patron_lname, 
+            patron.patron_sex, 
+            patron.patron_mobile,
+            patron.patron_email, 
+            course.course_name AS course, 
+            college.college_name AS college, 
+            DATE(attendance.att_date) AS att_date, 
+            attendance.att_log_in_time 
+        FROM patron 
+        JOIN course ON patron.course_id = course.course_id 
+        JOIN college ON patron.college_id = college.college_id 
+        JOIN attendance ON patron.patron_id = attendance.patron_id 
+        WHERE 1=1
+    `;
+
+    const params = [];
+
+    // Add search filter if provided
+    if (search) {
+        q += ` AND (patron.tup_id LIKE ? OR patron.patron_fname LIKE ? OR patron.patron_lname LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+        q += ` AND DATE(attendance.att_date) >= ?`;
+        params.push(startDate);
+    }
+
+    if (endDate) {
+        q += ` AND DATE(attendance.att_date) <= ?`;
+        params.push(endDate);
+    }
+
+    // Add ordering
+    q += ` ORDER BY att_date DESC, att_log_in_time DESC`;
+
+    // Add limit for pagination
+    if (limit) {
+        q += ` LIMIT ?`;
+        params.push(parseInt(limit));
+    }
+
+    // Execute query
+    db.query(q, params, (err, results) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).send('Database error: ' + err.message);
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons found' });
         }
     })
 })
@@ -1371,6 +1573,327 @@ const searchByAuthor = (searchKeyword,res)=>{
             }
         })
 }
+
+/*              SYNC DATA               */
+//sync resources table
+app.post("/sync-resources", (req, res) => {
+    const resource = req.body;
+    const q = `
+    INSERT INTO 
+        resources (resource_id, resource_title,resource_description,resource_published_date,resource_quantity,resource_is_circulation,dept_id,topic_id,type_id,avail_id) 
+    VALUES (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_title=VALUES(resource_title),
+        resource_description=VALUES(resource_description),
+        resource_published_date=VALUES(resource_published_date),
+        resource_quantity=VALUES(resource_quantity),
+        resource_is_circulation=VALUES(resource_is_circulation),
+        dept_id=VALUES(dept_id),
+        topic_id=VALUES(topic_id),
+        type_id=VALUES(type_id),
+        avail_id=VALUES(avail_id)`;
+
+    const values = [
+        resource.resource_id,
+        resource.resource_title,
+        resource.resource_description,
+        resource.resource_published_date,
+        resource.resource_quantity,
+        resource.resource_is_circulation,
+        resource.dept_id,
+        resource.topic_id,
+        resource.type_id,
+        resource.avail_id
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing resources:", err);
+        res.status(500).send("Failed to sync resources.");
+      } else {
+        console.log("resources synced successfully.");
+        res.status(200).send("resources synced successfully.");
+      }
+    });
+});
+
+//sync resources table
+app.post("/sync-authors", (req, res) => {
+    const author = req.body;
+    const q = `
+    INSERT INTO 
+        author (author_id, author_fname, author_lname) 
+    VALUES (?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        author_fname=VALUES(author_fname),
+        author_lname=VALUES(author_lname)`;
+
+    const values = [
+        author.author_id,
+        author.author_fname,
+        author.author_lname
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing authors:", err);
+        res.status(500).send("Failed to sync authors.");
+      } else {
+        console.log("authors synced successfully.");
+        res.status(200).send("authors synced successfully.");
+      }
+    });
+});
+
+//sync resourceauthors table
+app.post("/sync-resourceauthors", (req, res) => {
+    const ra = req.body;
+    const q = `
+    INSERT INTO 
+        resourceauthors (resource_id,author_id) 
+    VALUES (?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_id=VALUES(resource_id),
+        author_id=VALUES(author_id)
+        `;
+
+    const values = [
+        ra.resource_id,
+        ra.author_id
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing resourceauthors:", err);
+        res.status(500).send("Failed to sync resourceauthors.");
+      } else {
+        console.log("resourceauthors synced successfully.");
+        res.status(200).send("authors synced successfully.");
+      }
+    });
+});
+
+//sync publishers table
+app.post("/sync-publishers", (req, res) => {
+    const publisher = req.body;
+    const q = `
+    INSERT INTO 
+        publisher (pub_id,pub_name,pub_address,pub_email,pub_phone,pub_website) 
+    VALUES (?,?,?,?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        pub_name=VALUES(pub_name),
+        pub_address=VALUES(pub_address),
+        pub_email=VALUES(pub_email),
+        pub_phone=VALUES(pub_phone),
+        pub_website=VALUES(pub_website)
+        `;
+
+    const values = [
+        publisher.pub_id,
+        publisher.pub_name,
+        publisher.pub_add,
+        publisher.pub_email,
+        publisher.pub_phone,
+        publisher.pub_website
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing publishers:", err);
+        res.status(500).send("Failed to sync publishers.");
+      } else {
+        console.log("publishers synced successfully.");
+        res.status(200).send("publishers synced successfully.");
+      }
+    });
+});
+
+//sync books table
+app.post("/sync-books", upload.single('file'), async (req, res) => {
+    let imageFile;
+    let filePath;
+    const book = req.body;
+
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        imageFile = fs.readFileSync(filePath);
+    }
+    
+    const q = `
+        INSERT INTO 
+            book (book_id, book_cover, book_isbn, resource_id, pub_id) 
+        VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+        UPDATE 
+            book_cover=VALUES(book_cover),
+            book_isbn=VALUES(book_isbn),
+            resource_id=VALUES(resource_id),
+            pub_id=VALUES(pub_id)`;
+            
+
+        const values = [
+            book.book_id,
+            imageFile,
+            book.book_isbn==null?'n/a':book.book_isbn,
+            book.resource_id,
+            book.pub_id
+        ]; 
+    
+     
+     db.query(q, values, (err) => {
+       if (err) {
+         console.error("Error syncing book:", err);
+         res.status(500).send("Failed to sync book.");
+       } else {
+         console.log("book synced successfully.");
+         res.status(200).send("book synced successfully.");
+       }
+     });
+     
+});
+
+//sync journal/newsletter table
+app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
+    let imageFile;
+    let filePath;
+    const jn = req.body
+
+    if(req.file){
+        filePath = req.file.path; // Get the file path 
+        imageFile = fs.readFileSync(filePath);
+    }
+
+     const q = `
+     INSERT INTO 
+         journalnewsletter (jn_id, jn_volume, jn_issue, jn_cover, resource_id) 
+     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
+     UPDATE 
+         jn_volume=VALUES(jn_volume),
+         jn_issue=VALUES(jn_issue),
+         jn_cover=VALUES(jn_cover),
+         resource_id=VALUES(resource_id)`;
+ 
+     const values = [
+         jn.jn_id,
+         jn.jn_volume,
+         jn.jn_issue,
+         imageFile,
+         jn.resource_id
+     ];
+   
+     db.query(q, values, (err) => {
+       if (err) {
+         console.error("Error syncing journal/newsletter:", err);
+         res.status(500).send("Failed to sync journal/newsletter.");
+       } else {
+         console.log("journal/newsletter synced successfully.");
+         res.status(200).send("journal/newsletter synced successfully.");
+         
+        fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
+        }); 
+       }
+     });
+});
+
+//sync theses 
+app.post("/sync-advisers",(req,res)=>{
+    const adviser = req.body;
+    const q = `
+    INSERT INTO 
+        adviser (adviser_id, adviser_fname, adviser_lname) 
+    VALUES (?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        adviser_fname=VALUES(adviser_fname),
+        adviser_lname=VALUES(adviser_lname)
+        `;
+
+    const values =[
+        adviser.adviser_id,
+        adviser.adviser_fname,
+        adviser.adviser_lname
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing adviser:", err);
+        res.status(500).send("Failed to sync adviser.");
+      } else {
+        console.log("adviser synced successfully.");
+        res.status(200).send("adviser synced successfully.");
+      }
+    });
+})
+
+//sync theses 
+app.post("/sync-theses",(req,res)=>{
+    const thesis = req.body;
+    const q = `
+    INSERT INTO 
+        thesis (thesis_id, resource_id, adviser_id) 
+    VALUES (?,?,?) ON DUPLICATE KEY 
+    UPDATE 
+        resource_id=VALUES(resource_id),
+        adviser_id=VALUES(adviser_id)
+        `;
+
+    const values = [
+        thesis.thesis_id,
+        thesis.resource_id,
+        thesis.adviser_id
+    ];
+  
+    db.query(q, values, (err) => {
+      if (err) {
+        console.error("Error syncing thesis:", err);
+        res.status(500).send("Failed to sync thesis.");
+      } else {
+        console.log("thesis synced successfully.");
+        res.status(200).send("thesis synced successfully.");
+      }
+    });
+})
+
+app.post("/attendance", (req, res) => {
+    //const { studentId, date, time } = req.body;
+    const studentId = req.body.studentId;
+    const date = req.body.date;
+    const time = req.body.time;
+ 
+  
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: "Student ID is required." });
+    }
+  
+    // Step 1: Fetch Student Name
+    const getPatronIdQuery = "SELECT patron_id, patron_fname, patron_lname FROM patron WHERE tup_id = ?";
+    db.query(getPatronIdQuery, [studentId], (err, results) => {
+    if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Error retrieving patron ID." });
+    }
+    if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "Student not found." });
+    }
+
+    const patronId = results[0].patron_id;
+    const studentName = `${results[0].patron_fname} ${results[0].patron_lname}`;
+
+    const logAttendanceQuery = "INSERT INTO attendance (att_log_in_time, att_date, patron_id) VALUES ( ?, ?, ?)";
+    db.query(logAttendanceQuery, [time, date, patronId], (err) => {
+        if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Failed to log attendance." });
+        }
+
+        return res.status(200).json({
+        success: true,
+        studentName: studentName,
+        message: "Attendance logged successfully.",
+        });
+      });
+    });
+  });
 
 server.listen(3001,()=>{
     console.log('this is the backend')
