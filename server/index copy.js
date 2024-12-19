@@ -150,12 +150,13 @@ app.post('/save', upload.single('file'), async (req, res) => {
         if (mediaType === '1') {
             if(existingPublisher==0&&!req.body.publisher&&!req.body.publisher_address&&!req.body.publisher_email&&!req.body.publisher_number&&!req.body.publisher_website){
                 //if walang napiling publisher/walang nahanap na publisher, set pub_id to null
-                const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id,topic_id) VALUES (?, ?, ?, ?,?)';
                 const book = [
                     imageFile,
                     req.body.isbn,
                     resourceId,
-                    null
+                    null,
+                    req.body.topic,
                 ];
 
                 db.query(q, book, (err, result) => {
@@ -220,13 +221,14 @@ app.post('/save', upload.single('file'), async (req, res) => {
                             const publisherId = results.insertId;
 
                             // Insert the file data into the database
-                            const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                            const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id,topic_id) VALUES (?, ?, ?, ?,?)';
                             
                             const book = [
                                 imageFile,
                                 req.body.isbn,
                                 resourceId,
-                                publisherId
+                                publisherId,
+                                req.body.topic,
                             ];
 
                             db.query(q, book, (err, result) => {
@@ -250,14 +252,15 @@ app.post('/save', upload.single('file'), async (req, res) => {
                         });
                     }else{
                         //pag may nahanap na publisher, store the id of chosen publisher in book database
-                        const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id) VALUES (?, ?, ?, ?)';
+                        const q = 'INSERT INTO book (book_cover, book_isbn, resource_id, pub_id, topic_id) VALUES (?, ?, ?, ?,?)';
                         const book = [
                             imageFile,
                             req.body.isbn,
                             resourceId,
-                            results[0].pub_id
+                            results[0].pub_id,
+                            req.body.topic,
                         ];
-                        
+
                         db.query(q, book, (err, result) => {
                             if (err) {
                                 return res.status(500).send(err); 
@@ -280,12 +283,13 @@ app.post('/save', upload.single('file'), async (req, res) => {
             }
         }else if(mediaType==='2'|| mediaType==='3'){
                 // Insert the file data into the database
-                const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id) VALUES (?, ?, ?, ?)';
+                const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id,topic_id) VALUES (?, ?, ?, ?,?)';
                 const jn = [
                     req.body.volume,
                     req.body.issue,
                     imageFile,
-                    resourceId
+                    resourceId,
+                    req.body.topic,
                 ];
 
                 db.query(q, jn, (err, result) => {
@@ -349,7 +353,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
 //insert resources
 const insertResources = async (res,req,authors)=>{
     return new Promise((resolve,reject)=>{
-        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, topic_id, type_id, avail_id, sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, type_id, avail_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
 
         const resources = [
             req.body.title,
@@ -358,10 +362,8 @@ const insertResources = async (res,req,authors)=>{
             req.body.quantity,
             req.body.isCirculation,
             req.body.department,
-            req.body.topic,
             req.body.mediaType,
             req.body.status,
-            req.body.sync_status
         ];
 
         db.query(q, resources,(err, results)=>{
@@ -1015,7 +1017,46 @@ app.get('/status',(req,res)=>{
     })
 })
 
-/*-----RETRIEVE CATALOG TO DISPLAY IN CATALOG PAGE RESOURCE ONLINE---------*/
+app.get("/getTotalVisitors", (req, res) => {
+    const { date } = req.query;
+  
+    if (!date) {
+      return res.status(400).json({ message: "Date is required" });
+    }
+  
+    const query = `SELECT COUNT(*) AS total_attendance FROM attendance WHERE DATE(att_date) = ?`;
+  
+    db.query(query, [date], (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+  
+      const total_attendance = result[0]?.total_attendance || 0;
+      res.json({ total_attendance });
+    });
+  });
+
+app.get("/getBorrowedBooks", (req, res) => {
+const { date } = req.query;
+
+if (!date) {
+    return res.status(400).json({ message: "Date is required" });
+}
+
+const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ?`;
+
+db.query(query, [date], (err, result) => {
+    if (err) {
+    console.error("Database error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+    }
+
+    const total_borrowed = result[0]?.total_borrowed || 0;
+    res.json({ total_borrowed });
+});
+});
+
 //get catalog details 
 app.get('/catalogdetails/:pagination',(req,res)=>{
     const page = parseInt(req.params.pagination,10)
@@ -1032,7 +1073,6 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     FROM resources 
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
     JOIN author ON resourceauthors.author_id = author.author_id 
-    JOIN topic ON resources.topic_id = topic.topic_id 
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     JOIN department ON department.dept_id = resources.dept_id
     GROUP BY resources.resource_id
@@ -1086,7 +1126,6 @@ const getBookResource = (id,res)=>{
         resources.resource_id, 
         resources.type_id, 
         GROUP_CONCAT(DISTINCT CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names, 
-        resources.topic_id, 
         resources.dept_id, 
         resources.avail_id, 
         resources.resource_description, 
@@ -1096,12 +1135,12 @@ const getBookResource = (id,res)=>{
         book.pub_id, 
         resources.resource_quantity, 
         resources.resource_title, 
-        publisher.pub_name, 
-        book.book_cover 
+        publisher.pub_name,
+        book.book_cover,
+		book.topic_id 
     FROM resources 
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
     JOIN author ON resourceauthors.author_id = author.author_id 
-    JOIN topic ON resources.topic_id = topic.topic_id 
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     LEFT JOIN book ON book.resource_id = resources.resource_id 
     LEFT JOIN publisher ON book.pub_id = publisher.pub_id 
@@ -1125,7 +1164,7 @@ const getNewsletterJournalResource = (id,res)=>{
         resources.resource_published_date,
         resources.resource_description,
         resources.dept_id,
-        resources.topic_id,
+        journalnewsletter.topic_id,
         resources.resource_is_circulation,
         GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names,
         journalnewsletter.jn_volume,
@@ -1134,7 +1173,6 @@ const getNewsletterJournalResource = (id,res)=>{
     FROM resources
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
-    JOIN topic ON resources.topic_id = topic.topic_id
     JOIN resourcetype ON resourcetype.type_id = resources.type_id
     JOIN journalnewsletter ON resources.resource_id = journalnewsletter.resource_id
     WHERE resources.resource_id = ?
@@ -1146,11 +1184,11 @@ const getNewsletterJournalResource = (id,res)=>{
         return res.json(result)
     })
 }
+
 const getThesisResource = (id,res)=>{
     const q = 
     `SELECT
         resources.type_id,
-        resources.topic_id,
         resources.dept_id,
         resources.resource_description,
         resources.resource_is_circulation,
@@ -1163,7 +1201,6 @@ const getThesisResource = (id,res)=>{
     FROM resources
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
-    JOIN topic ON resources.topic_id = topic.topic_id
     JOIN resourcetype ON resources.type_id = resourcetype.type_id
     JOIN thesis ON thesis.resource_id = thesis.resource_id
     JOIN adviser ON adviser.adviser_id = thesis.adviser_id
@@ -1252,16 +1289,230 @@ app.get('/resource/:id', (req,res)=>{
             return res.json(result)
     })
 })
-app.get('/view',(req,res)=>{
-    const q = 'SELECT book_cover FROM book'
-    db.query(q,(err,results)=>{
-        if(err) res.send(err)
-        if(results.length>0){
-            res.json(results[0])
+
+
+
+app.get('/patron', (req, res) => {
+
+//const q = 'SELECT * FROM patron';
+
+//const q = "SELECT patron.patron_id, patron.tup_id, patron.patron_fname, patron.patron_lname, patron.patron_sex, patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) AS att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id ORDER BY att_date DESC, att_log_in_time DESC";
+const q = `SELECT 
+    p.tup_id,
+    p.patron_fname,
+    p.patron_lname,
+    p.patron_email,
+    p.category,
+    COUNT(c.checkout_id) AS total_checkouts
+FROM 
+    patron p
+LEFT JOIN 
+    checkout c 
+ON 
+    p.patron_id = c.patron_id
+GROUP BY 
+    p.tup_id, p.patron_fname, p.patron_lname, p.patron_email;
+`;
+
+db.query(q, (err, results) => {
+    if (err) {
+    res.send(err);
+    } else if (results.length > 0) {
+    res.json(results);
+    } else {
+    res.json({ message: 'No patrons found' });
+    }
+});
+});
+
+app.get('/getBorrowers', (req, res) => {
+    const q = `SELECT 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
+            course.course_name AS course, 
+            COUNT(c.checkout_id) AS total_checkouts
+        FROM 
+            patron p
+        INNER JOIN 
+            checkout c ON p.patron_id = c.patron_id
+        INNER JOIN 
+            resources r ON c.resource_id = r.resource_id
+        JOIN 
+            course ON p.course_id = course.course_id
+        GROUP BY 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            course.course_name
+        ORDER BY 
+            MAX(c.checkout_date) DESC
+        LIMIT 5;
+
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
+
+app.get('/getAddedBooks', (req, res) => {
+    const q = `SELECT 
+        r.resource_id, 
+        r.resource_title, 
+        r.resource_quantity, 
+        GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', \n ') AS authors
+    FROM 
+        resources AS r
+    JOIN 
+        resourceauthors AS ra ON r.resource_id = ra.resource_id
+    JOIN 
+        author AS a ON ra.author_id = a.author_id
+    GROUP BY 
+        r.resource_id, r.resource_title, r.resource_quantity;
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
+
+
+app.get('/patronSort', (req, res) => {
+    const { search, startDate, endDate, limit } = req.query;
+    
+    // Base query with JOINs
+    let q = `
+        SELECT 
+            patron.patron_id, 
+            patron.tup_id, 
+            patron.patron_fname, 
+            patron.patron_lname, 
+            patron.patron_sex, 
+            patron.patron_mobile,
+            patron.patron_email, 
+            course.course_name AS course, 
+            college.college_name AS college, 
+            DATE(attendance.att_date) AS att_date, 
+            attendance.att_log_in_time 
+        FROM patron 
+        JOIN course ON patron.course_id = course.course_id 
+        JOIN college ON patron.college_id = college.college_id 
+        JOIN attendance ON patron.patron_id = attendance.patron_id 
+        WHERE 1=1
+    `;
+
+    const params = [];
+
+    // Add search filter if provided
+    if (search) {
+        q += ` AND (patron.tup_id LIKE ? OR patron.patron_fname LIKE ? OR patron.patron_lname LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+        q += ` AND DATE(attendance.att_date) >= ?`;
+        params.push(startDate);
+    }
+
+    if (endDate) {
+        q += ` AND DATE(attendance.att_date) <= ?`;
+        params.push(endDate);
+    }
+
+    // Add ordering
+    q += ` ORDER BY att_date DESC, att_log_in_time DESC`;
+
+    // Add limit for pagination
+    if (limit) {
+        q += ` LIMIT ?`;
+        params.push(parseInt(limit));
+    }
+
+    // Execute query
+    db.query(q, params, (err, results) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).send('Database error: ' + err.message);
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons found' });
         }
     })
 })
-/*-----------DYNAMIC SEARCH IN CATALOG PAGE----------- */
+
+app.get('/getCover', (req, res) => {
+    const query = 'SELECT book_cover, resource_id FROM book ORDER BY book_id DESC LIMIT 5';
+    
+    db.query(query, (error, results) => {
+        if (error) return res.status(500).json({ error });
+        
+        // Convert BLOB data to base64 for use in React
+        const covers = results.map(book => ({
+            cover: Buffer.from(book.book_cover).toString('base64'),
+            resource_id: (book.resource_id)
+
+        }));
+        
+        res.json(covers);
+    });
+});
+
+app.get('/api/overdue-books', (req, res) => {
+    const query = `
+        SELECT p.tup_id, p.patron_fname, p.patron_lname, c.checkout_due, r.resource_id, r.resource_title, DATEDIFF(CURDATE(), c.checkout_due) AS overdue_days FROM checkout c JOIN patron p ON c.patron_id = p.patron_id JOIN resources r ON c.resource_id = r.resource_id JOIN book b ON r.resource_id = b.resource_id WHERE c.checkout_due < CURDATE() ORDER BY c.checkout_due DESC;
+    `;
+    
+    db.query(query, (error, results) => {
+        if (error) return res.status(500).json({ error });
+        
+        res.json(results);
+    });
+});
+
+app.get('/checkout-info', async (req, res) => {
+    /* try {
+        const query = `SELECT p.tup_id, p.patron_fname, p.patron_lname, r.resource_title, c.checkout_due FROM patron p JOIN checkout c ON p.patron_id = c.patron_id JOIN resources r ON c.resource_id = r.resource_id WHERE c.checkout_due >= CURRENT_DATE()`;
+        const [rows] = await db.execute(query);
+        res.json(rows);
+        await db.end();
+    } catch (error) {
+        console.error('Database query failed:', error);
+        res.status(500).send('Internal Server Error');
+    } */
+
+    const query = `SELECT p.tup_id, p.patron_fname, p.patron_lname, r.resource_title, c.checkout_due FROM patron p JOIN checkout c ON p.patron_id = c.patron_id JOIN resources r ON c.resource_id = r.resource_id WHERE c.checkout_due >= CURRENT_DATE()`;
+    
+    db.query(query, (error, results) => {
+        if (error) return res.status(500).json({ error });
+        
+        res.json(results);
+    });
+});
+
+
+/*-----------DYNAMIC SEARCH IN CATALOG----------- */
 app.get('/catalog/search',(req,res)=>{
     const searchKeyword = req.query.searchKeyword || '';
     const searchFilter = req.query.searchFilter || '';
@@ -1287,6 +1538,10 @@ app.get('/catalog/search',(req,res)=>{
             break;
     }
 })
+
+
+
+
 const searchByType = (searchKeyword,res,type)=>{
     const q = `
         SELECT 
@@ -1374,7 +1629,7 @@ const searchByAuthor = (searchKeyword,res)=>{
         })
 }
 
-/*-------SYNC DATA----------*/
+/*              SYNC DATA               */
 //sync resources table
 app.post("/sync-resources", (req, res) => {
     const resource = req.body;
@@ -1416,6 +1671,7 @@ app.post("/sync-resources", (req, res) => {
       }
     });
 });
+
 //sync resources table
 app.post("/sync-authors", (req, res) => {
     const author = req.body;
@@ -1443,6 +1699,7 @@ app.post("/sync-authors", (req, res) => {
       }
     });
 });
+
 //sync resourceauthors table
 app.post("/sync-resourceauthors", (req, res) => {
     const ra = req.body;
@@ -1470,6 +1727,7 @@ app.post("/sync-resourceauthors", (req, res) => {
       }
     });
 });
+
 //sync publishers table
 app.post("/sync-publishers", (req, res) => {
     const publisher = req.body;
@@ -1504,6 +1762,7 @@ app.post("/sync-publishers", (req, res) => {
       }
     });
 });
+
 //sync books table
 app.post("/sync-books", upload.single('file'), async (req, res) => {
     let imageFile;
@@ -1547,6 +1806,7 @@ app.post("/sync-books", upload.single('file'), async (req, res) => {
      });
      
 });
+
 //sync journal/newsletter table
 app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
     let imageFile;
@@ -1590,6 +1850,7 @@ app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
        }
      });
 });
+
 //sync theses 
 app.post("/sync-advisers",(req,res)=>{
     const adviser = req.body;
@@ -1618,6 +1879,7 @@ app.post("/sync-advisers",(req,res)=>{
       }
     });
 })
+
 //sync theses 
 app.post("/sync-theses",(req,res)=>{
     const thesis = req.body;
@@ -1646,6 +1908,47 @@ app.post("/sync-theses",(req,res)=>{
       }
     });
 })
+
+app.post("/attendance", (req, res) => {
+    //const { studentId, date, time } = req.body;
+    const studentId = req.body.studentId;
+    const date = req.body.date;
+    const time = req.body.time;
+ 
+  
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: "Student ID is required." });
+    }
+  
+    // Step 1: Fetch Student Name
+    const getPatronIdQuery = "SELECT patron_id, patron_fname, patron_lname FROM patron WHERE tup_id = ?";
+    db.query(getPatronIdQuery, [studentId], (err, results) => {
+    if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Error retrieving patron ID." });
+    }
+    if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "Student not found." });
+    }
+
+    const patronId = results[0].patron_id;
+    const studentName = `${results[0].patron_fname} ${results[0].patron_lname}`;
+
+    const logAttendanceQuery = "INSERT INTO attendance (att_log_in_time, att_date, patron_id) VALUES ( ?, ?, ?)";
+    db.query(logAttendanceQuery, [time, date, patronId], (err) => {
+        if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Failed to log attendance." });
+        }
+
+        return res.status(200).json({
+        success: true,
+        studentName: studentName,
+        message: "Attendance logged successfully.",
+        });
+      });
+    });
+  });
 
 server.listen(3001,()=>{
     console.log('this is the backend')

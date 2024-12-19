@@ -1,5 +1,5 @@
 import express from "express";
-import mysql from "mysql";
+import mysql from "mysql2";
 import cors from "cors";
 import axios from 'axios';
 import multer from 'multer'; // This is a tool that helps us upload files (like images or documents) from a form to our server.
@@ -19,11 +19,16 @@ const apikey = "AIzaSyDq8MNGVWbLp-R-SFFe-SGL7Aa8CuMak0s";
 
 // connect server to database
 const db = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    password : '',
-    database : 'lrc-cla'
-})
+    host: 'lrc-cla-lancewrt-dentsys.i.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_JlmTwrEiTC51YRZliFQ',
+    database: 'defaultdb',
+    port: 21730,
+    ssl: {
+        rejectUnauthorized: true,
+        ca: fs.readFileSync('./ca.pem').toString()
+    }
+});
 
 db.connect((err) => {
     if (err) {
@@ -33,26 +38,26 @@ db.connect((err) => {
     console.log('Connected to the database');
 });
 
-
-//how we create http server with react
-const server = http.createServer(app)
+// How we create an HTTP server with React
+const server = http.createServer(app);
 
 // Server is a class
-const io = new Server(server,{
-    cors:{
-        // url for frontend
-        origin:"http://localhost:3000",
+const io = new Server(server, {
+    cors: {
+        // URL for frontend
+        origin: "http://localhost:3000",
     }
-})
+});
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
-  // Listen for an event from the client
-  socket.on('newResource', () => {
-    console.log('new data inserted')
-    io.emit('updateCatalog');
-  });
+    // Listen for an event from the client
+    socket.on('newResource', () => {
+        console.log('New data inserted');
+        io.emit('updateCatalog');
+    });
 });
+
 
 const storage = multer.diskStorage({
     destination: function(req,file,cb){

@@ -13,7 +13,7 @@ const Logbook = () => {
     const [searchInput, setSearchInput] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [entriesPerPage, setEntriesPerPage] = useState(5);
+    const [entriesPerPage, setEntriesPerPage] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalEntries, setTotalEntries] = useState(0);
 
