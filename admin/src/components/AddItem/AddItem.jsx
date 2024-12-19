@@ -6,7 +6,6 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
-import { editResourceOffline, getAllFromStore, initDB, saveResourceOffline, setPredefinedData, viewResourcesOffline } from '../../indexedDb2';
 
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -32,7 +31,6 @@ const AddItem = () => {
     // authorlist and adviserlist are for the <Select>. These are the options to be displayed
     const [authorList, setAuthorList] = useState([]);
     const [adviserList, setAdviserList] = useState([]);
-    const [genreList, setGenreList] = useState([])
     // for loading modal
     const [loading,setLoading] = useState(false)
     const [resourceType,setResourceType]=useState([])
@@ -50,7 +48,7 @@ const AddItem = () => {
                     authors: [],
                     isCirculation: false,
                     publisher_id: 0,
-                    publisher: ''
+                    publisher: '',
                 });
             } else {
                 setBookData({
@@ -64,54 +62,21 @@ const AddItem = () => {
 
     useEffect(()=>{
         if(!id){
-            if(navigator.onLine){
-                alert("You're online")
-                getOnlineData()
-                setIsOnline(true)
-            }else{
-                alert("You're offline")
-                getOfflineData()
-                setIsOnline(false)
-            }
+            alert("You're online")
+            getOnlineData()
         }
         
         //pag may id sa url,for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
-            if(navigator.onLine){
-                console.log('viewing resource online')
-                getOnlineData()
-                viewResourceOnline();
-            }else{
-                console.log('view resource offline')
-                getOfflineData()
-                viewResourceOffline()
-            }
+            getOnlineData()
+            viewResourceOnline();
         }
     },[])
 
     console.log(id)
 
 /*-----------------INITIALIZE INPUT---------------------- */
-    //get offline data
-    const getOfflineData = async ()=>{
-            //get type
-            const type = await getAllFromStore('resourcetype')
-            setResourceType(type)
-    
-            // get availability
-            const avail = await getAllFromStore('availability')
-            setResourceStatus(avail)
-    
-            //get authors
-            getAuthorsOffline()
-    
-            //get publishers
-            getPublishersOffline()
-    
-            //get advisers
-            getAdvisersOffline()
-    }
     //get online data
     const getOnlineData = async ()=>{
         getType()
@@ -185,7 +150,6 @@ const AddItem = () => {
                         status:data.avail_id.toString(),
                         publishedDate:data.resource_published_date.toString(),
                         department: data.dept_id.toString(),
-                        topic:data.topic_id.toString(),
                         isCirculation:data.resource_is_circulation==0?false:true,
                     }))
                     break;
@@ -193,16 +157,6 @@ const AddItem = () => {
                 default:
                     console.log('Media type not allowed.')
             }
-            
-        }catch(err){
-            console.log('Cannot view resource. An error occurred: ', err.message)
-        }
-    }
-
-    const viewResourceOffline = async()=>{
-        console.log('viewing resource offline')
-        try{
-           await viewResourcesOffline(parseInt(id),setBookData)
             
         }catch(err){
             console.log('Cannot view resource. An error occurred: ', err.message)
@@ -311,9 +265,6 @@ const AddItem = () => {
         if (!bookData.department) {
             err.department = 'Please select department';
         }
-        if (!bookData.topic) {
-            err.topic = 'Please select topic';
-        }
 
         if (bookData.mediaType === '1') {
             if (!bookData.file&&!bookData.url) {
@@ -331,6 +282,9 @@ const AddItem = () => {
             if (!bookData.publishedDate) {
                 err.publishedDate = 'Please enter publish date';
             }
+            if (!bookData.topic) {
+                err.topic = 'Please select topic';
+            }
         }else if(bookData.mediaType==='2'||bookData.mediaType==='3'){
             if (!bookData.file&&!bookData.url) {
                 err.file = 'Please select cover';
@@ -346,6 +300,9 @@ const AddItem = () => {
             }
             if (!bookData.publishedDate) {
                 err.publishedDate = 'Please enter publish date';
+            }
+            if (!bookData.topic) {
+                err.topic = 'Please select topic';
             }
         }else if(bookData.mediaType==='4'){
             if (!bookData.authors || bookData.authors.length === 0) {
@@ -402,34 +359,6 @@ const AddItem = () => {
         }
     };
 
-    // Handle resource save
-    const handleSaveResourceOffline = async () => {
-        if (formValidation() === true) {
-            // setLoading(true)
-                try{
-                    const response = await saveResourceOffline(bookData)
-                    console.log(response)
-    
-                    //close loading
-                    // setLoading(false)
-                     // Reset bookData if saved successfully
-                    //  setBookData({
-                    //     mediaType: 'book',
-                    //     authors: [],
-                    //     isCirculation: false,
-                    //     publisher_id: 0,
-                    //     publisher: ''
-                    // });
-                   
-                    // alert('data saved offline')
-                }catch(err){
-                    console.log('Cannot save resource. An error occurred: ',err.message);
-                }
-            } else {
-                console.log("Please enter complete information");
-            }
-    };
-
 /*-------------------EDIT RESOURCE---------------------- */
     // Handle resource save online
     const handleEditResourceOnline = async () => {
@@ -449,18 +378,6 @@ const AddItem = () => {
             }
     };
 
-    //handle resource save offline
-    const handleEditResourceOffline = async () => {
-        console.log('editing resource offline')
-            try{
-                await editResourceOffline(parseInt(id),bookData)
-                console.log('resource edited')
-            }catch(err){
-                console.log('Cannot edit resource offline. An error occurred: ',err.message);
-            }
-    };
-
-    
 /*--------------FETCH DATA ONLINE---------------------*/ 
     // Fetch publishers from the backend
     const getPublishers = async () => {
@@ -533,62 +450,6 @@ const AddItem = () => {
         }
     };
 
-/*-----------------FETCH OFFLINE---------------------- */
-    // Fetch publishers from the backend
-    const getPublishersOffline = async () => {
-        console.log('publishers online')
-        const pubs = [];
-        try {
-            const publishers = await getAllFromStore('publisher');
-            publishers.forEach(item => {
-                pubs.push({
-                    value: item.pub_id,
-                    label: item.pub_name
-                });
-            });
-            setPublishers(pubs);
-        } catch (err) {
-            console.log(err.message);
-        }
-    };
-    // Fetch publishers from the backend
-    const getAuthorsOffline = async () => {
-        const auth = [];
-        try {
-            const authors = await getAllFromStore('author');
-            console.log(authors)
-            authors.forEach(item => {
-                auth.push({
-                    value: `${item.author_fname} ${item.author_lname}`,
-                    label: `${item.author_fname} ${item.author_lname}`
-                });
-            });
-            setAuthorList(auth);
-        } catch (err) {
-            console.log(err.message);
-        }
-    };
-    //Fetch advisers
-    const getAdvisersOffline = async () => {
-        const adv = [];
-        try {
-            const advisers = await getAllFromStore('adviser')
-            console.log(advisers)
-            advisers.forEach(item => {
-                adv.push({
-                    value: `${item.adviser_fname} ${item.adviser_lname}`,
-                    label: `${item.adviser_fname} ${item.adviser_lname}`
-                });
-            });
-            setAdviserList(adv);
-        } catch (err) {
-            console.log(err.message);
-        }
-    };
-
-    console.log(bookData);
-    console.log('isonline: ',isOnline)
-    console.log(resourceType)
     return (
         <div className='add-item-container'>
             <h1 className='m-0'>Cataloging</h1>
@@ -654,18 +515,11 @@ const AddItem = () => {
                 <button className="btn add-item-save" onClick={()=>{
                     //if not in edit mode, save resource
                     if(!editMode){
-                        if(isOnline){
-                            handleSaveResourceOnline()
-                        }else{
-                            handleSaveResourceOffline()
-                        }
+                        handleSaveResourceOnline()
+                       
+                        
                     }else{
-                        //update/edit resource
-                        if(isOnline){
-                            handleEditResourceOnline()
-                        }else{
-                            handleEditResourceOffline()
-                        }
+                        handleEditResourceOnline()
                     }
                 }} disabled={Object.values(error).length>=1&&!editMode}>
                     <i className="fa-regular fa-floppy-disk"></i>

@@ -9,13 +9,10 @@ import { Link } from 'react-router-dom'
 import AuthorModal from '../AuthorModal/AuthorModal'
 import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
-import { getResourcesCatalog } from '../../indexedDb'
 import io from 'socket.io-client';
-import { deleteSyncedData, getAllFromStore, getAllUnsyncedFromStore, getCatalogDetailsOffline, markAsSynced } from '../../indexedDb2'
 import Loading from '../Loading/Loading'
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
-
 
 const Catalog = () => {
   const [openAuthor, setOpenAuthor] = useState(false)
@@ -23,14 +20,12 @@ const Catalog = () => {
   const [catalog, setCatalog] = useState([])
   const [pagination,setPagination] = useState(0)
   const filterOptions = ['title','author','book','journal','newsletter','thesis']
-  const [isOnline, setIsOnline] = useState(false)
   const [loading,setLoading] = useState(false)
   const [search, setSearch]=useState({
     searchKeyword: '',
     searchFilter: ''
   })
   
-
   useEffect(()=>{
     if(search.searchKeyword==''&&navigator.onLine){
       getCatalogOnline()
@@ -38,19 +33,14 @@ const Catalog = () => {
   },[search.searchKeyword])
 
   useEffect(()=>{
-    if(navigator.onLine){
-      setIsOnline(true)
       getCatalogOnline()
+
       //Listen for the 'updateData' event from the server
       socket.on('updateCatalog', ()=>{
         console.log('update catalog')
         getCatalogOnline();
       }); // Fetch updated appointments when event is emitted
-    }else{
-      setIsOnline(false)
-      getCatalogOffline()
-    }
-
+   
     // Cleanup the event listener when the component unmounts
     return () => {
       socket.off('updateCatalog');
@@ -66,9 +56,6 @@ const Catalog = () => {
     }
   }
 
-  const getCatalogOffline = async()=>{
-    await getCatalogDetailsOffline(setCatalog)
-  }
 
   const handleSearch = async ()=>{
     try{
@@ -95,25 +82,6 @@ const Catalog = () => {
     }))
   }
 
-/*------SYNC DATA TO MYSQL------------ */
-//sync data
-const syncData2DB = async()=>{
-  setLoading(true)
-  const resources = await getAllFromStore('resources')
-  console.log(resources)
-  for(let resource of resources){
-    const formData = new FormData();
-    Object.entries(resource).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-    const response = await axios.post('http://localhost:3001/save', resource);
-
-    //delete resource_id
-    await deleteSyncedData(resource.resource_id)
-  }
-  setLoading(false)
-}
-
 
   return (
     <div className='cat-container'>
@@ -131,16 +99,16 @@ const syncData2DB = async()=>{
               </Link>
           </div>
           {/* sync*/}
-          <div className="add-author-publisher">
+          {/* <div className="add-author-publisher"> */}
               {/* sync to database */}
-              <button className='btn sync-2-db' onClick={syncData2DB} disabled={isOnline==false} title='You need internet connection to sync to database.'>
+              {/* <button className='btn sync-2-db' onClick={syncData2DB} disabled={isOnline==false} title='You need internet connection to sync to database.'>
                   Sync to database
-              </button>
+              </button> */}
               {/* sync from database */}
-              <button className='btn sync-from-db' disabled={isOnline==false}>
+              {/* <button className='btn sync-from-db' disabled={isOnline==false}>
                   Sync from database
               </button>
-           </div>
+           </div> */}
         </div>
         
         {/* search,filter,export */}

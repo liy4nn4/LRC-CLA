@@ -2,31 +2,18 @@
 import React, { useEffect, useState } from 'react'
 import './Cataloging.css'
 import axios from 'axios'
-import { getAllFromStore } from '../../indexedDb2'
 
 
-const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,isDbInitialized,editMode,isOnline}) => {
+const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,editMode}) => {
     const [department, setDepartment] = useState([])
     const [catalog, setCatalog] = useState([])
     const [topic,setTopic] = useState([])
 
     useEffect(() => {
-        if(isOnline){
-            getDataOnline()
-        }else{
-            getDataOffline()
-        }
-    }, [isOnline]);
-
-    const getDataOffline = async ()=>{
-            //get department
-            const dept = await getAllFromStore('department')
-            setDepartment(dept)
-    
-            // get topic 
-            const topic = await getAllFromStore('topic')
-            setTopic(topic)
-    }
+        console.log('getting cataloging info offline')
+        getDataOnline()
+       
+    }, []);
     
     const getDataOnline = async()=>{
         getDept()
@@ -50,9 +37,6 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
             console.log(err.message)
         }
     }
-
-    console.log(department)
-    console.log(topic)
 
   return (
     <div className='cataloging-box'>
@@ -78,8 +62,8 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                             </select>
                             <p className='resource-error'>{error.department}</p>
                         </div>
-                        {/* course */}
-                        <div className="col-6 info-input-box">
+                        {/* topic */}
+                        {bookData.mediaType=='4'?'':<div className="col-6 info-input-box">
                             <label htmlFor="">Topics</label>
                             <select className="form-select" name='topic' disabled={disabled} onChange={handleChange} onBlur={formValidation}>
                                 <option selected disabled>Select Topic</option>
@@ -88,7 +72,8 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
                                 )):''}
                             </select>
                             <p className='resource-error'>{error.topic}</p>
-                        </div>
+                        </div>}
+                        
                         {/* shelf no */}
                         {/* <div className="col-3 info-input-box">
                             <label htmlFor="">Shelf No.</label>
