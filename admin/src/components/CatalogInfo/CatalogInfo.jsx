@@ -6,7 +6,6 @@ import Select from 'react-select'
 import JournalInput from '../JournalInput/JournalInput'
 import ThesisInput from '../ThesisInput/ThesisInput'
 import axios from 'axios'
-import { getGenreOffline } from '../../indexedDb'
 
 const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,addAdviser,setBookData,handleFileChange,error,formValidation,publishers,authorOptions,handleAddAuthor,selectedOptions,deleteAuthor,authorList,resourceType,adviserList,deleteAdviser,resourceStatus,genreList,editMode,isOnline}) => {
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
@@ -17,7 +16,6 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
     useEffect(()=>{
         let objectUrl;
 
-        if(isOnline){
             if(bookData.file&&!disabled){
                 // If data.file is a File object, create an Object URL for it
                 objectUrl = URL.createObjectURL(bookData.file);
@@ -27,12 +25,6 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
                 objectUrl = URL.createObjectURL(blob);
                 setPreview(objectUrl)
             }
-        }else{
-            objectUrl = URL.createObjectURL(bookData.file);
-            setPreview(objectUrl);
-        }
-        
-
         //reset URl
         //pag may naupload na file, wala dapat url
         setBookData((prevdata)=>({
