@@ -18,10 +18,15 @@ const Dashboard = () => {
   const [totalBorrowed, setTotalBorrowed] = useState("");
   const [borrower, setBorrower] = useState([]);
   const [addedBooks, setAddedBooks] = useState([]);
+  const [covers, setCovers] = useState([]);
   const date = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });  // e.g., "2024-12-16"
-
-
+  const [overdueBooks, setOverdueBooks] = useState([]);
+  const [dateTime,setDateTime] = useState(new Date());
+  const [dropdown, setDropdown]= useState(false);
+  const [checkoutData, setCheckoutData] = useState([]);
   // sample data
+
+
   const [user,setUser] = useState({
     //creates a new array whereit only has a day
     labels: UserData.map((data)=>data.day),
@@ -36,8 +41,6 @@ const Dashboard = () => {
     },]
   })
 
-  const [dateTime,setDateTime] = useState(new Date());
-  const [dropdown, setDropdown]= useState(false)
 
   useEffect(() => {
     //setInterval throws an id na pwede natin gamitin to stop the interval
@@ -46,6 +49,9 @@ const Dashboard = () => {
     getBorrowedBooks();
     getBorrowers();
     getAddedBooks();
+    fetchCovers();
+    fetchOverdueBooks();
+    fetchCheckoutInfo();
     // iccall lang ng react ung cleanup kapag lumipat kana ng component
      return function cleanup() {
         //stops the interval
@@ -100,6 +106,38 @@ const Dashboard = () => {
         console.log(err.message);
     }
   }
+  
+  const fetchCovers = async () => {
+    try {
+        const response = await axios.get(`http://localhost:3001/getCover`);
+        setCovers(response.data);
+    } catch (error) {
+        console.error('Error fetching book covers:', error);
+    }
+  }
+
+
+
+  const fetchOverdueBooks = async () => {
+      try {
+          const response = await axios.get(`http://localhost:3001/api/overdue-books`);
+          setOverdueBooks(response.data);
+      } catch (error) {
+          console.error('Error fetching overdue books:', error);
+      }
+  };
+
+
+  const fetchCheckoutInfo = async () => {
+      try {
+          const response = await fetch(`http://localhost:3001/checkout-info`);
+          if (!response.ok) throw new Error('Network response was not ok');
+          const data = await response.json();
+          setCheckoutData(data);
+      } catch (error) {
+          console.error('Error fetching checkout info:', error);
+      }
+  };
   
 
   return (
@@ -232,11 +270,15 @@ const Dashboard = () => {
        <div className="popular-choices">
           <p className='popular-choices-text'>Popular Choices</p>
           <div className="popular-books">
-            <img src="" alt="" />
-            <img src="" alt="" />
-            <img src="" alt="" />
-            <img src="" alt="" />
-            <img src="" alt="" />
+            {covers.map((item, index) => (
+              <Link to={`/view-item/${item.resource_id}`}>
+                    <img 
+                        key={index} 
+                        src={`data:image/jpeg;base64,${item.cover}`} 
+                        alt={`Book Cover ${index + 1}`} 
+                    />
+              </Link>
+                ))}
           </div>
         </div>
 
@@ -254,15 +296,19 @@ const Dashboard = () => {
                     <th>Status</th>
                     <th>Fine</th>
                   </tr>
-                  <tr>
-                    <td>TUPM-01-0203</td>
-                    <td>Giolliana Plandez</td>
-                    <td>Happiness At Work</td>
-                    <td>Jessica Pryce-Jones</td>
-                    <td>3 days</td>
-                    <td className='overdue-delay'>Delay</td>
-                    <td>₱ <span>60.00</span></td>
-                  </tr>
+                  
+                    {overdueBooks.map((book, index) => (
+                        <tr key={index}>
+                            <td>{book.tup_id}</td>
+                            <td>{book.patron_fname} {book.patron_lname}</td>
+                            <td>{book.resource_id}</td>
+                            <td>{book.resource_title}</td>
+                            <td>{book.overdue_days} days</td>
+                            <td>overdue</td>
+                            <td>{book.overdue_days * 20} pesos</td>
+                        </tr>
+                    ))}
+                  
                 </table>
           </div>
           {/* pagination */}
@@ -290,16 +336,19 @@ const Dashboard = () => {
             <table className='book-issued-table'>
               <tr>
                 <th>TUP ID</th>
+                <th>Name</th>
                 <th>Title</th>
                 <th>Return Date</th>
-                <th></th>
               </tr>
-              <tr>
-                <td>TUPM-01-0203</td>
-                <td>A Theory of Justice</td>
-                <td>0/0/0</td>
-                <td><button className='more-button'><img src={more} alt="" /></button></td>
-              </tr>
+              
+              {checkoutData.map((item, index) => (
+                    <tr key={index}>
+                        <td>{item.tup_id}</td>
+                        <td>{item.patron_fname} {item.patron_lname}</td>
+                        <td>{item.resource_title}</td>
+                        <td>{new Date(item.checkout_due).toLocaleDateString("en-CA")}</td>
+                    </tr>
+                ))}
             </table>
             <div className='see-all-box'><button className='see-all-button'>See all</button></div>            
           </div>

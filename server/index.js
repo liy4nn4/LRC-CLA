@@ -1461,7 +1461,58 @@ app.get('/patronSort', (req, res) => {
         }
     })
 })
-/*-----------DYNAMIC SEARCH IN CATALOG PAGE----------- */
+
+app.get('/getCover', (req, res) => {
+    const query = 'SELECT book_cover, resource_id FROM book ORDER BY book_id DESC LIMIT 5';
+    
+    db.query(query, (error, results) => {
+        if (error) return res.status(500).json({ error });
+        
+        // Convert BLOB data to base64 for use in React
+        const covers = results.map(book => ({
+            cover: Buffer.from(book.book_cover).toString('base64'),
+            resource_id: (book.resource_id)
+
+        }));
+        
+        res.json(covers);
+    });
+});
+
+app.get('/api/overdue-books', (req, res) => {
+    const query = `
+        SELECT p.tup_id, p.patron_fname, p.patron_lname, c.checkout_due, r.resource_id, r.resource_title, DATEDIFF(CURDATE(), c.checkout_due) AS overdue_days FROM checkout c JOIN patron p ON c.patron_id = p.patron_id JOIN resources r ON c.resource_id = r.resource_id JOIN book b ON r.resource_id = b.resource_id WHERE c.checkout_due < CURDATE() ORDER BY c.checkout_due DESC;
+    `;
+    
+    db.query(query, (error, results) => {
+        if (error) return res.status(500).json({ error });
+        
+        res.json(results);
+    });
+});
+
+app.get('/checkout-info', async (req, res) => {
+    /* try {
+        const query = `SELECT p.tup_id, p.patron_fname, p.patron_lname, r.resource_title, c.checkout_due FROM patron p JOIN checkout c ON p.patron_id = c.patron_id JOIN resources r ON c.resource_id = r.resource_id WHERE c.checkout_due >= CURRENT_DATE()`;
+        const [rows] = await db.execute(query);
+        res.json(rows);
+        await db.end();
+    } catch (error) {
+        console.error('Database query failed:', error);
+        res.status(500).send('Internal Server Error');
+    } */
+
+    const query = `SELECT p.tup_id, p.patron_fname, p.patron_lname, r.resource_title, c.checkout_due FROM patron p JOIN checkout c ON p.patron_id = c.patron_id JOIN resources r ON c.resource_id = r.resource_id WHERE c.checkout_due >= CURRENT_DATE()`;
+    
+    db.query(query, (error, results) => {
+        if (error) return res.status(500).json({ error });
+        
+        res.json(results);
+    });
+});
+
+
+/*-----------DYNAMIC SEARCH IN CATALOG----------- */
 app.get('/catalog/search',(req,res)=>{
     const searchKeyword = req.query.searchKeyword || '';
     const searchFilter = req.query.searchFilter || '';
@@ -1487,6 +1538,10 @@ app.get('/catalog/search',(req,res)=>{
             break;
     }
 })
+
+
+
+
 const searchByType = (searchKeyword,res,type)=>{
     const q = `
         SELECT 
