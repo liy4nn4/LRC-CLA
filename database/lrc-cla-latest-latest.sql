@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 09, 2024 at 05:38 AM
+-- Generation Time: Dec 19, 2024 at 04:53 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -41,11 +41,37 @@ CREATE TABLE `adviser` (
 
 CREATE TABLE `attendance` (
   `att_id` int(11) NOT NULL,
-  `att_log_in_time` time DEFAULT NULL,
-  `att_log_out_time` time DEFAULT NULL,
-  `att_date` date DEFAULT NULL,
+  `att_log_in_time` varchar(20) DEFAULT NULL,
+  `att_date` varchar(20) DEFAULT NULL,
   `patron_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`att_id`, `att_log_in_time`, `att_date`, `patron_id`) VALUES
+(1, '20:17:54', '2024-12-13', 1),
+(6, '15:26:47', '2024-12-16', 1),
+(7, '15:43:40', '2024-12-16', 1),
+(8, '15:43:57', '2024-12-16', 3),
+(9, '15:44:22', '2024-12-16', 3),
+(10, '15:44:30', '2024-12-16', 3),
+(11, '15:44:34', '2024-12-16', 1),
+(12, '15:51:54', '2024-12-16', 1),
+(13, '15:56:43', '2024-12-16', 1),
+(14, '15:56:48', '2024-12-16', 1),
+(15, '15:58:29', '2024-12-16', 1),
+(16, '15:59:09', '2024-12-16', 1),
+(17, '15:59:22', '2024-12-16', 3),
+(18, '15:59:24', '2024-12-16', 1),
+(19, '15:59:26', '2024-12-16', 3),
+(20, '15:59:28', '2024-12-16', 1),
+(21, '15:59:40', '2024-12-16', 1),
+(22, '16:02:32', '2024-12-17', 3),
+(23, '12:06:40', '2024-12-18', 1),
+(24, '12:13:58', '2024-12-18', 1),
+(25, '12:14:04', '2024-12-18', 1);
 
 -- --------------------------------------------------------
 
@@ -201,6 +227,15 @@ CREATE TABLE `checkout` (
   `patron_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `checkout`
+--
+
+INSERT INTO `checkout` (`checkout_id`, `checkout_date`, `checkout_due`, `resource_id`, `patron_id`) VALUES
+(1, '2024-12-17', '2024-12-24', 174, 1),
+(2, '2024-12-17', '2024-12-24', 171, 3),
+(3, '2024-12-18', '2024-12-25', 173, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -211,6 +246,37 @@ CREATE TABLE `college` (
   `college_id` int(11) NOT NULL,
   `college_name` varchar(45) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `college`
+--
+
+INSERT INTO `college` (`college_id`, `college_name`) VALUES
+(1, 'College of Science'),
+(2, 'College of Liberal Arts'),
+(3, 'College of Industrial Education'),
+(4, 'College of Engineering ');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course`
+--
+
+CREATE TABLE `course` (
+  `course_id` int(11) NOT NULL,
+  `course_name` varchar(50) NOT NULL,
+  `college_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `course`
+--
+
+INSERT INTO `course` (`course_id`, `course_name`, `college_id`) VALUES
+(1, 'Bachelor of Science in Information Technology', 1),
+(2, 'Bachelor of Technical Teacher Education', 3),
+(3, 'Bachelor of Science in Computer Science', 1);
 
 -- --------------------------------------------------------
 
@@ -291,13 +357,26 @@ CREATE TABLE `overdue` (
 
 CREATE TABLE `patron` (
   `patron_id` int(11) NOT NULL,
+  `tup_id` varchar(50) NOT NULL,
   `patron_fname` varchar(45) DEFAULT NULL,
   `patron_lname` varchar(45) DEFAULT NULL,
   `patron_sex` varchar(45) DEFAULT NULL,
   `patron_mobile` varchar(45) DEFAULT NULL,
   `patron_email` varchar(45) DEFAULT NULL,
-  `college_id` int(11) DEFAULT NULL
+  `category` varchar(10) NOT NULL DEFAULT 'Student',
+  `college_id` int(11) DEFAULT NULL,
+  `course_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `patron`
+--
+
+INSERT INTO `patron` (`patron_id`, `tup_id`, `patron_fname`, `patron_lname`, `patron_sex`, `patron_mobile`, `patron_email`, `category`, `college_id`, `course_id`) VALUES
+(1, 'TUPM-21-1913', 'Lance', 'Bernal', 'Male', '09695295926', 'lance.bernal@tup.edu.ph', 'Student', 1, 1),
+(2, 'TUPM-21-0220', 'Pauleen Ann', 'Dingcong', 'Female', '09163770526', 'pauleen.dingcong@tup.edu.ph', 'Student', 1, 3),
+(3, 'TUPM-21-2589', 'Nathalie', 'Dayao', 'Female', '09219161482', 'nathalie.dayao@tup.edu.ph', 'Student', 1, 1),
+(4, 'TUPM-21-0210', 'Giolliana', 'Plandez', 'Female', '09151150102', 'giolliana.plandez@tup.edu.ph', 'Student', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -545,6 +624,13 @@ ALTER TABLE `college`
   ADD PRIMARY KEY (`college_id`);
 
 --
+-- Indexes for table `course`
+--
+ALTER TABLE `course`
+  ADD PRIMARY KEY (`course_id`),
+  ADD KEY `fk_college_id` (`college_id`);
+
+--
 -- Indexes for table `department`
 --
 ALTER TABLE `department`
@@ -575,7 +661,8 @@ ALTER TABLE `overdue`
 --
 ALTER TABLE `patron`
   ADD PRIMARY KEY (`patron_id`),
-  ADD KEY `pat_college_id_idx` (`college_id`);
+  ADD KEY `pat_college_id_idx` (`college_id`),
+  ADD KEY `fk_course_id` (`course_id`);
 
 --
 -- Indexes for table `publisher`
@@ -647,7 +734,7 @@ ALTER TABLE `adviser`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `att_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `att_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `audit`
@@ -689,13 +776,13 @@ ALTER TABLE `checkin`
 -- AUTO_INCREMENT for table `checkout`
 --
 ALTER TABLE `checkout`
-  MODIFY `checkout_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `checkout_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `college`
 --
 ALTER TABLE `college`
-  MODIFY `college_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `college_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `department`
@@ -725,7 +812,7 @@ ALTER TABLE `overdue`
 -- AUTO_INCREMENT for table `patron`
 --
 ALTER TABLE `patron`
-  MODIFY `patron_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `patron_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `publisher`
@@ -807,6 +894,12 @@ ALTER TABLE `checkout`
   ADD CONSTRAINT `co_resource_id` FOREIGN KEY (`resource_id`) REFERENCES `resources` (`resource_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
+-- Constraints for table `course`
+--
+ALTER TABLE `course`
+  ADD CONSTRAINT `fk_college_id` FOREIGN KEY (`college_id`) REFERENCES `college` (`college_id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `journalnewsletter`
 --
 ALTER TABLE `journalnewsletter`
@@ -822,6 +915,7 @@ ALTER TABLE `overdue`
 -- Constraints for table `patron`
 --
 ALTER TABLE `patron`
+  ADD CONSTRAINT `fk_course_id` FOREIGN KEY (`course_id`) REFERENCES `course` (`course_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `pat_college_id` FOREIGN KEY (`college_id`) REFERENCES `college` (`college_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
