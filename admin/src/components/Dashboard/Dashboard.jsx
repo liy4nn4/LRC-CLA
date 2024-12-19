@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
+import axios from 'axios'
 import './Dashboard.css'
+import { Link } from 'react-router-dom'
 import dropdown_black from '../../assets/Management System/dashboard/dropdown-black.svg'
 import visitors from '../../assets/Management System/dashboard/total-visitors.svg'
 import borrowed from '../../assets/Management System/dashboard/total-borrowed.svg'
@@ -12,6 +14,13 @@ import {UserData} from '../../Data'
 import VisitorsBorrowersStatistics from '../VisitorsBorrowersStatistics/VisitorsBorrowersStatistics'
 
 const Dashboard = () => {
+  const [totalVisitors, setTotalVisitors] = useState("");
+  const [totalBorrowed, setTotalBorrowed] = useState("");
+  const [borrower, setBorrower] = useState([]);
+  const [addedBooks, setAddedBooks] = useState([]);
+  const date = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });  // e.g., "2024-12-16"
+
+
   // sample data
   const [user,setUser] = useState({
     //creates a new array whereit only has a day
@@ -32,7 +41,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     //setInterval throws an id na pwede natin gamitin to stop the interval
-    const intervalId = setInterval(()=>setDateTime(new Date()), 1000 )
+    const intervalId = setInterval(()=>setDateTime(new Date()), 1000 );
+    getTotalVisitors();
+    getBorrowedBooks();
+    getBorrowers();
+    getAddedBooks();
     // iccall lang ng react ung cleanup kapag lumipat kana ng component
      return function cleanup() {
         //stops the interval
@@ -43,6 +56,51 @@ const Dashboard = () => {
   const toggleDropdown = ()=>{
     setDropdown(prev=>!prev)
   }
+
+  const getTotalVisitors = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/getTotalVisitors`, {
+        params: { date }, // Send date as a query parameter
+      });
+      setTotalVisitors(response.data.total_attendance); // Adjust based on your backend response
+      console.log(response.data);
+    } catch (err) {
+      console.error("Error fetching total visitors:", err.message);
+    }
+  };
+
+  const getBorrowedBooks = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/getBorrowedBooks`, {
+        params: { date }, // Send date as a query parameter
+      });
+      setTotalBorrowed(response.data.total_borrowed); // Adjust based on your backend response
+      console.log(response.data);
+    } catch (err) {
+      console.error("Error fetching total visitors:", err.message);
+    }
+  };
+
+  const getAddedBooks = async()=>{
+    try {
+      const response = await axios.get(`http://localhost:3001/getAddedBooks`).then(res=>res.data);
+      setAddedBooks(response)
+      console.log(response)
+    } catch (err) {
+        console.log(err.message);
+    }
+  }
+
+  const getBorrowers = async()=>{
+    try {
+      const response = await axios.get(`http://localhost:3001/getBorrowers`).then(res=>res.data);
+      setBorrower(response)
+      console.log(response)
+    } catch (err) {
+        console.log(err.message);
+    }
+  }
+  
 
   return (
     <div className='dashboard-container'>
@@ -81,9 +139,9 @@ const Dashboard = () => {
       <div className='dashboard-overview'>
         {/* total visitors */}
         <div className="dash-box">
-          <p className='total-visitors-p'>Total Visitors</p>
+          <p className='total-visitors-p'>Total Visits</p>
           <div className='visitor-count-icon'>
-            <p className='total-visitors-count'>10</p>
+            <p className='total-visitors-count'>{totalVisitors}</p>
             <img src={visitors} alt="" className='total-visitors-icon'/>
           </div>
         </div>
@@ -92,7 +150,7 @@ const Dashboard = () => {
         <div className="dash-box">
           <p className='borrowed-books-p'>Borrowed Books</p>
           <div className='borrowed-count-icon'>
-            <p className='borrowed-books-count'>10</p>
+            <p className='borrowed-books-count'>{totalBorrowed}</p>
             <img src={borrowed} alt="" className='borrowed-books-icon'/>
           </div>
         </div>
@@ -117,24 +175,30 @@ const Dashboard = () => {
               <th>Book Issued</th>
               <th></th>
             </tr>
-            <tr>
-              <td>TUPM-21-0220</td>
-              <td>Pauleen Dingcong</td>
-              <td>BSIT-NS</td>
-              <td>2</td>
-              <td><button className='more-button'><img src={more} alt="" /></button></td>
-            </tr>
+
+            <tbody>
+                    {borrower?borrower.length>0?borrower.map((item,key)=>(
+                    <tr key={key}>
+                        <td>{item.tup_id}</td>
+                        <td>{item.patron_fname} {item.patron_lname}</td>
+                        <td>{item.course}</td>
+                        <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.borrowed_books}</span></pre></td>
+                    </tr> )):
+                        <tr>
+                            <td colSpan="7">No records available</td> 
+                        </tr>:''}
+            </tbody>
           </table>
-          <div className='see-all-box'><button className='see-all-button'>See all</button></div>
+          <div className='see-all-box'><Link to='/patrons'><button className='see-all-button'>See all</button></Link></div>
         </div>
         {/* book list box */}
         <div className='books-list'>
           <div className='books-heading'>
             <p className='list-heading'>Books List</p>
-            <button className='btn list-add-button'>
+            <Link to={'/add-item'}><button className='btn list-add-button'>
               <img src={add} alt="" className='add-icon'/>
               Add new
-            </button>
+            </button></Link>
           </div>
           <table className='book-table'>
             <tr>
@@ -144,15 +208,21 @@ const Dashboard = () => {
               <th>Copies Available</th>
               <th></th>
             </tr>
-            <tr>
-              <td>#B-10021-30</td>
-              <td>Happiness At Work</td>
-              <td>Jessica Pryce-Jones</td>
-              <td>2</td>
-              <td><button className='more-button'><img src={more} alt="" /></button></td>
-            </tr>
+            <tbody>
+                      {addedBooks?addedBooks.length>0?addedBooks.map((item,key)=>(
+                      <tr key={key}>
+                          <td>{item.resource_id}</td>
+                          <td>{item.resource_title}</td>
+                          <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.authors}</span></pre></td>
+                          <td>{item.resource_quantity}</td>
+                          
+                      </tr> )):
+                          <tr>
+                              <td colSpan="7">No records available</td> 
+                          </tr>:''}
+              </tbody>
           </table>
-          <div className='see-all-box'><button className='see-all-button'>See all</button></div>
+          <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
         </div>        
 
           

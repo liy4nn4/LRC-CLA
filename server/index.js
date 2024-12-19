@@ -1031,6 +1031,46 @@ app.get('/status',(req,res)=>{
     })
 })
 
+app.get("/getTotalVisitors", (req, res) => {
+    const { date } = req.query;
+  
+    if (!date) {
+      return res.status(400).json({ message: "Date is required" });
+    }
+  
+    const query = `SELECT COUNT(*) AS total_attendance FROM attendance WHERE DATE(att_date) = ?`;
+  
+    db.query(query, [date], (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+  
+      const total_attendance = result[0]?.total_attendance || 0;
+      res.json({ total_attendance });
+    });
+  });
+
+app.get("/getBorrowedBooks", (req, res) => {
+const { date } = req.query;
+
+if (!date) {
+    return res.status(400).json({ message: "Date is required" });
+}
+
+const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ?`;
+
+db.query(query, [date], (err, result) => {
+    if (err) {
+    console.error("Database error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+    }
+
+    const total_borrowed = result[0]?.total_borrowed || 0;
+    res.json({ total_borrowed });
+});
+});
+
 //get catalog details 
 app.get('/catalogdetails/:pagination',(req,res)=>{
     const page = parseInt(req.params.pagination,10)
@@ -1310,7 +1350,76 @@ db.query(q, (err, results) => {
 });
 });
 
+app.get('/getBorrowers', (req, res) => {
+    const q = `SELECT 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
+            course.course_name AS course, 
+            COUNT(c.checkout_id) AS total_checkouts
+        FROM 
+            patron p
+        INNER JOIN 
+            checkout c ON p.patron_id = c.patron_id
+        INNER JOIN 
+            resources r ON c.resource_id = r.resource_id
+        JOIN 
+            course ON p.course_id = course.course_id
+        GROUP BY 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            course.course_name
+        ORDER BY 
+            MAX(c.checkout_date) DESC
+        LIMIT 5;
 
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
+
+app.get('/getAddedBooks', (req, res) => {
+    const q = `SELECT 
+        r.resource_id, 
+        r.resource_title, 
+        r.resource_quantity, 
+        GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', \n ') AS authors
+    FROM 
+        resources AS r
+    JOIN 
+        resourceauthors AS ra ON r.resource_id = ra.resource_id
+    JOIN 
+        author AS a ON ra.author_id = a.author_id
+    GROUP BY 
+        r.resource_id, r.resource_title, r.resource_quantity;
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
 
 
 app.get('/patronSort', (req, res) => {
@@ -1774,6 +1883,47 @@ app.post("/sync-theses",(req,res)=>{
       }
     });
 })
+
+app.post("/attendance", (req, res) => {
+    //const { studentId, date, time } = req.body;
+    const studentId = req.body.studentId;
+    const date = req.body.date;
+    const time = req.body.time;
+ 
+  
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: "Student ID is required." });
+    }
+  
+    // Step 1: Fetch Student Name
+    const getPatronIdQuery = "SELECT patron_id, patron_fname, patron_lname FROM patron WHERE tup_id = ?";
+    db.query(getPatronIdQuery, [studentId], (err, results) => {
+    if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Error retrieving patron ID." });
+    }
+    if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "Student not found." });
+    }
+
+    const patronId = results[0].patron_id;
+    const studentName = `${results[0].patron_fname} ${results[0].patron_lname}`;
+
+    const logAttendanceQuery = "INSERT INTO attendance (att_log_in_time, att_date, patron_id) VALUES ( ?, ?, ?)";
+    db.query(logAttendanceQuery, [time, date, patronId], (err) => {
+        if (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Failed to log attendance." });
+        }
+
+        return res.status(200).json({
+        success: true,
+        studentName: studentName,
+        message: "Attendance logged successfully.",
+        });
+      });
+    });
+  });
 
 server.listen(3001,()=>{
     console.log('this is the backend')

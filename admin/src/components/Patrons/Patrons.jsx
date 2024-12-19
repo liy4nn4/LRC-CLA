@@ -92,7 +92,7 @@ const Patrons = () => {
                     ))}
                     </tbody>
 
-                <tbody>
+                {/* <tbody>
                     <tr>
                         <td>xxxx-xx-xxxx</td>
                         <td>xxxx xxxx</td>
@@ -112,7 +112,7 @@ const Patrons = () => {
                         </td>
                        
                     </tr>
-                </tbody>
+                </tbody> */}
             </table>
         </div>
       
