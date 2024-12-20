@@ -24,6 +24,7 @@ export const initDB = async () => {
             const pubStore = db.createObjectStore("publisher", { keyPath: "pub_id", autoIncrement: true });
             pubStore.createIndex("sync_status", "sync_status", { unique: false });
             pubStore.add({pub_name: "n/a",pub_address: "n/a",pub_email: "n/a",pub_phone: "n/a",pub_website: "n/a"})
+            pubStore.createIndex("pub_id", "pub_id", { unique: false });
           }
 
         // Create "book" store
@@ -60,6 +61,9 @@ export const initDB = async () => {
         if (!db.objectStoreNames.contains("author")) {
             const authorStore = db.createObjectStore("author", { keyPath: "author_id",autoIncrement:true });
             authorStore.createIndex("author_name",["author_fname","author_lname"],{
+                unique:false
+            })
+            authorStore.createIndex("author_id","author_id",{
                 unique:false
             })
             authorStore.createIndex("sync_status", "sync_status", { unique: false });

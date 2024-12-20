@@ -66,37 +66,39 @@ const AddItem = () => {
     }, [bookData.mediaType]);
 
     useEffect(()=>{
-        if(!id){
-            if(navigator.online){
-                alert("You're online")
-                getOnlineData()
-                setIsOnline(true)
-            }else{
-                //if offline, initialize object stores in indexeddb and get predefined data from thers
+        const handleOnline = ()=>{
+            alert("You're online")
+            getOnlineData()
+            setIsOnline(true)
+        }
+    
+        const handleOffline = ()=>{
                 alert("You're offline")
                 initDB()
                 getOfflineData()
                 setIsOnline(false)
-            }
         }
+
+       if(navigator.onLine){
+            handleOnline()
+       }else{
+            handleOffline()
+       }
         
         //pag may id sa url, for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
-            if(navigator.online){
-                setIsOnline(true)
+            if(isOnline){
                 getOnlineData()
                 viewResourceOnline();
             }else{
-                setIsOnline(false)
                 getOfflineData()
                 viewResourceOffline()
             }
-            
         }
     },[])
 
-    console.log(id)
+    console.log('isOnline? ', isOnline)
 
 /*-----------------INITIALIZE INPUT---------------------- */
     //get online data
@@ -374,7 +376,7 @@ const AddItem = () => {
     // save resource online
     const handleSaveResourceOnline = async () => {
         if (formValidation() === true) {
-            setLoading(true)
+            // setLoading(true)
             try{
                 const formData = new FormData();
                 Object.entries(bookData).forEach(([key, value]) => {
@@ -387,18 +389,18 @@ const AddItem = () => {
                 if(response.status==200){
                     socket.emit('newResource');
                 }
-                // close loading
-                setLoading(false)
-                 // Reset bookData if saved successfully
-                 setBookData({
-                    mediaType: 'book',
-                    authors: [],
-                    isCirculation: false,
-                    publisher_id: 0,
-                    publisher: ''
-                });
+                // // close loading
+                // setLoading(false)
+                //  // Reset bookData if saved successfully
+                //  setBookData({
+                //     mediaType: 'book',
+                //     authors: [],
+                //     isCirculation: false,
+                //     publisher_id: 0,
+                //     publisher: ''
+                // });
 
-                window.location.reload()
+                // window.location.reload()
             }catch(err){
                 console.log('Cannot save resource online. An error occurred: ',err.message);
             }
@@ -440,15 +442,15 @@ const AddItem = () => {
     const handleEditResourceOnline = async () => {
         console.log('edit resource online')
             try{
-                setLoading(true)
+                // setLoading(true)
                 const formData = new FormData();
                 Object.entries(bookData).forEach(([key, value]) => {
                     formData.append(key, value);  
                 });
 
                 const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
-                setLoading(false)
-                window.location.reload();            
+                // setLoading(false)
+                // window.location.reload();            
             }catch(err){
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
             }
@@ -591,6 +593,7 @@ const AddItem = () => {
     };
 
     console.log(bookData)
+    console.log(publishers)
 
     return (
         <div className='add-item-container'>
