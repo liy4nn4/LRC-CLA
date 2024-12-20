@@ -11,6 +11,7 @@ import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import io from 'socket.io-client';
 import Loading from '../Loading/Loading'
+import { getCatalogDetailsOffline } from '../../indexedDb/getDataOffline'
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -33,20 +34,15 @@ const Catalog = () => {
   },[search.searchKeyword])
 
   useEffect(()=>{
+    if(navigator.onLine){
       getCatalogOnline()
-
-      //Listen for the 'updateData' event from the server
-      socket.on('updateCatalog', ()=>{
-        console.log('update catalog')
-        getCatalogOnline();
-      }); // Fetch updated appointments when event is emitted
-   
-    // Cleanup the event listener when the component unmounts
-    return () => {
-      socket.off('updateCatalog');
-    };
+    }else{
+      getCatalogOffline()
+    }
   },[pagination])
 
+/*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
+  //get resources details in mysql and display in catalog page
   const getCatalogOnline = async()=>{
     try {
       const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
@@ -56,7 +52,13 @@ const Catalog = () => {
     }
   }
 
+  //get resources details in indexeddb and display in catalog page
+  const getCatalogOffline = async ()=>{
+    await getCatalogDetailsOffline(setCatalog);
+  }
 
+
+/*------------HANDLE CHANGES------------------------------------*/
   const handleSearch = async ()=>{
     try{
       const response = await axios.get(`http://localhost:3001/catalog/search`, { params: search });
@@ -66,7 +68,6 @@ const Catalog = () => {
       console.log('Cannot search resource. An error occurred: ', err.message)
     }
   }
-
   const handleSelectedFilter = (filter)=>{
     setSearch((prevdata)=>({
       ...prevdata,
@@ -81,6 +82,9 @@ const Catalog = () => {
       searchKeyword: value
     }))
   }
+
+/*------------------------SYNC DATA------------------------------ */
+
 
 
   return (

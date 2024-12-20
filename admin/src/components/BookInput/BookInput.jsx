@@ -21,7 +21,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
     },[bookData.isbn])
 
     useEffect(() => {
-        if (bookData.publisher=== '') {
+        if (bookData.publisher==='') {
           setPublisherDetails({});
         }
       }, [bookData.publisher]);
@@ -69,6 +69,18 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
         }       
     }
 
+    const resetPublisher = ()=>{
+        setBookData((prevdata)=>({
+            ...prevdata,
+            publisher_id:0,
+            publisher: '',
+            publisher_address:'',
+            publisher_email:'',
+            publisher_number:'',
+            publisher_website:'',
+        }))
+    }
+
 
   return (
     <div className='row'>
@@ -93,7 +105,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
                     <label htmlFor="">Publisher</label>
                     {bookData.publisher&&bookData.publisher.length >=1?
                        <div>
-                        <input type="text" value={bookData.publisher} name='publisher' onChange={handleChange} onBlur={formValidation} disabled={disabled}/> 
+                        <input type="text" value={bookData.publisher} name='publisher' onChange={resetPublisher} onBlur={formValidation} disabled={disabled}/> 
                        </div> 
                          
                    :<Select  

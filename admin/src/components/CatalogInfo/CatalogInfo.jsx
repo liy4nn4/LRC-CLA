@@ -11,20 +11,20 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
     // disabled is passed by the viewItem component. This disables the input fields so users can only access the page in view mode 
     const [preview,setPreview] =useState() //for preview kapag pumili ng photo or may naretrieve na photo
 
-
     //for displaying preview photo
     useEffect(()=>{
-        let objectUrl;
+        if(!bookData.file) return;
 
-            if(bookData.file&&!disabled){
-                // If data.file is a File object, create an Object URL for it
-                objectUrl = URL.createObjectURL(bookData.file);
-                setPreview(objectUrl);
-            }else if(bookData.file&&disabled){
-                const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
-                objectUrl = URL.createObjectURL(blob);
-                setPreview(objectUrl)
-            }
+        let objectUrl;
+        try{
+            objectUrl = URL.createObjectURL(bookData.file);
+            setPreview(objectUrl);
+        }catch{
+            const blob = new Blob([new Uint8Array(bookData.file.data)], { type: 'image/jpeg' });
+            objectUrl = URL.createObjectURL(blob);
+            setPreview(objectUrl)
+        }
+            
         //reset URl
         //pag may naupload na file, wala dapat url
         setBookData((prevdata)=>({
@@ -50,8 +50,6 @@ const CatalogInfo = ({disabled,handleChange,bookData,addAuthor,setType,addGenre,
           };
       },[bookData.url])
 
-
-      console.log(bookData)
    
   return (
     <div className='cat-info'>

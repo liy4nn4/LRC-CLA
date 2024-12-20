@@ -6,6 +6,11 @@ import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import io from 'socket.io-client';
+import { initDB } from '../../indexedDb/initializeIndexedDb';
+import { getAllFromStore } from '../../indexedDb/getDataOffline';
+import { saveResourceOffline } from '../../indexedDb/saveResourcesOffline';
+import { viewResourcesOffline } from '../../indexedDb/viewResourcesOffline';
+import { editResourceOffline } from '../../indexedDb/editResourcesOffline';
 
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -62,15 +67,32 @@ const AddItem = () => {
 
     useEffect(()=>{
         if(!id){
-            alert("You're online")
-            getOnlineData()
+            if(navigator.online){
+                alert("You're online")
+                getOnlineData()
+                setIsOnline(true)
+            }else{
+                //if offline, initialize object stores in indexeddb and get predefined data from thers
+                alert("You're offline")
+                initDB()
+                getOfflineData()
+                setIsOnline(false)
+            }
         }
         
-        //pag may id sa url,for viewing yung purpose ng add item component
+        //pag may id sa url, for viewing yung purpose ng add item component
         if(id){
             setDisabled(true)
-            getOnlineData()
-            viewResourceOnline();
+            if(navigator.online){
+                setIsOnline(true)
+                getOnlineData()
+                viewResourceOnline();
+            }else{
+                setIsOnline(false)
+                getOfflineData()
+                viewResourceOffline()
+            }
+            
         }
     },[])
 
@@ -84,6 +106,27 @@ const AddItem = () => {
         getPublishers()
         getAuthors()
         getAdvisers()
+    }
+
+    //get offline data
+    const getOfflineData = async ()=>{
+        // get type offline
+        const types = await getAllFromStore('resourcetype');
+        setResourceType(types);
+
+        //get status offline
+        const status = await getAllFromStore('availability');
+        setResourceStatus(status)
+
+        //get existing publishers offline
+        getPublishersOffline()
+
+        //get existing authors offline
+        getAuthorsOffline()
+
+        //get existing advisers offline
+        getAdvisersOffline()
+        
     }
 
 /*-------------------VIEW RESOURCE---------------------- */
@@ -161,6 +204,11 @@ const AddItem = () => {
         }catch(err){
             console.log('Cannot view resource. An error occurred: ', err.message)
         }
+    }
+
+    const viewResourceOffline = async()=>{
+        await viewResourcesOffline(parseInt(id),setBookData)
+
     }
 
 /*-------------------HANDLE CHANGES---------------------- */
@@ -322,8 +370,8 @@ const AddItem = () => {
         return Object.keys(err).length === 0;
     };
 
-/*----------------SAVE RESOURCE ONLINE-------------------- */
-    // Handle resource save
+/*----------------SAVE RESOURCE-------------------- */
+    // save resource online
     const handleSaveResourceOnline = async () => {
         if (formValidation() === true) {
             setLoading(true)
@@ -352,17 +400,45 @@ const AddItem = () => {
 
                 window.location.reload()
             }catch(err){
-                console.log('Cannot save resource. An error occurred: ',err.message);
+                console.log('Cannot save resource online. An error occurred: ',err.message);
             }
         } else {
             console.log("Please enter complete information");
         }
     };
 
+    //save resource offline
+    const handleSaveResourceOffline = async ()=>{
+        if (formValidation() === true) {
+            setLoading(true)
+            try{
+                const response = await saveResourceOffline(bookData);
+                console.log(response)
+                // close loading
+                setLoading(false)
+                 // Reset bookData if saved successfully
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
+                
+            }catch(err){
+                console.log('Cannot save resource offline. An error occurred: ',err.message);
+            }
+        } else {
+            console.log("Please enter complete information");
+        }
+    }
+
+
+
 /*-------------------EDIT RESOURCE---------------------- */
     // Handle resource save online
     const handleEditResourceOnline = async () => {
-        console.log('edit resource')
+        console.log('edit resource online')
             try{
                 setLoading(true)
                 const formData = new FormData();
@@ -373,6 +449,19 @@ const AddItem = () => {
                 const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
                 setLoading(false)
                 window.location.reload();            
+            }catch(err){
+                console.log('Cannot edit resource online. An error occurred: ',err.message);
+            }
+    };
+
+    //handle resource save offline
+    const handleEditResourceOffline = async () => {
+        console.log('edit resource offline')
+            try{
+                setLoading(true)
+                const response = await editResourceOffline(bookData,parseInt(id))
+                setLoading(false)
+                         
             }catch(err){
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
             }
@@ -450,6 +539,59 @@ const AddItem = () => {
         }
     };
 
+/*--------------FETCH DATA OFFLINE---------------------*/ 
+    // Fetch publishers from the backend
+    const getPublishersOffline = async () => {
+        console.log('publishers offline')
+        const pubs = [];
+        try {
+            const response = await getAllFromStore('publisher');
+            response.forEach(item => {
+                pubs.push({
+                    value: item.pub_id,
+                    label: item.pub_name
+                });
+            });
+            setPublishers(pubs);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+    // Fetch publishers from the backend
+    const getAuthorsOffline = async () => {
+        const auth = [];
+        try {
+            const response = await getAllFromStore('author');
+            response.forEach(item => {
+                auth.push({
+                    value: `${item.author_fname} ${item.author_lname}`,
+                    label: `${item.author_fname} ${item.author_lname}`
+                });
+            });
+            setAuthorList(auth);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+    //Fetch advisers
+    const getAdvisersOffline = async () => {
+        const adv = [];
+        try {
+            const response = await getAllFromStore('adviser');
+            response.forEach(item => {
+                adv.push({
+                    value: `${item.adviser_fname} ${item.adviser_lname}`,
+                    label: `${item.adviser_fname} ${item.adviser_lname}`
+                });
+            });
+            setAdviserList(adv);
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+
+    console.log(bookData)
+
     return (
         <div className='add-item-container'>
             <h1 className='m-0'>Cataloging</h1>
@@ -515,11 +657,18 @@ const AddItem = () => {
                 <button className="btn add-item-save" onClick={()=>{
                     //if not in edit mode, save resource
                     if(!editMode){
-                        handleSaveResourceOnline()
-                       
-                        
+                        if(isOnline){
+                            handleSaveResourceOnline()
+                        }else{
+                            handleSaveResourceOffline()
+                        }           
                     }else{
-                        handleEditResourceOnline()
+                        if(isOnline){
+                            handleEditResourceOnline()
+                        }else{
+                            handleEditResourceOffline()
+                        }
+                        
                     }
                 }} disabled={Object.values(error).length>=1&&!editMode}>
                     <i className="fa-regular fa-floppy-disk"></i>

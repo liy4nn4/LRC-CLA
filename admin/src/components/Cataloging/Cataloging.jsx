@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import './Cataloging.css'
 import axios from 'axios'
+import { getAllFromStore } from '../../indexedDb/getDataOffline'
 
 
 const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation, error,editMode}) => {
@@ -10,33 +11,50 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
     const [topic,setTopic] = useState([])
 
     useEffect(() => {
-        console.log('getting cataloging info offline')
-        getDataOnline()
+        if(navigator.onLine){
+            console.log('getting cataloging info online')
+            getDept()
+            getTopics()
+        }else{
+            getDeptOffline()
+            getTopicsOffline()
+        }
+        
        
     }, []);
-    
-    const getDataOnline = async()=>{
-        getDept()
-        getTopics()
+
+    //get existing department offline
+    const getDeptOffline = async ()=>{
+        const depts = await getAllFromStore('department')
+        setDepartment(depts)
     }
 
+    //get existing topics offline
+    const getTopicsOffline = async()=>{
+        const tps = await getAllFromStore('topic');
+        setTopic(tps)
+    }
+    
+    //get existing department online
     const getDept = async()=>{
         try{
             const response = await axios.get('http://localhost:3001/departments').then(res=>res.data)
             setDepartment(response)
         }catch(err){
-            console.log(err.message)
+            console.log("Couldn't retrieve department online. An error occurred: ", err.message)
         }
     }
 
+    //get existing topics online
     const getTopics =async ()=>{
         try{
             const response = await axios.get('http://localhost:3001/topic').then(res=>res.data)
             setTopic(response)
         }catch(err){
-            console.log(err.message)
+            console.log("Couldn't retrieve topics online. An error occurred: ", err.message)
         }
     }
+    
 
   return (
     <div className='cataloging-box'>
