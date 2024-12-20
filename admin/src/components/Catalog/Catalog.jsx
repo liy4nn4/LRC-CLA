@@ -215,9 +215,9 @@ const syncBookOnline = async (book, resourceId, pubId) => {
                   Sync to database
               </button>
               {/* sync from database */}
-              <button className='btn sync-from-db' disabled={!navigator.onLine}>
+              {/* <button className='btn sync-from-db' disabled={!navigator.onLine}>
                   Sync from database
-              </button>
+              </button> */}
            </div>
         </div>
         

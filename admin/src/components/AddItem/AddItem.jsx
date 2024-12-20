@@ -65,38 +65,42 @@ const AddItem = () => {
         }
     }, [bookData.mediaType]);
 
-    useEffect(()=>{
-        const handleOnline = ()=>{
-            alert("You're online")
-            getOnlineData()
-            setIsOnline(true)
+    useEffect(() => {
+        const handleOnline = () => {
+            alert("You're online");
+            getOnlineData();
+            setIsOnline(true);
+        };
+    
+        const handleOffline = () => {
+            alert("You're offline");
+            initDB();
+            getOfflineData();
+            setIsOnline(false);
+        };
+    
+        // Initialize online/offline state
+        if (navigator.onLine) {
+            handleOnline();
+        } else {
+            handleOffline();
         }
     
-        const handleOffline = ()=>{
-                alert("You're offline")
-                initDB()
-                getOfflineData()
-                setIsOnline(false)
-        }
-
-       if(navigator.onLine){
-            handleOnline()
-       }else{
-            handleOffline()
-       }
-        
-        //pag may id sa url, for viewing yung purpose ng add item component
-        if(id){
-            setDisabled(true)
-            if(isOnline){
-                getOnlineData()
+        // Handle resource view logic (inside useEffect)
+        if (id) {
+            setDisabled(true);
+            // Check if online or offline after setting the state
+            if (navigator.onLine) {
+                getOnlineData();
                 viewResourceOnline();
-            }else{
-                getOfflineData()
-                viewResourceOffline()
+            } else {
+                alert("You're offline. Viewing resource locally.");
+                getOfflineData();
+                viewResourceOffline();
             }
         }
-    },[])
+    }, [id]);  // Add `id` as a dependency to run the effect when `id` changes
+    
 
     console.log('isOnline? ', isOnline)
 
@@ -209,8 +213,8 @@ const AddItem = () => {
     }
 
     const viewResourceOffline = async()=>{
+        console.log('viewing resource offline')
         await viewResourcesOffline(parseInt(id),setBookData)
-
     }
 
 /*-------------------HANDLE CHANGES---------------------- */
@@ -389,18 +393,18 @@ const AddItem = () => {
                 if(response.status==200){
                     socket.emit('newResource');
                 }
-                // // close loading
-                // setLoading(false)
-                //  // Reset bookData if saved successfully
-                //  setBookData({
-                //     mediaType: 'book',
-                //     authors: [],
-                //     isCirculation: false,
-                //     publisher_id: 0,
-                //     publisher: ''
-                // });
+                // close loading
+                setLoading(false)
+                 // Reset bookData if saved successfully
+                 setBookData({
+                    mediaType: 'book',
+                    authors: [],
+                    isCirculation: false,
+                    publisher_id: 0,
+                    publisher: ''
+                });
 
-                // window.location.reload()
+                window.location.reload()
             }catch(err){
                 console.log('Cannot save resource online. An error occurred: ',err.message);
             }
@@ -426,7 +430,7 @@ const AddItem = () => {
                     publisher_id: 0,
                     publisher: ''
                 });
-                
+                alert('Resource saved locally.')
             }catch(err){
                 console.log('Cannot save resource offline. An error occurred: ',err.message);
             }
@@ -434,8 +438,6 @@ const AddItem = () => {
             console.log("Please enter complete information");
         }
     }
-
-
 
 /*-------------------EDIT RESOURCE---------------------- */
     // Handle resource save online
@@ -449,8 +451,8 @@ const AddItem = () => {
                 });
 
                 const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
-                // setLoading(false)
-                // window.location.reload();            
+                setLoading(false)
+                window.location.reload();            
             }catch(err){
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
             }
@@ -463,7 +465,7 @@ const AddItem = () => {
                 setLoading(true)
                 const response = await editResourceOffline(bookData,parseInt(id))
                 setLoading(false)
-                         
+                alert('Resource edited offline.')
             }catch(err){
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
             }
