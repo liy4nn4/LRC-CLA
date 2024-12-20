@@ -11,9 +11,10 @@ import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import io from 'socket.io-client';
 import Loading from '../Loading/Loading'
-import { getCatalogDetailsOffline } from '../../indexedDb/getDataOffline'
+import { getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResourceAuthors } from '../../indexedDb/getDataOffline'
+import { markAsSynced } from '../../indexedDb/syncData'
 
-const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+// const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const Catalog = () => {
   const [openAuthor, setOpenAuthor] = useState(false)
@@ -74,7 +75,6 @@ const Catalog = () => {
       searchFilter: filter
     }))
   }
-
   const handleChange = (e)=>{
     const {value} = e.target
     setSearch((prevdata)=>({
@@ -84,6 +84,112 @@ const Catalog = () => {
   }
 
 /*------------------------SYNC DATA------------------------------ */
+const syncData2DB = async () => {
+  setLoading(true)
+  await syncResourcesOnline()
+  setLoading(false)
+  // await syncAuthorsOnline()
+  // await syncResourceAuthorsOnline()
+};
+
+// Sync resources
+const syncResourcesOnline = async () => {
+  try {
+    // Get all resources in IndexedDB
+    const resources = await getAllUnsyncedFromStore('resources');
+    console.log('Preparing resources for syncing: ', resources);
+
+    for (const resource of resources) {
+      try {
+        const response = await axios.post('http://localhost:3001/sync/resources', resource);
+        console.log(`Synced resource: ${resource.resource_id}`, response.data);
+
+        // Retrieve resource_id from the server response
+        const { resource_id } = response.data;
+        console.log('resourceId: ', resource_id);
+
+        // Get authors and sync them
+        const authors = await getResourceAuthors(resource.resource_id);
+        await syncAuthorsOnline(authors, resource_id);
+
+        // Mark resource as synced
+        await markAsSynced('resources', resource.resource_id);
+
+        // Get publisher and book for syncing
+        const publisher = await getPub(resource.resource_id); 
+        const book = await getBook(resource.resource_id);
+
+        // Sync publisher and book
+        const pubId = await syncPublisherOnline(publisher);
+        // Sync the associated book after publisher is synced
+        await syncBookOnline(book,resource_id,pubId);
+
+      } catch (error) {
+        console.error(`Failed to sync resource: ${resource.resource_id}`, error.message);
+      }
+    }
+
+    console.log('All resources processed.');
+  } catch (error) {
+    console.error('Error during data syncing:', error.message);
+  }
+};
+
+// Sync authors
+const syncAuthorsOnline = async (authors, resourceId) => {
+  try {
+    for (const author of authors) {
+      try {
+        const response = await axios.post('http://localhost:3001/sync/authors', { author, resourceId });
+        console.log(`Synced author: ${author.author_id}`, response.data);
+      } catch (error) {
+        console.error(`Failed to sync author: ${author.author_id}`, error.message);
+      }
+    }
+    console.log('All authors processed.');
+  } catch (error) {
+    console.error('Error during authors syncing:', error.message);
+  }
+};
+
+// Sync publisher
+const syncPublisherOnline = async (publisher) => {
+  try {
+    const response = await axios.post('http://localhost:3001/sync/publisher', publisher);
+    const { pub_id } = response.data;
+    console.log('Publisher synced successfully with ID:', pub_id);
+    return pub_id
+  } catch (error) {
+    console.error('Failed to sync publisher:', error.message);
+  }
+};
+
+// Sync book
+const syncBookOnline = async (book, resourceId, pubId) => {
+  try {
+    const formData = new FormData();
+
+    // Append book fields to FormData
+    Object.entries(book).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    // Append resourceId and pubId to FormData
+    formData.append('resourceId', resourceId);
+    formData.append('pubId', pubId);
+
+    // Send the FormData to the backend
+    const response = await axios.post('http://localhost:3001/sync/book', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    console.log('Book synced successfully:', response.data);
+  } catch (error) {
+    console.error('Failed to sync book:', error.message);
+  }
+};
+
+
 
 
 
@@ -103,16 +209,16 @@ const Catalog = () => {
               </Link>
           </div>
           {/* sync*/}
-          {/* <div className="add-author-publisher"> */}
+          <div className="add-author-publisher">
               {/* sync to database */}
-              {/* <button className='btn sync-2-db' onClick={syncData2DB} disabled={isOnline==false} title='You need internet connection to sync to database.'>
+              <button className='btn sync-2-db' onClick={syncData2DB} disabled={!navigator.onLine} title='You need internet connection to sync to database.'>
                   Sync to database
-              </button> */}
+              </button>
               {/* sync from database */}
-              {/* <button className='btn sync-from-db' disabled={isOnline==false}>
+              <button className='btn sync-from-db' disabled={!navigator.onLine}>
                   Sync from database
               </button>
-           </div> */}
+           </div>
         </div>
         
         {/* search,filter,export */}

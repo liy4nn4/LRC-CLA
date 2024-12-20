@@ -77,3 +77,98 @@ export const getCatalogDetailsOffline = async (setCatalog)=>{
     }
     setCatalog(catalog) 
 }
+
+//get all unsynced data
+// Get all unsynced data from a store
+export const getAllUnsyncedFromStore = async (storeName) => {
+    const db = await initDB();
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const index = store.index('sync_status')
+
+    // Get all records where `sync_status` is `false`
+    return await index.getAll(0);
+};
+
+
+export const getResourceAuthors = async (resourceId) => {
+    const db = await initDB();
+
+    // Get resourceauthors
+    const raTx = db.transaction('resourceauthors', 'readonly');
+    const raStore = raTx.objectStore('resourceauthors');
+    const raIndex = raStore.index('resource_id');
+    const resourceAuthors = await raIndex.getAll(resourceId);
+    const authorIds = resourceAuthors.map((ra) => ra.author_id);
+
+    // Get all authors
+    const authorTx = db.transaction('author', 'readonly');
+    const authorStore = authorTx.objectStore('author');
+    let authors = [];
+
+    for (const id of authorIds) {
+        const author = await authorStore.get(id); // Fetch individual author
+        if (author) {
+            authors.push(author);
+        }
+    }
+
+    await raTx.done; // Ensure resourceauthors transaction is complete
+    await authorTx.done; // Ensure authors transaction is complete
+
+    console.log("Author IDs:", authorIds);
+    console.log("Authors:", authors);
+
+    return authors;
+};
+
+export const getPub = async (resourceId) => {
+    const db = await initDB();
+
+    try {
+        // Get book that matches resourceId
+        const bookTx = db.transaction('book', 'readonly');
+        const bookStore = bookTx.objectStore('book');
+        const indexBook = bookStore.index('resource_id');
+        const book = await indexBook.get(resourceId);
+        const pubId = book ? book.pub_id : null; // Handle case where book might not exist
+        await bookTx.done;
+
+        if (!pubId) {
+            console.error("Publisher ID not found for the given resource.");
+            return null; // Handle error or return null
+        }
+
+        // Get publishers
+        const pubTx = db.transaction('publisher', 'readonly');
+        const pubStore = pubTx.objectStore('publisher');
+        const indexPub = pubStore.index('pub_id');
+        const publisher = await indexPub.get(pubId);
+        await pubTx.done;
+
+        console.log(publisher)
+
+        return publisher;
+    } catch (error) {
+        console.error("Error fetching publisher or book:", error.message);
+        return null;
+    }
+};
+
+export const getBook = async (resourceId) => {
+    const db = await initDB();
+
+    try {
+        // Get book that matches resourceId
+        const bookTx = db.transaction('book', 'readonly');
+        const bookStore = bookTx.objectStore('book');
+        const indexBook = bookStore.index('resource_id');
+        const book = await indexBook.get(resourceId);
+        await bookTx.done;
+
+        return book; // Return book if found
+    } catch (error) {
+        console.error("Error fetching book:", error.message);
+        return null;
+    }
+};
