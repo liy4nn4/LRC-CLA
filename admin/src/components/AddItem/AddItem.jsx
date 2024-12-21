@@ -461,7 +461,6 @@ const AddItem = () => {
                     //if resource is inserted successfully
                     alert(response.data.message)
                 }
-
                 window.location.reload();            
             }catch(err){
                 console.log('Cannot edit resource online. An error occurred: ',err.message);

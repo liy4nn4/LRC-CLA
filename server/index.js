@@ -148,9 +148,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
             console.log('Publisher ID:', pubId);
             await insertBook(imageFile, req.body.isbn, resourceId, pubId, req.body.topic, res);
         }else if(['2', '3'].includes(mediaType)){
-            // Insert the file data into the database
-            const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id,topic_id) VALUES (?, ?, ?, ?,?)';
-            
+            // insert journal/newsletter in database
             const jn = [
                 req.body.volume,
                 req.body.issue,
@@ -158,58 +156,21 @@ app.post('/save', upload.single('file'), async (req, res) => {
                 resourceId,
                 req.body.topic,
             ];
-    
-            db.query(q, jn, (err, result) => {
-                if (err) {
-                     return res.status(500).send(err); 
-                }
-    
-                // Cleanup uploaded file
-                if (filePath) {
-                    fs.unlinkSync(filePath);
-                }
-                
-                return res.send('Successful');
-            });
+
+            await insertJournalNewsletter(jn,res,filePath)
         }else{
             //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
-            const checkIfAdviserExist = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
-            const thesisQ = "INSERT INTO thesis (resource_id, adviser_id) VALUES (?,?)"
-            const insertAdviser = "INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)"
-    
-            db.query(checkIfAdviserExist,[adviserFname,adviserLname],(err,results)=>{
-                if (err) {
-                     return res.status(500).send(err); 
-                }
-    
-                //if exist, insert to thesis table
-                if(results.length>0){
-                    db.query(thesisQ,[resourceId,results[0].adviser_id],(err,results)=>{
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-                        return res.send('successful')
-                    })
-                    }else{
-                        //if adviser does not exist, insert it to adviser table
-                        db.query(insertAdviser,[adviserFname,adviserLname],(err,results)=>{
-                            if (err) {
-                                return res.status(500).send(err); 
-                            }
-                            
-                            //if inserted to adviser, insert to thesis table
-                            const adviserId = results.insertId
-                            db.query(thesisQ,[resourceId,adviserId],(err,results)=>{
-                                if (err) {
-                                    return res.status(500).send(err); 
-                                }
-                                return res.send('successful')
-                            })
-    
-                        })
-                    }
-                })
-            }
+            const adviser = [
+                adviserFname,
+                adviserLname
+            ]
+            
+            //get adviserId
+            const adviserID = await checkAdviserIfExist(adviser)
+            
+            //insert to thesis table
+            await insertThesis(resourceId,adviserID,res)      
+        }
     }catch(error){
         console.log(error)
         return res.send(error)
@@ -217,6 +178,70 @@ app.post('/save', upload.single('file'), async (req, res) => {
     
 })
 
+//check if adviser exist
+const checkAdviserIfExist = async (adviser)=>{
+    const q = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
+
+    db.query(q,adviser,async (err,results)=>{
+        if (err) {
+            return res.status(500).send(err); 
+       }
+
+       if(results.length>0){
+            const adviserId = results[0].adviser_id;
+            return adviserId;
+       }else{
+            const adviserId = await insertAdviser(adviser)
+            return adviserId
+       }
+    })
+}
+
+//insert adviser
+const insertAdviser = async(adviser)=>{
+    const q = `INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)`
+
+    db.query(q, adviser, (err, results)=>{
+        if (err) {
+            return res.status(500).send(err); 
+       }
+
+       const adviserId = results.insertId
+       return adviserId
+    })
+
+}
+
+//insert thesis 
+const insertThesis = async (resourceId, adviserId,res)=>{
+    const q = "INSERT INTO thesis (resource_id, adviser_id) VALUES (?,?)"
+
+    db.query(q,[resourceId,adviserId],(err,results)=>{
+        if (err) {
+            return res.status(500).send(err); 
+        }
+
+        return res.send({status:201,message:'Thesis inserted successfully.'});
+    })
+}
+
+//insert journal and newsletter
+const insertJournalNewsletter = async(jn,res,filePath)=>{
+    const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id,topic_id) VALUES (?, ?, ?, ?,?)';
+            
+    db.query(q, jn, (err, result) => {
+        if (err) {
+            return res.status(500).send(err); 
+        }
+    
+        // Cleanup uploaded file
+        if (filePath) {
+            fs.unlinkSync(filePath);
+        }
+                
+        return res.send({status:201,message:'Journal/Newsletter inserted successfully.'});
+    });
+}
 
 //check if publisher exist 
 const checkIfPubExist = async (pub) => {
@@ -382,7 +407,6 @@ const insertResources = async (res, req, authors) => {
         });
     });
 };
-
 
 //insert authors 
 const insertAuthors = async (res,authors,resourceId)=>{
