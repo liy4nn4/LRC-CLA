@@ -124,6 +124,7 @@ const syncResourcesOnline = async () => {
         // Sync the associated book after publisher is synced
         await syncBookOnline(book,resource_id,pubId);
 
+        
       } catch (error) {
         console.error(`Failed to sync resource: ${resource.resource_id}`, error.message);
       }

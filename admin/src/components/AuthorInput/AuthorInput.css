@@ -60,6 +60,7 @@
     padding: 5px 15px;  
     border-radius: 20px;  
     margin: 5px 3px;
+    text-transform: capitalize;
 }
 
 .author button{

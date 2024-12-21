@@ -101,117 +101,87 @@ app.post('/file', upload.single('file'), (req, res) => {
 
 /*-----------SAVE RESOURCE ONLINE-----------*/
 app.post('/save', upload.single('file'), async (req, res) => {
-    console.log('saving resource...')
+    console.log('Saving resource...');
     const mediaType = req.body.mediaType;
-    let adviserFname;
-    let adviserLname;
-    let filePath;
+    let adviserFname, adviserLname, filePath, imageFile;
     let pub = {};
 
-    //dito masstore yung URL/ImageFile
-    let imageFile;
-
-    //pag walang URL, undefined ung req.body.url
-    console.log('URL: ',req.body.url)
-    //pag walang file na inupload, undefined ung req.file
-    console.log(req.file)
+    // Handle image upload or URL
+    try{
+        if (req.file) {
+            filePath = req.file.path;
+            imageFile = fs.readFileSync(filePath); // Read file synchronously
+        } else if (req.body.url) {
+            const imageUrl = req.body.url;
+            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+            imageFile = response.data;
+        }
     
-    // if not a URL
-    if(req.file){
-       filePath = req.file.path; // Get the file path 
-       fs.readFile(filePath, (err, data) => {
-            if (err) {
-                return res.status(500).send(err); 
-            }
-            imageFile = data;
-            //data
-            // ganitong form mo siya isstore sa database
-            //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
-        })
-    }else if(req.body.url){
-        const imageUrl = req.body.url; 
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        imageFile = response.data; // Image data in binary format (Buffer)
-    }
-
-    // initialize variables based on media type
-    if(mediaType==='1'){
-       pub = {
-        pub_id: req.body.publisher_id,
-        pub_name: req.body.publisher,
-        pub_add: req.body.publisher_address,
-        pub_email: req.body.publisher_email,
-        pub_phone:req.body.publisher_number,
-        pub_web:req.body.publisher_website
-        } 
-    }else if(mediaType==='4'){
-        // split string
-        //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
-        const adviser = req.body.adviser.split(' ')
-        adviserFname = adviser[0];
-        adviserLname = adviser[1];
-    }
+        // initialize variables based on media type
+        if(mediaType==='1'){
+           pub = {
+                pub_id: req.body.publisher_id,
+                pub_name: req.body.publisher,
+                pub_add: req.body.publisher_address,
+                pub_email: req.body.publisher_email,
+                pub_phone:req.body.publisher_number,
+                pub_web:req.body.publisher_website
+            } 
+        }else if(mediaType==='4'){
+            // split string
+            //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
+            const adviser = req.body.adviser.split(' ')
+            adviserFname = adviser[0];
+            adviserLname = adviser[1];
+        }
+        
+        //authors is in string
+        const authors = Array.isArray(req.body.authors)
+        ? req.body.authors: req.body.authors.split(',');
+       
+        // Insert resource
+        const resourceId = await insertResources(res, req, authors);
     
-    //authors is in string
-    let authors;
-    if(Array.isArray(req.body.authors)){
-        authors = req.body.authors
-    }else{
-        authors = req.body.authors.split(',')
-    }
-   
-    //call insertResources and pass req
-    await insertResources(res,req,authors).then(async(data)=>{
-        const resourceId = data
-        // For example, if mediaType is book, the rest of the data will be inserted sa book table and etc
-
-        // however, before inserting the rest of the data inside the book table, we need to insert the publisher info if the mediaType is book
         if (mediaType === '1') {
-            //check publisher if exist
-            const pubId = await checkIfPubExist(pub)
-            console.log('pubId: ', pubId)
-            insertBook(imageFile,req.body.isbn,resourceId,pubId,req.body.topic,res)
-
-
-        }else if(mediaType==='2'|| mediaType==='3'){
-                // Insert the file data into the database
-                const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id,topic_id) VALUES (?, ?, ?, ?,?)';
-                const jn = [
-                    req.body.volume,
-                    req.body.issue,
-                    imageFile,
-                    resourceId,
-                    req.body.topic,
-                ];
-
-                db.query(q, jn, (err, result) => {
-                    if (err) {
-                        return res.status(500).send(err); 
-                    }
-
-                    // Optionally, delete the file from disk after saving it to the database
-                    // fs.unlink() method is used to delete files in Node.js
-                    // filePath - a string, Buffer or URL that, represents the file or symbolic link that has to be removed.
-                    if(filePath){
-                        fs.unlink(filePath, (unlinkErr) => {
-                            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-                        }); 
-                    }
-
-                    // Successfully inserted image, send response
-                    return res.send('Successful');
-                });
+            // Handle books
+            const pubId = await checkIfPubExist(pub);
+            console.log('Publisher ID:', pubId);
+            await insertBook(imageFile, req.body.isbn, resourceId, pubId, req.body.topic, res);
+        }else if(['2', '3'].includes(mediaType)){
+            // Insert the file data into the database
+            const q = 'INSERT INTO journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id,topic_id) VALUES (?, ?, ?, ?,?)';
+            
+            const jn = [
+                req.body.volume,
+                req.body.issue,
+                imageFile,
+                resourceId,
+                req.body.topic,
+            ];
+    
+            db.query(q, jn, (err, result) => {
+                if (err) {
+                     return res.status(500).send(err); 
+                }
+    
+                // Cleanup uploaded file
+                if (filePath) {
+                    fs.unlinkSync(filePath);
+                }
+                
+                return res.send('Successful');
+            });
         }else{
             //if thesis, after inserting data to authors, resourceauthors, and resources, check if adviser exists. If existing, insert directly to thesis table. if not, insert advisers first then insert to thesis table
             const checkIfAdviserExist = "SELECT * FROM adviser WHERE adviser_fname = ? AND adviser_lname = ?"
             const thesisQ = "INSERT INTO thesis (resource_id, adviser_id) VALUES (?,?)"
             const insertAdviser = "INSERT INTO adviser (adviser_fname, adviser_lname) VALUES (?,?)"
-
+    
             db.query(checkIfAdviserExist,[adviserFname,adviserLname],(err,results)=>{
                 if (err) {
-                    return res.status(500).send(err); 
+                     return res.status(500).send(err); 
                 }
-
+    
                 //if exist, insert to thesis table
                 if(results.length>0){
                     db.query(thesisQ,[resourceId,results[0].adviser_id],(err,results)=>{
@@ -220,28 +190,34 @@ app.post('/save', upload.single('file'), async (req, res) => {
                         }
                         return res.send('successful')
                     })
-                }else{
-                    //if adviser does not exist, insert it to adviser table
-                    db.query(insertAdviser,[adviserFname,adviserLname],(err,results)=>{
-                        if (err) {
-                            return res.status(500).send(err); 
-                        }
-                        
-                        //if inserted to adviser, insert to thesis table
-                        const adviserId = results.insertId
-                        db.query(thesisQ,[resourceId,adviserId],(err,results)=>{
+                    }else{
+                        //if adviser does not exist, insert it to adviser table
+                        db.query(insertAdviser,[adviserFname,adviserLname],(err,results)=>{
                             if (err) {
                                 return res.status(500).send(err); 
                             }
-                            return res.send('successful')
+                            
+                            //if inserted to adviser, insert to thesis table
+                            const adviserId = results.insertId
+                            db.query(thesisQ,[resourceId,adviserId],(err,results)=>{
+                                if (err) {
+                                    return res.status(500).send(err); 
+                                }
+                                return res.send('successful')
+                            })
+    
                         })
+                    }
+                })
+            }
+    }catch(error){
+        console.log(error)
+        return res.send(error)
+    }
+    
+})
 
-                    })
-                }
-            })
-        }
-    })
-});
+
 //check if publisher exist 
 const checkIfPubExist = async (pub) => {
     if (pub.pub_id == 0 && pub.pub_name == '') {
@@ -323,7 +299,6 @@ const insertPublisher = async (pub) => {
     });
 };
 
-
 //insert book
 const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
     const q = `
@@ -342,40 +317,73 @@ const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
             return res.status(500).send(err); 
         }
         console.log('Book inserted successfully')
-        return res.send('Book inserted successfully')
+        return res.status(201).send('Book inserted successfully');
     })
 
 }
 //insert resources
-const insertResources = async (res,req,authors)=>{
-    return new Promise((resolve,reject)=>{
-        const q = 'INSERT INTO resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, type_id, avail_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-
-        const resources = [
-            req.body.title,
-            req.body.description,
-            req.body.publishedDate,
-            req.body.quantity,
-            req.body.isCirculation,
-            req.body.department,
-            req.body.mediaType,
-            req.body.status,
-        ];
-
-        db.query(q, resources,(err, results)=>{
+const insertResources = async (res, req, authors) => {
+    return new Promise((resolve, reject) => {
+        // Check if the resource already exists
+        const checkResourceIdExist = `SELECT * FROM resources WHERE resource_title = ?`;
+        
+        db.query(checkResourceIdExist, [req.body.title], (err, results) => {
             if (err) {
-                return res.status(500).send(err); 
+                return reject(err); // Reject with error
             }
 
-            // Get the resource_id of the newly inserted row
-            const resourceId = results.insertId
-            
-            insertAuthors(res,authors,resourceId).then(()=>{
-                resolve(resourceId)
-            })
-        })
-    })
-}
+            // If a resource is found, reject with a specific message
+            if (results.length > 0) {
+                console.log('Resource already exists.');
+                return reject({ status: 409, message: 'Resource already exists.' });
+            }
+
+            // Insert the resource
+            const q = `
+                INSERT INTO resources (
+                    resource_title, 
+                    resource_description, 
+                    resource_published_date, 
+                    resource_quantity, 
+                    resource_is_circulation, 
+                    dept_id, 
+                    type_id, 
+                    avail_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            const resources = [
+                req.body.title,
+                req.body.description,
+                req.body.publishedDate,
+                req.body.quantity,
+                req.body.isCirculation,
+                req.body.department,
+                req.body.mediaType,
+                req.body.status,
+            ];
+
+            db.query(q, resources, async (err, results) => {
+                if (err) {
+                    return reject(err); // Reject with error
+                }
+
+                // Get the `resource_id` of the newly inserted row
+                const resourceId = results.insertId;
+
+                try {
+                    // Insert authors for the resource
+                    await insertAuthors(res, authors, resourceId);
+                    resolve(resourceId); // Resolve with the `resourceId`
+                } catch (authorError) {
+                    reject(authorError); // Reject if there's an error inserting authors
+                }
+            });
+        });
+    });
+};
+
+
 //insert authors 
 const insertAuthors = async (res,authors,resourceId)=>{
     return new Promise((resolve,reject)=>{
@@ -464,60 +472,49 @@ app.put('/file', upload.single('file'), (req, res) => {
 app.put('/edit/:id', upload.single('file'),async (req, res) => {
     const resourceId = req.params.id;
     const mediaType = req.body.mediaType;
-    let adviserFname;
-    let adviserLname;
-    let filePath;
+    let adviserFname, adviserLname, filePath, imageFile;
     let pub = {};
+    
+    try{
+        if(req.file){
+            filePath = req.file.path; // Get the file path 
+            fs.readFile(filePath, (err, data) => {
+                 if (err) {
+                     return res.status(500).send(err); 
+                 }
+                 imageFile = data;
+             })
+         }
 
-    //dito masstore yung URL/ImageFile
-    let imageFile;
+         // initialize variables based on media type
+        if(mediaType==='1'){
+            pub = {
+                 pub_id: req.body.publisher_id,
+                 pub_name: req.body.publisher,
+                 pub_add: req.body.publisher_address,
+                 pub_email: req.body.publisher_email,
+                 pub_phone:req.body.publisher_number,
+                 pub_web:req.body.publisher_website
+             } 
+         }else if(mediaType==='4'){
+             // split string
+             //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
+             const adviser = req.body.adviser.split(' ')
+             adviserFname = adviser[0];
+             adviserLname = adviser[1];
+         }
+         
+         const authors = req.body.authors.split(',')
 
-    if(req.file){
-        filePath = req.file.path; // Get the file path 
-        fs.readFile(filePath, (err, data) => {
-             if (err) {
-                 return res.status(500).send(err); 
-             }
-             imageFile = data;
-             //data
-             // ganitong form mo siya isstore sa database
-             //<Buffer ff d8 ff e1 5a 84 45 78 69 66 00 00 49 49 2a 00 08 00 00 00 0c 00 0f 01 02 00 09 00 00 00 9e 00 00 00 10 01 02 00 13 00 00 00 a8 00 00 00 12 01 03 00 ... 2437749 more bytes>
-         })
-     }
+         //edit resource
+         await editResource(res,req,authors,resourceId)
 
-    // initialize variables based on media type
-    if(mediaType==='1'){
-        pub = {
-            pub_id: req.body.publisher_id,
-            pub_name: req.body.publisher,
-            pub_add: req.body.publisher_address,
-            pub_email: req.body.publisher_email,
-            pub_phone:req.body.publisher_number,
-            pub_web:req.body.publisher_website
-        } 
-    }else if(mediaType==='4'){
-        // split string
-        //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
-        const adviser = req.body.adviser.split(' ')
-        adviserFname = adviser[0];
-        adviserLname = adviser[1];
-    }
-
-    const authors = req.body.authors.split(',')
-
-    console.log(typeof mediaType)
-
-    await editResource(res,req,authors,resourceId).then(async ()=>{
-        // For example, if mediaType is book, the rest of the data will be inserted sa book table and etc
-
-        // however, before inserting the rest of the data inside the book table, we need to insert the publisher info if the mediaType is book
-        if (mediaType === '1') {
+         if (mediaType === '1') {
             //  check if publisher exist 
             //check publisher if exist
             const pubId = await checkIfPubExist(pub)
             console.log('pubId: ', pubId)
             editBook(imageFile,req.body.isbn,resourceId,pubId,req.body.topic,res,filePath)
-            
         }else if(mediaType==='2'|| mediaType==='3'){
             let q;
             let jn;
@@ -617,15 +614,18 @@ app.put('/edit/:id', upload.single('file'),async (req, res) => {
                 }
             })
         }
-    })
+    }catch(error){
+        console.log(error)
+        return res.send(error)
+    }
 })
-const editBook = async (cover, isbn, resourceId, pubId, topic,res,filepath)=>{
+const editBook = async (cover, isbn, resourceId, pubId, topic,res,filePath)=>{
     let q;
     let book;
 
-    console.log('filepath: ', filepath)
+    console.log('filepath: ', filePath)
 
-    if (typeof filepath === 'string') {
+    if (typeof filePath === 'string') {
         q = `UPDATE book SET book_cover = ?, book_isbn = ?, pub_id = ?, topic_id = ? WHERE resource_id = ?`;
         book = [cover, isbn, pubId, topic, resourceId];
     } else {
@@ -638,14 +638,14 @@ const editBook = async (cover, isbn, resourceId, pubId, topic,res,filepath)=>{
         if (err) {
             return res.status(500).send(err); 
         }
-        if(typeof filepath === 'string'){
-            fs.unlink(filepath, (unlinkErr) => {
+        if(typeof filePath === 'string'){
+            fs.unlink(filePath, (unlinkErr) => {
                 if (unlinkErr) console.error('Error deleting file:', unlinkErr);
             }); 
         }
         console.log('Book edited successfully')
         // Successfully inserted 
-        return res.send('Successful');
+        return res.send({status: 201, message:'Book edited successfully.'});
     });
 }
 const editResource = async (res,req,authors,resourceId)=>{

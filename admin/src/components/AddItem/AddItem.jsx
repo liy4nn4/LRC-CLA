@@ -380,7 +380,7 @@ const AddItem = () => {
     // save resource online
     const handleSaveResourceOnline = async () => {
         if (formValidation() === true) {
-            // setLoading(true)
+            setLoading(true)
             try{
                 const formData = new FormData();
                 Object.entries(bookData).forEach(([key, value]) => {
@@ -389,12 +389,18 @@ const AddItem = () => {
 
                 const response = await axios.post('http://localhost:3001/save', formData);
                 console.log(response)
-                // socket io
-                if(response.status==200){
-                    socket.emit('newResource');
+                 // close loading
+                 setLoading(false)
+
+                 //handle status
+                if(response.data.status==409){
+                    // if resource is inserted already
+                    alert(response.data.message)
+                }else if(response.data.status==201){
+                    //if resource is inserted successfully
+                    alert(response.data.message)
                 }
-                // close loading
-                setLoading(false)
+               
                  // Reset bookData if saved successfully
                  setBookData({
                     mediaType: 'book',
@@ -444,14 +450,18 @@ const AddItem = () => {
     const handleEditResourceOnline = async () => {
         console.log('edit resource online')
             try{
-                // setLoading(true)
+                setLoading(true)
                 const formData = new FormData();
                 Object.entries(bookData).forEach(([key, value]) => {
                     formData.append(key, value);  
                 });
-
                 const response = await axios.put(`http://localhost:3001/edit/${id}`, formData);
                 setLoading(false)
+                if(response.data.status==201){
+                    //if resource is inserted successfully
+                    alert(response.data.message)
+                }
+
                 window.location.reload();            
             }catch(err){
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
