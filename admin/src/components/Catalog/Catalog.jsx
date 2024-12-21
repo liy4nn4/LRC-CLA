@@ -11,7 +11,7 @@ import PublisherModal from '../PublisherModal/PublisherModal'
 import axios from 'axios'
 import io from 'socket.io-client';
 import Loading from '../Loading/Loading'
-import { getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResourceAuthors } from '../../indexedDb/getDataOffline'
+import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
 import { markAsSynced } from '../../indexedDb/syncData'
 
 // const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -96,7 +96,7 @@ const syncData2DB = async () => {
 const syncResourcesOnline = async () => {
   try {
     // Get all resources in IndexedDB
-    const resources = await getAllUnsyncedFromStore('resources');
+    const resources = await getAllFromStore('resources');
     console.log('Preparing resources for syncing: ', resources);
 
     for (const resource of resources) {
@@ -112,19 +112,28 @@ const syncResourcesOnline = async () => {
         const authors = await getResourceAuthors(resource.resource_id);
         await syncAuthorsOnline(authors, resource_id);
 
-        // Mark resource as synced
-        await markAsSynced('resources', resource.resource_id);
-
-        // Get publisher and book for syncing
-        const publisher = await getPub(resource.resource_id); 
-        const book = await getBook(resource.resource_id);
-
-        // Sync publisher and book
-        const pubId = await syncPublisherOnline(publisher);
-        // Sync the associated book after publisher is synced
-        await syncBookOnline(book,resource_id,pubId);
-
-        
+        const resourceType = resource.type_id;
+        switch(resourceType){
+          case '1':
+            // Get publisher and book for syncing
+            const publisher = await getPub(resource.resource_id); 
+            const book = await getResource('book',resource.resource_id);
+            // Sync publisher and book
+            const pubId = await syncPublisherOnline(publisher);
+            // Sync the associated book after publisher is synced
+            await syncBookOnline(book,resource_id,pubId);
+            break;
+          case '2':
+          case '3':
+            const jn = await getResource('journalnewsletter',resource.resource_id)
+            await syncJournalNewsletterOnline(jn,resource_id)
+            break;
+          case '4':
+            const adviser = getResourceAdviser(resource.resource_id)
+            //sync advisers
+            await syncAdviserOnline(adviser,resource_id)
+            break
+        }
       } catch (error) {
         console.error(`Failed to sync resource: ${resource.resource_id}`, error.message);
       }
@@ -135,6 +144,17 @@ const syncResourcesOnline = async () => {
     console.error('Error during data syncing:', error.message);
   }
 };
+
+//sync advisers
+const syncAdviserOnline = async(adviser,resourceId)=>{
+  try {
+    const response = await axios.post('http://localhost:3001/sync/adviser', { adviser, resourceId });
+    console.log(`Synced adviser: ${adviser.adviser_id}`, response.data);
+   
+  } catch (error) {
+    console.error('Error during authors syncing:', error.message);
+  }
+}
 
 // Sync authors
 const syncAuthorsOnline = async (authors, resourceId) => {
@@ -190,7 +210,28 @@ const syncBookOnline = async (book, resourceId, pubId) => {
   }
 };
 
+//sync journal and newsltter
+const syncJournalNewsletterOnline = async (jn, resourceId) => {
+  try {
+    const formData = new FormData();
+    // Append book fields to FormData
+    Object.entries(jn).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
 
+    // Append resourceId to FormData
+    formData.append('resourceId', resourceId);
+
+    // Send the FormData to the backend
+    const response = await axios.post('http://localhost:3001/sync/journalnewsletter', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    console.log('Journal/Newsletter synced successfully:', response.data);
+  } catch (error) {
+    console.error('Failed to sync Journal/Newsletter:', error.message);
+  }
+};
 
 
 

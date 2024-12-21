@@ -1553,7 +1553,6 @@ app.post("/sync/authors", (req, res) => {
     });
 });
 
-
 // Sync resourceauthors table
 const syncResourceAuthors = (authorId, resourceId) => {
     
@@ -1572,7 +1571,6 @@ const syncResourceAuthors = (authorId, resourceId) => {
       }
     });
 };
-
 
 //sync publishers table
 app.post("/sync/publisher", (req, res) => {
@@ -1643,6 +1641,8 @@ app.post("/sync/book", upload.single('file'), async (req, res) => {
     console.log("Received body:", req.body);
     console.log("Received file:", req.file);
 
+    console.log(req.body)
+
     const { resourceId, pubId, book_isbn, topic_id } = req.body;
     const file = req.file ? fs.readFileSync(req.file.path) : null;
 
@@ -1676,106 +1676,73 @@ app.post("/sync/book", upload.single('file'), async (req, res) => {
 
 
 //sync journal/newsletter table
-app.post("/sync-journalnewsletter", upload.single('file'), async (req, res) => {
-    let imageFile;
-    let filePath;
-    const jn = req.body
-
-    if(req.file){
-        filePath = req.file.path; // Get the file path 
-        imageFile = fs.readFileSync(filePath);
-    }
-
-     const q = `
-     INSERT INTO 
-         journalnewsletter (jn_id, jn_volume, jn_issue, jn_cover, resource_id) 
-     VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY 
-     UPDATE 
-         jn_volume=VALUES(jn_volume),
-         jn_issue=VALUES(jn_issue),
-         jn_cover=VALUES(jn_cover),
-         resource_id=VALUES(resource_id)`;
- 
-     const values = [
-         jn.jn_id,
-         jn.jn_volume,
-         jn.jn_issue,
-         imageFile,
-         jn.resource_id
-     ];
-   
-     db.query(q, values, (err) => {
-       if (err) {
-         console.error("Error syncing journal/newsletter:", err);
-         res.status(500).send("Failed to sync journal/newsletter.");
-       } else {
-         console.log("journal/newsletter synced successfully.");
-         res.status(200).send("journal/newsletter synced successfully.");
-         
-        fs.unlink(filePath, (unlinkErr) => {
-            if (unlinkErr) console.error('Error deleting file:', unlinkErr);
-        }); 
-       }
-     });
+app.post("/sync/journalnewsletter", upload.single('file'), async (req, res) => {
+    try {
+        // Log incoming request for debugging
+        console.log("Received body:", req.body);
+        console.log("Received file:", req.file);
+    
+        const { resourceId, jn_volume, jn_issue, topic_id } = req.body;
+        const file = req.file ? fs.readFileSync(req.file.path) : null;
+    
+        const q = `
+          INSERT INTO 
+              journalnewsletter (jn_volume, jn_issue, jn_cover, resource_id, topic_id) 
+          VALUES (?, ?, ?, ?, ?)`;
+    
+        const values = [
+          jn_volume,
+          jn_issue,
+          file,
+          resourceId,
+          topic_id,
+        ];
+    
+        db.query(q, values, (err) => {
+          if (err) {
+            console.error("Error syncing journal/newsletter:", err);
+            res.status(500).send("Failed to sync journal/newsletter.");
+          } else {
+            console.log("Journal/Newsletter synced successfully.");
+            res.status(200).send("Journal/Newsletter synced successfully.");
+          }
+        });
+      } catch (error) {
+        console.error("Error syncing Journal/Newsletter:", error.message);
+        res.status(500).send("Internal server error.");
+      }
 });
 
 //sync theses 
-app.post("/sync-advisers",(req,res)=>{
-    const adviser = req.body;
-    const q = `
-    INSERT INTO 
-        adviser (adviser_id, adviser_fname, adviser_lname) 
-    VALUES (?,?,?) ON DUPLICATE KEY 
-    UPDATE 
-        adviser_fname=VALUES(adviser_fname),
-        adviser_lname=VALUES(adviser_lname)
-        `;
+app.post("/sync/adviser",async (req,res)=>{
+    const {adviser, resourceId} = req.body;
 
     const values =[
-        adviser.adviser_id,
         adviser.adviser_fname,
         adviser.adviser_lname
     ];
-  
-    db.query(q, values, (err) => {
-      if (err) {
-        console.error("Error syncing adviser:", err);
-        res.status(500).send("Failed to sync adviser.");
-      } else {
-        console.log("adviser synced successfully.");
-        res.status(200).send("adviser synced successfully.");
-      }
-    });
+
+    const adviserId = await checkAdviserIfExist(values)
+    await syncThesisOnline(adviserId,resourceId,res)
 })
 
 //sync theses 
-app.post("/sync-theses",(req,res)=>{
-    const thesis = req.body;
+const syncThesisOnline = async(adviserId,resourceId,res)=>{
     const q = `
     INSERT INTO 
-        thesis (thesis_id, resource_id, adviser_id) 
-    VALUES (?,?,?) ON DUPLICATE KEY 
-    UPDATE 
-        resource_id=VALUES(resource_id),
-        adviser_id=VALUES(adviser_id)
-        `;
+        thesis (resource_id,adviser_id) 
+    VALUES (?, ?)`;
 
-    const values = [
-        thesis.thesis_id,
-        thesis.resource_id,
-        thesis.adviser_id
-    ];
-  
-    db.query(q, values, (err) => {
-      if (err) {
-        console.error("Error syncing thesis:", err);
-        res.status(500).send("Failed to sync thesis.");
-      } else {
-        console.log("thesis synced successfully.");
-        res.status(200).send("thesis synced successfully.");
-      }
+    db.query(q, [resourceId,adviserId], (err) => {
+        if (err) {
+          console.error("Error syncing thesis:", err);
+          res.status(500).send("Failed to sync thesis.");
+        } else {
+          console.log("Thesis synced successfully.");
+          res.status(200).send("Thesis synced successfully.");
+        }
     });
-})
+}
 
 app.post("/attendance", (req, res) => {
     //const { studentId, date, time } = req.body;

@@ -1,7 +1,7 @@
 import { openDB } from "idb"
 
 const dbName = "LRCCLA";
-const version = 1;
+const version = 3;
 
 export const initDB = async () => {
     return openDB (dbName, version,{
@@ -9,35 +9,35 @@ export const initDB = async () => {
             // Create "resources" store
         if (!db.objectStoreNames.contains("resources")) {
             const resourcesStore = db.createObjectStore("resources", { keyPath: "resource_id",autoIncrement:true });
-            resourcesStore.createIndex("sync_status", "sync_status", { unique: false });
+            // resourcesStore.createIndex("sync_status", "sync_status", { unique: false });
         }
 
         // Create "journalnewsletter" store
         if (!db.objectStoreNames.contains("journalnewsletter")) {
             const jnStore = db.createObjectStore("journalnewsletter", { keyPath: "jn_id",autoIncrement:true });
-            jnStore.createIndex("sync_status", "sync_status", { unique: false });
+            // jnStore.createIndex("sync_status", "sync_status", { unique: false });
             jnStore.createIndex("resource_id", "resource_id", { unique: false });
         }
 
         // Create "publisher" store
         if (!db.objectStoreNames.contains("publisher")) {
             const pubStore = db.createObjectStore("publisher", { keyPath: "pub_id", autoIncrement: true });
-            pubStore.createIndex("sync_status", "sync_status", { unique: false });
-            pubStore.add({pub_name: "n/a",pub_address: "n/a",pub_email: "n/a",pub_phone: "n/a",pub_website: "n/a"})
+            // pubStore.createIndex("sync_status", "sync_status", { unique: false });
+            // pubStore.add({pub_name: "n/a",pub_address: "n/a",pub_email: "n/a",pub_phone: "n/a",pub_website: "n/a"})
             pubStore.createIndex("pub_id", "pub_id", { unique: false });
           }
 
         // Create "book" store
         if (!db.objectStoreNames.contains("book")) {
             const bookStore = db.createObjectStore("book", { keyPath: "book_id",autoIncrement:true });
-            bookStore.createIndex("sync_status", "sync_status", { unique: false });
+            // bookStore.createIndex("sync_status", "sync_status", { unique: false });
             bookStore.createIndex("resource_id", "resource_id", { unique: false });
         }
 
         // Create "thesis" store
         if (!db.objectStoreNames.contains("thesis")) {
             const thesisStore = db.createObjectStore("thesis", { keyPath: "thesis_id",autoIncrement:true });
-            thesisStore.createIndex("sync_status", "sync_status", { unique: false });
+            // thesisStore.createIndex("sync_status", "sync_status", { unique: false });
             thesisStore.createIndex("resource_id", "resource_id", { unique: false });
         }
 
@@ -47,14 +47,16 @@ export const initDB = async () => {
             adviserStore.createIndex("adviser_name",["adviser_fname","adviser_lname"],{
                 unique:false
             })
-            adviserStore.createIndex("sync_status", "sync_status", { unique: false });
+            adviserStore.createIndex("adviser_id", "adviser_id", { unique: false })
+            // adviserStore.createIndex("sync_status", "sync_status", { unique: false });
         }
 
         // Create "resourceAuthors" store
         if (!db.objectStoreNames.contains("resourceauthors")) {
             const resourceAuthorsStore = db.createObjectStore("resourceauthors",{keyPath: "ra_id",autoIncrement:true});
-            resourceAuthorsStore.createIndex("sync_status", "sync_status", { unique: false });
+            // resourceAuthorsStore.createIndex("sync_status", "sync_status", { unique: false });
             resourceAuthorsStore.createIndex("resource_id", "resource_id", { unique: false });
+            resourceAuthorsStore.createIndex("author_id", "author_id", { unique: false });
         }
 
         // Create "author" store
@@ -66,8 +68,8 @@ export const initDB = async () => {
             authorStore.createIndex("author_id","author_id",{
                 unique:false
             })
-            authorStore.createIndex("sync_status", "sync_status", { unique: false });
-            authorStore.add({ author_fname: "n/a",author_lname:"n/a" });
+            // authorStore.createIndex("sync_status", "sync_status", { unique: false });
+            // authorStore.add({ author_fname: "n/a",author_lname:"n/a" });
         }
 
         // Create and populate "type" store

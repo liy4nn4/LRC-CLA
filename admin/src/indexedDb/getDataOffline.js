@@ -155,20 +155,79 @@ export const getPub = async (resourceId) => {
     }
 };
 
-export const getBook = async (resourceId) => {
+// export const getBook = async (resourceId) => {
+//     const db = await initDB();
+
+//     try {
+//         // Get book that matches resourceId
+//         const bookTx = db.transaction('book', 'readonly');
+//         const bookStore = bookTx.objectStore('book');
+//         const indexBook = bookStore.index('resource_id');
+//         const book = await indexBook.get(resourceId);
+//         await bookTx.done;
+
+//         return book; // Return book if found
+//     } catch (error) {
+//         console.error("Error fetching book:", error.message);
+//         return null;
+//     }
+// };
+
+export const getResource = async (storename,resourceId) => {
     const db = await initDB();
 
     try {
         // Get book that matches resourceId
-        const bookTx = db.transaction('book', 'readonly');
-        const bookStore = bookTx.objectStore('book');
-        const indexBook = bookStore.index('resource_id');
-        const book = await indexBook.get(resourceId);
-        await bookTx.done;
+        const tx = db.transaction(storename, 'readonly');
+        const store = tx.objectStore(storename);
+        const index = store.index('resource_id');
+        const resource = await index.get(resourceId);
+        await tx.done;
 
-        return book; // Return book if found
+        return resource; // Return book if found
     } catch (error) {
-        console.error("Error fetching book:", error.message);
+        console.error("Error fetching resource:", error.message);
         return null;
+    }
+};
+
+export const getResourceAdviser = async (resourceId) => {
+    const db = await initDB();
+    
+    try {
+        // Get thesis by resourceId
+        const txThesis = db.transaction('thesis', 'readonly');
+        const storeThesis = txThesis.objectStore('thesis');
+        const indexThesis = storeThesis.index('resource_id');
+        const thesis = await indexThesis.get(resourceId);
+
+        // Check if thesis record exists
+        if (!thesis) {
+            console.error("Thesis not found for resourceId:", resourceId);
+            return null; // or throw an error depending on your preference
+        }
+
+        const adviserId = thesis.adviser_id;
+        await txThesis.done;
+
+        // Get adviser details by adviserId
+        const txAdviser = db.transaction('adviser', 'readonly');
+        const storeAdviser = txAdviser.objectStore('adviser');
+        const indexAdviser = storeAdviser.index('adviser_id');
+        const adviser = await indexAdviser.get(adviserId);
+
+        // Check if adviser record exists
+        if (!adviser) {
+            console.error("Adviser not found for adviserId:", adviserId);
+            return null; // or throw an error depending on your preference
+        }
+
+        await txAdviser.done;
+
+        return adviser; // Return adviser details
+
+    } catch (error) {
+        console.error("Error getting resource adviser:", error);
+        throw new Error("Error fetching adviser data.");
     }
 };

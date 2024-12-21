@@ -42,7 +42,6 @@ export const saveResourceOffline = async(data)=>{
         dept_id: data.department,
         type_id: data.mediaType,
         avail_id: data.status,
-        sync_status: 0
     }
 
     // Save the resource and get the inserted ID
@@ -90,7 +89,7 @@ const checkAdviserIfExist = async(adviserFname, adviserLname,resourceId)=>{
 
     if(!result){
         //if adviser does nt exist, insert to adviser object store
-        const adviserId =  await store.put({adviser_fname: adviserFname, adviser_lname: adviserLname, sync_status:0});
+        const adviserId =  await store.put({adviser_fname: adviserFname, adviser_lname: adviserLname});
 
         //after inserting, pass to saveThesisOffline()
         await saveThesisOffline(adviserId,resourceId)
@@ -109,7 +108,6 @@ const saveThesisOffline = async (adId,resId)=>{
     await store.put({
         resource_id:resId,
         adviser_id:adId,
-        sync_status:0
     })
     await tx.done
 }
@@ -123,7 +121,6 @@ const saveJournalNewsletterOffline = async(jnVol, jnIssue, jnCover, resourceId, 
         jn_issue:jnIssue,
         file: jnCover,
         resource_id:resourceId,
-        sync_status: 0,
         topic_id: topic
     })
     await tx.done
@@ -139,7 +136,6 @@ const savePublisherOffline = async(pubName, pubAdd, pubEmail, pubPhone, pubWeb) 
         pub_email: pubEmail,
         pub_phone: pubPhone,
         pub_website: pubWeb,
-        sync_status:0
     });
     await tx.done;
     return pubId;
@@ -183,7 +179,6 @@ const saveBookOffline = async (file,isbn,resourceId,pubId,topic)=>{
         book_isbn:!isbn?null:isbn,
         resource_id:resourceId, 
         pub_id:pubId,
-        sync_status:0,
         topic_id: topic
     })
     await tx.done
@@ -214,8 +209,7 @@ const saveAuthorsOffline = async (resourceId, authors) => {
                 //Save the author and get the inserted ID
                 const authorId =  await store.put({
                     author_fname: fname, 
-                    author_lname: lname, 
-                    sync_status: 0});
+                    author_lname: lname});
 
                 //after inserting, pass the resourceId and authorId to saveResourceAuthorOffline()
                 await saveResourceAuthorOffline(resourceId,authorId)
@@ -223,6 +217,7 @@ const saveAuthorsOffline = async (resourceId, authors) => {
                 //if may nahanap, get the authorId and pass to saveResourceAuthorOffline(resourceId,authorId) together with the resourceId
                 //result: {author_fname: 'sample', author_lname: 'sample', author_id: 1}
                 const authorId = result.author_id
+                console.log(resourceId,authorId)
                 await saveResourceAuthorOffline(resourceId,authorId)
             }
             await tx.done;  // Ensure the transaction completes
@@ -237,6 +232,6 @@ const saveResourceAuthorOffline = async (resourceId,authorId)=>{
     const tx = db.transaction("resourceauthors", "readwrite");
     const store = tx.objectStore("resourceauthors");
 
-    await store.put({resource_id: resourceId, author_id: authorId, sync_status:0})
+    await store.add({resource_id: resourceId, author_id: authorId})
     await tx.done;
 }

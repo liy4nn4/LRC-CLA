@@ -43,7 +43,6 @@ export const editResourceOffline = async (data,resourceId)=>{
         dept_id: data.department,
         type_id: data.mediaType,
         avail_id: data.status,
-        sync_status: 0
     }
     
     await store.put(updatedResource);
@@ -80,6 +79,25 @@ export const editResourceOffline = async (data,resourceId)=>{
 
 const editAuthorsOffline = async (resourceId, authors) => {
     const db = await initDB();
+
+    //delete first all records with value=resourceId
+    const txRa = db.transaction('resourceauthors', 'readwrite');
+    const storeRa = txRa.objectStore('resourceauthors');
+    const indexRa = storeRa.index('resource_id');
+
+    // Retrieve all records that match the specific resource_id
+    const ras = await indexRa.getAll(resourceId);
+
+    // Loop through the records and delete each one
+    for (let ra of ras) {
+        // Delete each record by its primary key (ra_id)
+        console.log(ra)
+        await storeRa.delete(ra.ra_id);
+    }
+    await txRa.done;
+
+
+    
     // Loop through authors to check if they exist and add them if not
     for (let element of authors) {
         // Use 'readwrite' since you're potentially adding or modifying records
@@ -103,7 +121,7 @@ const editAuthorsOffline = async (resourceId, authors) => {
             const authorId =  await store.put({
                 author_fname: fname, 
                 author_lname: lname, 
-                sync_status: 0});
+                });
 
             //after inserting, pass the resourceId and authorId to saveResourceAuthorOffline()
             await editResourceAuthorOffline(resourceId,authorId)
@@ -117,6 +135,15 @@ const editAuthorsOffline = async (resourceId, authors) => {
     }
     console.log("inserted to author and resourceauthor object store.");
 };
+
+const editResourceAuthorOffline = async (resourceId,authorId)=>{
+    const db = await initDB()
+    const tx = db.transaction("resourceauthors", "readwrite");
+    const store = tx.objectStore("resourceauthors");
+
+    await store.add({resource_id: resourceId, author_id: authorId})
+    await tx.done;
+}
 
 const editBookOffline = async (file,isbn,resourceId,pubId,topic)=>{
     const db = await initDB()
@@ -133,23 +160,9 @@ const editBookOffline = async (file,isbn,resourceId,pubId,topic)=>{
         book_isbn:isbn,
         resource_id:resourceId, 
         pub_id:pubId,
-        sync_status:0,
         topic_id: topic
     })
     await tx.done
-}
-
-const editResourceAuthorOffline = async (resourceId,authorId)=>{
-    const db = await initDB()
-    const tx = db.transaction("resourceauthors", "readwrite");
-    const store = tx.objectStore("resourceauthors");
-    const index = store.index("resource_id")
-
-    const ra = await index.get(resourceId)
-    await store.delete(ra.ra_id)
-
-    await store.put({resource_id: resourceId, author_id: authorId, sync_status:0})
-    await tx.done;
 }
 
 const editJournalNewsletterOffline = async(jnVol, jnIssue, jnCover, resourceId, topic)=>{
@@ -167,7 +180,6 @@ const editJournalNewsletterOffline = async(jnVol, jnIssue, jnCover, resourceId, 
         jn_issue:jnIssue,
         file: jnCover,
         resource_id:resourceId,
-        sync_status: 0,
         topic_id: topic
     })
     await tx.done
@@ -183,7 +195,7 @@ const editCheckAdviserIfExist = async(adviserFname, adviserLname,resourceId)=>{
 
     if(!result){
         //if adviser does nt exist, insert to adviser object store
-        const adviserId =  await store.put({adviser_fname: adviserFname, adviser_lname: adviserLname, sync_status:0});
+        const adviserId =  await store.put({adviser_fname: adviserFname, adviser_lname: adviserLname});
 
         //after inserting, pass to saveThesisOffline()
         await editThesisOffline(adviserId,resourceId)
@@ -207,7 +219,6 @@ const editThesisOffline = async (adId,resId)=>{
         thesis_id: thesis.thesis_id,
         resource_id:resId,
         adviser_id:adId,
-        sync_status:0
     })
     await tx.done
 }
@@ -233,8 +244,7 @@ const savePublisherOffline = async(pubName, pubAdd, pubEmail, pubPhone, pubWeb) 
        pub_add: pubAdd,
        pub_email: pubEmail,
        pub_phone: pubPhone,
-       pub_website: pubWeb,
-       sync_status:0
+       pub_website: pubWeb
    });
    await tx.done;
    return pubId;
