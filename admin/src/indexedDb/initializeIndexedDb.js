@@ -1,7 +1,7 @@
 import { openDB } from "idb"
 
 const dbName = "LRCCLA";
-const version = 3;
+const version = 1;
 
 export const initDB = async () => {
     return openDB (dbName, version,{
@@ -9,7 +9,8 @@ export const initDB = async () => {
             // Create "resources" store
         if (!db.objectStoreNames.contains("resources")) {
             const resourcesStore = db.createObjectStore("resources", { keyPath: "resource_id",autoIncrement:true });
-            // resourcesStore.createIndex("sync_status", "sync_status", { unique: false });
+            resourcesStore.createIndex("resource_title", "resource_title", { unique: false });
+            
         }
 
         // Create "journalnewsletter" store

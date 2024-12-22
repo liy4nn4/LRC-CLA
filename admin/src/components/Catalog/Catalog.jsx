@@ -12,7 +12,9 @@ import axios from 'axios'
 import io from 'socket.io-client';
 import Loading from '../Loading/Loading'
 import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
-import { markAsSynced } from '../../indexedDb/syncData'
+import { deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
+import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
+
 
 // const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -27,6 +29,13 @@ const Catalog = () => {
     searchKeyword: '',
     searchFilter: ''
   })
+  const [statusModal, setStatusModal] = useState(false)
+  const [statusModalContent, setStatusModalContent] =useState({
+    status:'',
+    message:''
+  })
+  const [isOnline, setIsOnline] = useState(true)
+
   
   useEffect(()=>{
     if(search.searchKeyword==''&&navigator.onLine){
@@ -36,8 +45,10 @@ const Catalog = () => {
 
   useEffect(()=>{
     if(navigator.onLine){
+      setIsOnline(true)
       getCatalogOnline()
     }else{
+      setIsOnline(false)
       getCatalogOffline()
     }
   },[pagination])
@@ -101,53 +112,69 @@ const syncResourcesOnline = async () => {
 
     for (const resource of resources) {
       try {
+        // Sync the resource
         const response = await axios.post('http://localhost:3001/sync/resources', resource);
-        if(response.data.status==409){
+        if (response.data.status === 409) {
           alert(response.data.message);
-          continue; //skipping the resource. Jump to next element
+          continue; // Skip the resource if there's a conflict
         }
         console.log(`Synced resource: ${resource.resource_id}`, response.data);
 
         // Retrieve resource_id from the server response
-        const { resource_id } = response.data;
-        console.log('resourceId: ', resource_id);
+        const { resource_id: serverResourceId } = response.data;
 
-        // Get authors and sync them
+        // Sync related data
         const authors = await getResourceAuthors(resource.resource_id);
-        await syncAuthorsOnline(authors, resource_id);
+        await syncAuthorsOnline(authors, serverResourceId);
 
         const resourceType = resource.type_id;
-        switch(resourceType){
-          case '1':
-            // Get publisher and book for syncing
+        switch (resourceType) {
+          case '1': // Book
             const publisher = await getPub(resource.resource_id); 
-            const book = await getResource('book',resource.resource_id);
-            // Sync publisher and book
+            const book = await getResource('book', resource.resource_id);
             const pubId = await syncPublisherOnline(publisher);
-            // Sync the associated book after publisher is synced
-            await syncBookOnline(book,resource_id,pubId);
+            await syncBookOnline(book, serverResourceId, pubId);
             break;
-          case '2':
-          case '3':
-            const jn = await getResource('journalnewsletter',resource.resource_id)
-            await syncJournalNewsletterOnline(jn,resource_id)
+          case '2': // Journal
+          case '3': // Newsletter
+            const jn = await getResource('journalnewsletter', resource.resource_id);
+            await syncJournalNewsletterOnline(jn, serverResourceId);
             break;
-          case '4':
-            const adviser = await getResourceAdviser(resource.resource_id)
-            //sync advisers
-            await syncAdviserOnline(adviser,resource_id)
-            break
+          case '4': // Thesis
+            const adviser = await getResourceAdviser(resource.resource_id);
+            await syncAdviserOnline(adviser, serverResourceId);
+            break;
         }
+
+        //  Delete resource from IndexedDB after successful sync
+        await deleteResourceFromIndexedDB(resource.resource_id);
+        console.log(`Resource ${resource.resource_id} deleted from IndexedDB.`);
       } catch (error) {
+        setStatusModal(true);
+        setStatusModalContent({
+          status: 'error',
+          message: `Failed to sync resource with title "${resource.resource_title}".`,
+        });
         console.error(`Failed to sync resource: ${resource.resource_id}`, error.message);
       }
     }
 
+    setStatusModal(true);
+    setStatusModalContent({
+      status: 'success',
+      message: 'All resources processed.',
+    });
     console.log('All resources processed.');
   } catch (error) {
+    setStatusModal(true);
+    setStatusModalContent({
+      status: 'error',
+      message: 'Error during data syncing. Please try again.',
+    });
     console.error('Error during data syncing:', error.message);
   }
 };
+
 
 //sync advisers
 const syncAdviserOnline = async(adviser,resourceId)=>{
@@ -349,6 +376,7 @@ const syncJournalNewsletterOnline = async (jn, resourceId) => {
       <AuthorModal open={openAuthor} close={()=>setOpenAuthor(!openAuthor)}/>
       <PublisherModal open={openPublisher} close={()=>setOpenPublisher(!openPublisher)}/>
       <Loading loading={loading}/>
+      <ResourceStatusModal open={statusModal} close={()=>setStatusModal(false)} content={statusModalContent} isOnline={isOnline}/>
     </div>
   )
 }

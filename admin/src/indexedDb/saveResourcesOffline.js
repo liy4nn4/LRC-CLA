@@ -1,6 +1,6 @@
 import { initDB } from "./initializeIndexedDb";
 
-export const saveResourceOffline = async(data)=>{
+export const saveResourceOffline = async(data) => {
     const mediaType = data.mediaType;
     let existingPublisher;
     let pub_name;
@@ -12,57 +12,60 @@ export const saveResourceOffline = async(data)=>{
     let adviserFname;
     let adviserLname;
 
-    //set variables depending on type
-    if(mediaType==='1'){
-        existingPublisher = data.publisher_id; //this is not 0 if pinili niya ay existing na publisher
+    // set variables depending on type
+    if (mediaType === '1') {
+        existingPublisher = data.publisher_id; // this is not 0 if pinili niya ay existing na publisher
         pub_name = data.publisher;
         pub_add = data.publisher_address;
         pub_email = data.publisher_email;
         pub_phone = data.publisher_number;
         pub_website = data.publisher_website;
-    }else if(mediaType==='4'){
+    } else if (mediaType === '4') {
         // split string
-        //if req.body.adviser is 'name lastname'. pag ginamitan ng split(' ') it will be ['name','lastname']
-        const adviser = data.adviser.split(' ')
+        const adviser = data.adviser.split(' ');
         adviserFname = adviser.slice(0, -1).join(" ");
         adviserLname = adviser.length > 1 ? adviser[adviser.length - 1] : '';
     }
 
-    const db = await initDB();
-    const tx = db.transaction("resources", "readwrite");
-    const store = tx.objectStore("resources");
-
-    // resource
-    const resource = {
-        resource_title: data.title,
-        resource_description: data.description,
-        resource_published_date: data.publishedDate,
-        resource_quantity: data.quantity,
-        resource_is_circulation: data.isCirculation?1:0,
-        dept_id: data.department,
-        type_id: data.mediaType,
-        avail_id: data.status,
+    // Check if the resource already exists
+    const existingResource = await checkResourceIfExist(data.title);
+    if (existingResource) {
+        console.log(`Resource with title "${data.title}" already exists. Skipping...`);
+        return {status: 'duplicated', message:`Resource with title "${data.title}" already exists.`}; // Skip if resource exists
     }
 
-    // Save the resource and get the inserted ID
-    const resourceId = await store.put(resource);
-    await tx.done;
-    console.log(`Data saved in resources object store`);
 
-    const authors = data.authors
-    console.log('author',authors)
+    try {
+        const db = await initDB();
+        const tx = db.transaction("resources", "readwrite"); // open transaction
+        const store = tx.objectStore("resources");
+        // Create resource object
+        const resource = {
+            resource_title: data.title,
+            resource_description: data.description,
+            resource_published_date: data.publishedDate,
+            resource_quantity: data.quantity,
+            resource_is_circulation: data.isCirculation ? 1 : 0,
+            dept_id: data.department,
+            type_id: data.mediaType,
+            avail_id: data.status,
+        };
 
-    console.log('data: ', data)
-    //pass resourceId and authors to saveAuthorsOffline
-    await saveAuthorsOffline(resourceId, authors).then(async ()=>{
-        //insert data based on their type
-        if(mediaType==='1'){
-            //check publisher
-            if(existingPublisher==0&&!pub_name&&!pub_add&&!pub_email&&!pub_phone&&!pub_website){
-                // if publisherid is 0 and walang nakaset sa pub details, insert to book then sed pub_id to nulll
-                await saveBookOffline(data.file, data.isbn, resourceId, null, data.topic)
-            }else{
-                //if hindi 0 ung publisherID, check sa publisher id nageexist un
+        // Save the resource and get the inserted ID
+        const resourceId = await store.put(resource);
+        await tx.done;
+        console.log("Data saved in resources object store");
+
+        const authors = data.authors;
+        await saveAuthorsOffline(resourceId, authors); // Save authors offline
+        
+        // Continue with media-specific handling
+        if (mediaType === '1') {
+            // Handle publisher and book details
+            if (existingPublisher === 0 && !pub_name && !pub_add && !pub_email && !pub_phone && !pub_website) {
+                await saveBookOffline(data.file, data.isbn, resourceId, null, data.topic);
+            } else {
+                // Publisher handling
                 try {
                     const pub = await checkPublisherIfExist(pub_name, pub_add, pub_email, pub_phone, pub_website);
                     await saveBookOffline(data.file, data.isbn, resourceId, pub.pub_id, data.topic);
@@ -71,13 +74,34 @@ export const saveResourceOffline = async(data)=>{
                     await saveBookOffline(data.file, data.isbn, resourceId, pubId, data.topic);
                 }
             }
-        }else if(mediaType==='2'||mediaType==='3'){
-            await saveJournalNewsletterOffline(data.volume, data.issue, data.file, resourceId, data.topic)
-        }else{
-            await checkAdviserIfExist(adviserFname,adviserLname,resourceId)
+        } else if (mediaType === '2' || mediaType === '3') {
+            await saveJournalNewsletterOffline(data.volume, data.issue, data.file, resourceId, data.topic);
+        } else {
+            await checkAdviserIfExist(adviserFname, adviserLname, resourceId);
         }
-    })
-}
+        
+        console.log("Transaction committed successfully");
+        return {status: 'success', message: "Resource saved offline successfully"};
+    } catch (error) {
+        console.error("Failed to save resource offline:", error);
+        throw error;
+    }
+};
+
+// Check if resource exists in IndexedDB
+const checkResourceIfExist = async (title) => {
+    const db = await initDB();
+    const tx = db.transaction("resources", "readonly");
+    const store = tx.objectStore("resources");
+    const index = store.index("resource_title");
+    const resources = await index.getAll();
+    const resource = resources.find(resource=>resource.resource_title==title)
+    await tx.done;
+    console.log('resource if exist: ', resource)
+    return resource!==undefined
+    
+};
+
 
 const checkAdviserIfExist = async(adviserFname, adviserLname,resourceId)=>{
     const db = await initDB();
@@ -235,3 +259,4 @@ const saveResourceAuthorOffline = async (resourceId,authorId)=>{
     await store.add({resource_id: resourceId, author_id: authorId})
     await tx.done;
 }
+

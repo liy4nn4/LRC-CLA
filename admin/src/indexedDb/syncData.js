@@ -1,17 +1,10 @@
 import { initDB } from "./initializeIndexedDb";
 
-// Get all unsynced data from a store
-export const markAsSynced = async (storeName,id) => {
+export const deleteResourceFromIndexedDB = async (resourceId) => {
     const db = await initDB();
-    const tx = db.transaction(storeName, "readwrite");
-    const store = tx.objectStore(storeName);
-    
-    // returns object that matches the id
-    const record = await store.get(id);
-    if (record) {
-        record.sync_status = 1; // Update sync status
-        await store.put(record);
-    }
-
+    const tx = db.transaction('resources', 'readwrite');
+    const store = tx.objectStore('resources');
+    await store.delete(resourceId);
     await tx.done;
-};
+    console.log(`Resource with ID ${resourceId} has been removed from IndexedDB.`);
+  };

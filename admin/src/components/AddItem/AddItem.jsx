@@ -11,7 +11,7 @@ import { getAllFromStore } from '../../indexedDb/getDataOffline';
 import { saveResourceOffline } from '../../indexedDb/saveResourcesOffline';
 import { viewResourcesOffline } from '../../indexedDb/viewResourcesOffline';
 import { editResourceOffline } from '../../indexedDb/editResourcesOffline';
-
+import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal';
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -44,6 +44,11 @@ const AddItem = () => {
     const [resourceStatus,setResourceStatus] = useState([])
     const [editMode, setEditMode] = useState(false)
     const [isOnline, setIsOnline] = useState(true)
+    const [statusModal, setStatusModal] = useState(false)
+    const [statusModalContent, setStatusModalContent] =useState({
+        status:'',
+        message:''
+    })
 
     useEffect(() => {
         if(!disabled){
@@ -94,7 +99,6 @@ const AddItem = () => {
                 getOnlineData();
                 viewResourceOnline();
             } else {
-                alert("You're offline. Viewing resource locally.");
                 getOfflineData();
                 viewResourceOffline();
             }
@@ -394,11 +398,17 @@ const AddItem = () => {
 
                  //handle status
                 if(response.data.status==409){
-                    // if resource is inserted already
-                    alert(response.data.message)
+                    setStatusModal(true)
+                    setStatusModalContent({
+                        status:'duplicated',
+                        message: response.data.message
+                    })
                 }else if(response.data.status==201){
-                    //if resource is inserted successfully
-                    alert(response.data.message)
+                    setStatusModal(true)
+                    setStatusModalContent({
+                        status:'success',
+                        message: response.data.message
+                    })
                 }
                
                  // Reset bookData if saved successfully
@@ -410,12 +420,21 @@ const AddItem = () => {
                     publisher: ''
                 });
 
-                window.location.reload()
             }catch(err){
+                setStatusModal(true)
+                setStatusModalContent({
+                    status:'error',
+                    message: 'Cannot save resource online. Please try again.'
+                })
                 console.log('Cannot save resource online. An error occurred: ',err.message);
             }
         } else {
-            console.log("Please enter complete information");
+            setStatusModal(true)
+            setStatusModalContent({
+                status:'error',
+                message: 'Please enter complete information'
+            })
+            console.log("Please enter complete information.");
         }
     };
 
@@ -428,19 +447,27 @@ const AddItem = () => {
                 console.log(response)
                 // close loading
                 setLoading(false)
-                 // Reset bookData if saved successfully
-                 setBookData({
-                    mediaType: 'book',
-                    authors: [],
-                    isCirculation: false,
-                    publisher_id: 0,
-                    publisher: ''
-                });
-                alert('Resource saved locally.')
+                setStatusModal(true)
+                setStatusModalContent(response)  
+                
+                
             }catch(err){
+                setLoading(false)
+                setStatusModal(true)
+                setStatusModalContent({
+                    status:'error',
+                    message: 'Cannot save resource offline. Please try again.'
+                })
                 console.log('Cannot save resource offline. An error occurred: ',err.message);
             }
         } else {
+            setLoading(false)
+            setStatusModal(true)
+            setStatusModalContent({
+                status:'error',
+                message: 'Please enter complete information'
+            })
+            console.log("Please enter complete information.");
             console.log("Please enter complete information");
         }
     }
@@ -459,10 +486,18 @@ const AddItem = () => {
                 setLoading(false)
                 if(response.data.status==201){
                     //if resource is inserted successfully
-                    alert(response.data.message)
-                }
-                window.location.reload();            
+                    setStatusModal(true)
+                    setStatusModalContent({
+                        status:'success',
+                        message: response.data.message
+                    })
+                }            
             }catch(err){
+                setStatusModal(true)
+                setStatusModalContent({
+                    status:'error',
+                    message: 'Cannot save resource online. Please try again.'
+                })
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
             }
     };
@@ -474,8 +509,18 @@ const AddItem = () => {
                 setLoading(true)
                 const response = await editResourceOffline(bookData,parseInt(id))
                 setLoading(false)
-                alert('Resource edited offline.')
+                setStatusModal(true)
+                setStatusModalContent({
+                    status:'success',
+                     message: 'Resource edited offline.'
+                })
             }catch(err){
+                setLoading(false)
+                setStatusModal(true)
+                setStatusModalContent({
+                    status:'error',
+                     message: 'Cannot edit resource online. Please try again.'
+                })
                 console.log('Cannot edit resource online. An error occurred: ',err.message);
             }
     };
@@ -614,7 +659,6 @@ const AddItem = () => {
             <div className='add-item-path-button'>
                 <Link to='/catalog'>
                     <button className='btn add-item-back-button'>
-                        <i className="fa-solid fa-arrow-left"></i>
                         Back
                     </button>
                 </Link>
@@ -692,6 +736,7 @@ const AddItem = () => {
             </div>}
             
             <Loading loading={loading}/>
+            <ResourceStatusModal open={statusModal} close={()=>setStatusModal(false)} content={statusModalContent} isOnline={isOnline}/>
         </div>
     );
 };
