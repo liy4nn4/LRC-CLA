@@ -12,7 +12,7 @@ import axios from 'axios'
 import io from 'socket.io-client';
 import Loading from '../Loading/Loading'
 import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
-import { deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
+import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
 
 
@@ -158,6 +158,22 @@ const syncResourcesOnline = async () => {
         console.error(`Failed to sync resource: ${resource.resource_id}`, error.message);
       }
     }
+
+    //delete all data from object stores used in cataloging
+    //clear author object store
+    await clearObjectStore('author')
+    //clear resoruceauthors
+    await clearObjectStore('resourceauthors')
+    //clear book
+    await clearObjectStore('book')
+    //clear publisher
+    await clearObjectStore('publisher')
+    //clear adviser
+    await clearObjectStore('adviser')
+    //clear thesis
+    await clearObjectStore('thesis')
+    //clear journalnewsletter
+    await clearObjectStore('journalnewsletter')
 
     setStatusModal(true);
     setStatusModalContent({
