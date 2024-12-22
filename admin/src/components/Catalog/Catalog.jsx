@@ -129,7 +129,7 @@ const syncResourcesOnline = async () => {
             await syncJournalNewsletterOnline(jn,resource_id)
             break;
           case '4':
-            const adviser = getResourceAdviser(resource.resource_id)
+            const adviser = await getResourceAdviser(resource.resource_id)
             //sync advisers
             await syncAdviserOnline(adviser,resource_id)
             break
@@ -148,6 +148,7 @@ const syncResourcesOnline = async () => {
 //sync advisers
 const syncAdviserOnline = async(adviser,resourceId)=>{
   try {
+    console.log('syncing advisers')
     const response = await axios.post('http://localhost:3001/sync/adviser', { adviser, resourceId });
     console.log(`Synced adviser: ${adviser.adviser_id}`, response.data);
    

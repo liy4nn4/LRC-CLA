@@ -1716,6 +1716,7 @@ app.post("/sync/journalnewsletter", upload.single('file'), async (req, res) => {
 //sync theses 
 app.post("/sync/adviser",async (req,res)=>{
     const {adviser, resourceId} = req.body;
+    console.log('adviser sent from frontend: ', adviser)
 
     const values =[
         adviser.adviser_fname,

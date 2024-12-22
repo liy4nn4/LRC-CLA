@@ -591,6 +591,7 @@ const AddItem = () => {
         const adv = [];
         try {
             const response = await getAllFromStore('adviser');
+            console.log('adviser list: ', response)
             response.forEach(item => {
                 adv.push({
                     value: `${item.adviser_fname} ${item.adviser_lname}`,

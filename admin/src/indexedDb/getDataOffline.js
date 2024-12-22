@@ -210,6 +210,8 @@ export const getResourceAdviser = async (resourceId) => {
         const adviserId = thesis.adviser_id;
         await txThesis.done;
 
+        console.log('thesis: ',thesis)
+
         // Get adviser details by adviserId
         const txAdviser = db.transaction('adviser', 'readonly');
         const storeAdviser = txAdviser.objectStore('adviser');
@@ -224,6 +226,7 @@ export const getResourceAdviser = async (resourceId) => {
 
         await txAdviser.done;
 
+        console.log('adviser: ',adviser)
         return adviser; // Return adviser details
 
     } catch (error) {
