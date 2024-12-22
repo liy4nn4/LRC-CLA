@@ -1061,7 +1061,7 @@ const getThesisResource = (id,res)=>{
     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
     JOIN resourcetype ON resources.type_id = resourcetype.type_id
-    JOIN thesis ON thesis.resource_id = thesis.resource_id
+    JOIN thesis ON resources.resource_id = thesis.resource_id
     JOIN adviser ON adviser.adviser_id = thesis.adviser_id
     WHERE resources.resource_id = ?
     GROUP BY resources.resource_id`
