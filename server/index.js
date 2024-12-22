@@ -352,25 +352,42 @@ const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
     })
 
 }
-//insert resources
-const insertResources = async (res, req, authors) => {
+
+//check resource if exist
+const checkResourceIfExist = (title) => {
     return new Promise((resolve, reject) => {
-        // Check if the resource already exists
-        const checkResourceIdExist = `SELECT * FROM resources WHERE resource_title = ?`;
-        
-        db.query(checkResourceIdExist, [req.body.title], (err, results) => {
+        const query = `SELECT * FROM resources WHERE resource_title = ?`;
+
+        db.query(query, [title], (err, results) => {
             if (err) {
                 return reject(err); // Reject with error
             }
 
-            // If a resource is found, reject with a specific message
             if (results.length > 0) {
+                // Resolve with `true` if resource exists
+                resolve(true);
+            } else {
+                // Resolve with `false` if resource does not exist
+                resolve(false);
+            }
+        });
+    });
+};
+
+//insert resource
+const insertResources = async (res, req, authors) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Check if the resource exists
+            const resourceExists = await checkResourceIfExist(req.body.title);
+
+            if (resourceExists) {
                 console.log('Resource already exists.');
                 return reject({ status: 409, message: 'Resource already exists.' });
             }
 
             // Insert the resource
-            const q = `
+            const insertQuery = `
                 INSERT INTO resources (
                     resource_title, 
                     resource_description, 
@@ -383,7 +400,7 @@ const insertResources = async (res, req, authors) => {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
-            const resources = [
+            const resourceValues = [
                 req.body.title,
                 req.body.description,
                 req.body.publishedDate,
@@ -394,7 +411,7 @@ const insertResources = async (res, req, authors) => {
                 req.body.status,
             ];
 
-            db.query(q, resources, async (err, results) => {
+            db.query(insertQuery, resourceValues, async (err, results) => {
                 if (err) {
                     return reject(err); // Reject with error
                 }
@@ -410,9 +427,13 @@ const insertResources = async (res, req, authors) => {
                     reject(authorError); // Reject if there's an error inserting authors
                 }
             });
-        });
+        } catch (error) {
+            reject(error); // Reject with any error that occurs
+        }
     });
 };
+
+
 
 //insert authors 
 const insertAuthors = async (res,authors,resourceId)=>{
@@ -1469,8 +1490,18 @@ const searchByAuthor = (searchKeyword,res)=>{
 
 /*------------SYNC DATA------------------*/
 // Sync resources table
-app.post("/sync/resources", (req, res) => {
+app.post("/sync/resources", async (req, res) => {
     const resource = req.body;
+
+    //check first if resource exist 
+    const resourceExists =await checkResourceIfExist(resource.resource_title)
+
+    if (resourceExists) {
+        console.log('Resource already exists.');
+        return res.send({ status: 409, message: `Resource with a title "${resource.resource_title}" already exists. Skipping insertion.` });
+    }
+
+
     const q = `
     INSERT INTO 
         resources (resource_title, resource_description, resource_published_date, resource_quantity, resource_is_circulation, dept_id, type_id, avail_id) 

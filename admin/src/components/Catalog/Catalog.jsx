@@ -102,6 +102,10 @@ const syncResourcesOnline = async () => {
     for (const resource of resources) {
       try {
         const response = await axios.post('http://localhost:3001/sync/resources', resource);
+        if(response.data.status==409){
+          alert(response.data.message);
+          continue; //skipping the resource. Jump to next element
+        }
         console.log(`Synced resource: ${resource.resource_id}`, response.data);
 
         // Retrieve resource_id from the server response
