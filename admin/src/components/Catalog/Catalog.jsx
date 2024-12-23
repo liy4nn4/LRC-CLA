@@ -22,7 +22,9 @@ const Catalog = () => {
   const [openAuthor, setOpenAuthor] = useState(false)
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
-  const [pagination,setPagination] = useState(0)
+  // pagination
+  const [startIndex,setStartIndex] = useState(0)
+  const [endIndex,setEndIndex] = useState(5)
   const filterOptions = ['title','author','book','journal','newsletter','thesis']
   const [loading,setLoading] = useState(false)
   const [search, setSearch]=useState({
@@ -51,13 +53,13 @@ const Catalog = () => {
       setIsOnline(false)
       getCatalogOffline()
     }
-  },[pagination])
+  },[])
 
 /*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
   //get resources details in mysql and display in catalog page
   const getCatalogOnline = async()=>{
     try {
-      const response = await axios.get(`http://localhost:3001/catalogdetails/${pagination}`).then(res=>res.data);
+      const response = await axios.get(`http://localhost:3001/catalogdetails`).then(res=>res.data);
       setCatalog(response)
     } catch (err) {
         console.log(err.message);
@@ -281,7 +283,24 @@ const syncJournalNewsletterOnline = async (jn, resourceId) => {
   }
 };
 
+/*------------HANDLE PAGINATION---------------- */
+const handlePreviousButton = ()=>{
+  if(startIndex!=0){
+    setStartIndex(startIndex-5)
+    setEndIndex(endIndex-5)
+  }
+}
 
+const handleNextButton = ()=>{
+  if(endIndex<=catalog.length){
+    setStartIndex(startIndex+5)
+    setEndIndex(endIndex+5)
+  }
+}
+
+  console.log(catalog)
+  console.log(startIndex)
+  console.log(endIndex)
 
   return (
     <div className='cat-container'>
@@ -346,42 +365,52 @@ const syncJournalNewsletterOnline = async (jn, resourceId) => {
                 </tr>
               </thead>
               <tbody>
-                {catalog?catalog.length>0?catalog.map((item,key)=>(
+              {Array.isArray(catalog) && catalog.length > 0 ? (
+              catalog.slice(startIndex, endIndex).map((item, key) => (
                 <tr key={key}>
                   {/* <td>{item.resource_id}</td> */}
                   <td>{item.resource_title}</td>
                   <td>{item.type_name}</td>
-                  <td>{item.author_names>1?
-                    <ul>
-                      {item.author_names.map(a=>(
-                        <li>{a}</li>
-                      ))}
-                    </ul>    
-                  :<ul><li>{item.author_names}</li></ul>}</td>
+                  <td>
+                    {Array.isArray(item.author_names) && item.author_names.length > 1 ? (
+                      <ul>
+                        {item.author_names.map((author, index) => (
+                          <li key={index}>{author}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <ul>
+                        <li>{item.author_names}</li>
+                      </ul>
+                    )}
+                  </td>
                   <td>{item.dept_shelf_no}</td>
                   <td>{item.resource_quantity}</td>
                   <td>
                     <Link to={`/view-item/${item.resource_id}`}>
-                      <button className='btn cat-view'>
-                        <i class="fa-solid fa-bars"></i>
+                      <button className="btn cat-view">
+                        <i className="fa-solid fa-bars"></i>
                         View
                       </button>
                     </Link>
                   </td>
-                </tr> )):
-                  <tr>
-                      <td colSpan="7">No records available</td> 
-                  </tr>:''}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7">No records available</td>
+              </tr>
+            )}
+
               </tbody>
             </table> 
             {/* pagination */}
             <nav aria-label="Page navigation example">
               <div class="pagination justify-content-end">
-                <button className={pagination===0?'btn disabled':'btn enabled'} onClick={()=>{
-                  pagination!=0?setPagination(pagination-5):setPagination(0)}} disabled={pagination===0}>
+                <button className='btn' onClick={handlePreviousButton} disabled={startIndex==0}>
                   Previous
                 </button>
-                <button className={Object.keys(catalog).length!=5?'btn disabled':'btn enabled'} onClick={()=>setPagination(pagination+5)} disabled={Object.keys(catalog).length!=5}>
+                <button className='btn' onClick={handleNextButton} disabled={endIndex>catalog.length}>
                   Next
                 </button>
               </div>

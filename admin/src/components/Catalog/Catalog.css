@@ -170,8 +170,6 @@
     border-bottom: none;
 }
 
-
-
 .cat-container .cat-table tbody tr:nth-child(odd){
     background-color: var(--white) !important;
 }
@@ -194,6 +192,9 @@
     gap: 5px;
 }
 
+.cat-container .pagination button{
+    background-color: var(--tup-color);
+}
 .cat-container .sync-2-db, .cat-container .sync-from-db{
     background-color: var(--tup-color);
     color: var(--white);

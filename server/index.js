@@ -914,9 +914,7 @@ db.query(query, [date], (err, result) => {
 });
 
 //get catalog details 
-app.get('/catalogdetails/:pagination',(req,res)=>{
-    const page = parseInt(req.params.pagination,10)
-
+app.get('/catalogdetails',(req,res)=>{
     const q =
     `
     SELECT 
@@ -934,7 +932,7 @@ app.get('/catalogdetails/:pagination',(req,res)=>{
     GROUP BY resources.resource_id
     ORDER BY resources.resource_title ASC`;
 
-    db.query(q,page,(err,results)=>{
+    db.query(q,(err,results)=>{
         if(err) return res.send(err)
         if(results.length>0){
             return res.json(results)
