@@ -244,8 +244,7 @@ const insertJournalNewsletter = async(jn,res,filePath)=>{
         if (filePath) {
             fs.unlinkSync(filePath);
         }
-                
-        return res.send({status:201,message:'Journal/Newsletter inserted successfully.'});
+        return res.send({status: 201, message:'Journal/Newsletter inserted successfully.'});
     });
 }
 
@@ -348,7 +347,7 @@ const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
             return res.status(500).send(err); 
         }
         console.log('Book inserted successfully')
-        return res.status(201).send('Book inserted successfully');
+        return res.send({status: 201, message:'Book inserted successfully.'});
     })
 
 }
@@ -432,8 +431,6 @@ const insertResources = async (res, req, authors) => {
         }
     });
 };
-
-
 
 //insert authors 
 const insertAuthors = async (res,authors,resourceId)=>{

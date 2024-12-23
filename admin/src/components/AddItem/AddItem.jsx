@@ -72,13 +72,11 @@ const AddItem = () => {
 
     useEffect(() => {
         const handleOnline = () => {
-            alert("You're online");
             getOnlineData();
             setIsOnline(true);
         };
     
         const handleOffline = () => {
-            alert("You're offline");
             initDB();
             getOfflineData();
             setIsOnline(false);

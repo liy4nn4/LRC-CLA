@@ -44,11 +44,8 @@ const ResourceStatusModal = ({ open, content, close, isOnline, resetData }) => {
                     className="btn"
                     onClick={() => {
                         close();
-                        if (isOnline) {
-                            window.location.reload();
-                        } else {
-                            navigate('/catalog')
-                        }
+                        navigate('/catalog')
+                      
                     }}
                 >
                     Okay
