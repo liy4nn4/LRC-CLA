@@ -17,6 +17,7 @@ import ViewItemPage from './pages/ViewItemPage/ViewItemPage';
 import AttendancePage from './pages/AttendancePage/AttendancePage';
 import CirculationPage from './pages/CirculationPage/CirculationPage';
 import CirculationSelectPatronPage from './pages/CirculationSelectPatronPage/CirculationSelectPatronPage';
+import CirculationSelectItemPage from './pages/CirculationSelectItemPage/CirculationSelectItemPage';
   
 const App = () => {
   
@@ -29,7 +30,8 @@ const App = () => {
           <Route path='/dashboard' element={<DashboardPage/>}/>
           <Route path='/logbook' element={<LogbookPage/>}/>
           <Route path='/circulation' element={<CirculationPage/>}/>
-          <Route path='/circulation/select-patron' element={<CirculationSelectPatronPage/>}/>
+          <Route path='/circulation/patron' element={<CirculationSelectPatronPage/>}/>
+          <Route path='/circulation/patron/item' element={<CirculationSelectItemPage/>}/>
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>
           <Route path='/admin' element={<Admin/>}/>

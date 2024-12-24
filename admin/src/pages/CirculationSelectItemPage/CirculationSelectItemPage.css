@@ -1,0 +1,5 @@
+.circselectitempage{
+    display: grid;
+    grid-template-columns: 260px auto;
+    overflow-x: hidden;
+}

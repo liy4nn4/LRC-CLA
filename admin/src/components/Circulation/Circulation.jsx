@@ -10,7 +10,7 @@ const Circulation = () => {
       <h1>Circulation</h1>
 
       {/* check in button */}
-      <Link to='/circulation/select-patron'>
+      <Link to='/circulation/patron'>
         <button className='btn checkin-btn'>
           <FontAwesomeIcon icon={faCartPlus} className='icon'/>
           <span>Check in</span>

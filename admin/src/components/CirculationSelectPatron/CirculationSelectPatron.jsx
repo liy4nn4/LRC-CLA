@@ -12,7 +12,7 @@ const CirculationSelectPatron = () => {
             <Link to='/circulation'>
                 <button className="btn">Back</button>
             </Link>
-            <p>Circulation / <span>Select patron    </span></p>
+            <p>Circulation / <span>Select items</span></p>
         </div>
 
         {/* search */}
@@ -36,15 +36,18 @@ const CirculationSelectPatron = () => {
             </div>
 
             {/* patron */}
-            <div className="row patron">
-                <div className="col">
-                    <input type="radio" /> TUPM-21-1232
+            <Link to='/circulation/patron/item'>
+                <div className="row patron">
+                    <div className="col">
+                        <input type="radio" /> TUPM-21-1232
+                    </div>
+                    <div className="col">Lance Bernal</div>
+                    <div className="col">Student</div>
+                    <div className="col">BSIT-NS</div>
+                    <div className="col">1</div>
                 </div>
-                <div className="col">Lance Bernal</div>
-                <div className="col">Student</div>
-                <div className="col">BSIT-NS</div>
-                <div className="col">1</div>
-            </div>
+            </Link>
+            
 
             {/* pagination */}
             <div className="pagination">
