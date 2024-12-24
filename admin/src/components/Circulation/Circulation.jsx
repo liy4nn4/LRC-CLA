@@ -2,6 +2,7 @@ import React from 'react'
 import './Circulation.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCartPlus } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom'
 
 const Circulation = () => {
   return (
@@ -9,10 +10,12 @@ const Circulation = () => {
       <h1>Circulation</h1>
 
       {/* check in button */}
-      <button className='btn checkin-btn'>
-        <FontAwesomeIcon icon={faCartPlus} className='icon'/>
-        <span>Check in</span>
-      </button>
+      <Link to='/circulation/select-patron'>
+        <button className='btn checkin-btn'>
+          <FontAwesomeIcon icon={faCartPlus} className='icon'/>
+          <span>Check in</span>
+        </button>
+      </Link>
 
       {/* search */}
       <div className="search-container">

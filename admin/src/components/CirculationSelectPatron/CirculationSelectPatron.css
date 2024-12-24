@@ -1,0 +1,173 @@
+@font-face {
+    font-family: 'Inter';
+    font-weight: 400;
+    src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter';
+    text-decoration: none;
+}
+
+
+:root{
+    --black:#1F1F1F;
+    --tup-color: #94152b;
+    --tup-color-hover: #7c1224;
+    --white: #fff;
+    --button:  #97170E;
+    --button-hover:  #75110a;
+    --shadow: #0000003b;
+    --yellow: #FFE900;
+    --yellow-hover:#FEDD00;
+    --yellow-filter: brightness(0) saturate(10%) invert(90%) sepia(41%) saturate(1000%) hue-rotate(332deg) brightness(103%) contrast(103%);
+    --white-filter:  brightness(100%) saturate(0) invert(100%) sepia(0) saturate(0) hue-rotate(0) brightness(1000%) contrast(100%);
+    --green: #54CB58;
+    --light-gray: #F7F7F7;
+    --blue: #5499CB;
+    --table-header: #6F6A6A;
+    --disabled: #b9b9b9;
+    --table-border-bottom:#D9D9D9;
+    --light-red: rgba(148, 21, 43, 0.1);
+}
+
+.circ-select-patron-container{
+    padding: 10px 70px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    overflow-x: hidden;   
+}
+
+.circ-select-patron-container h1{
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0;
+}
+
+.circ-select-patron-container .back-path{
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.circ-select-patron-container button{
+    background-color: var(--white);
+    border-color: var(--tup-color);
+    color: var(--tup-color);
+}
+
+.circ-select-patron-container button:hover,
+.circ-select-patron-container button:active,
+.circ-select-patron-container button:focus{
+    background-color: var(--tup-color);
+    border-color: var(--tup-color);
+    color: var(--white);
+}
+
+.circ-select-patron-container p{
+    margin: 0;
+}
+
+.circ-select-patron-container p span{
+    color: var(--tup-color);
+    font-weight: bold;
+}
+
+.circ-select-patron-container .search-container{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+
+.circ-select-patron-container .search-container p{
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.circ-select-patron-container .search-container input{
+    height: 39px;
+    width: 50%;
+    border-color: var(--tup-color);
+    border-radius: 5px;
+    padding-left: 10px;
+}
+
+.circ-select-patron-container .search-container button{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.circ-select-patron-container .search-container button:hover,
+.circ-select-patron-container .search-container button:active,
+.circ-select-patron-container .search-container button:focus{
+    background-color: var(--tup-color-hover);
+    color: var(--white);
+}
+
+.circ-select-patron-container .patron-list{
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: auto;
+}
+
+.circ-select-patron-container .patron-list p{
+    position: relative;
+    left: -10px;
+}
+
+.circ-select-patron-container .patron-list-header{
+    background-color: var(--tup-color);
+    padding: 15px;
+    color: var(--white);
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.circ-select-patron-container .patron-list .patron{
+    background-color: var(--white);
+    border: 1px solid var(--tup-color);
+    padding: 15px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.circ-select-patron-container .patron-list .patron div:nth-child(1){
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+
+.circ-select-patron-container  .patron-list .pagination{
+    display: flex;
+    justify-content: end;
+    position: relative;
+    right: -10px;
+}
+
+.circ-select-patron-container  .patron-list .pagination  .buttons{
+    display: flex;
+    gap: 10px;
+}
+
+.circ-select-patron-container .patron-list .pagination button{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.circ-select-patron-container .patron-list .pagination button:hover,
+.circ-select-patron-container .patron-list .pagination button:active,
+.circ-select-patron-container .patron-list .pagination button:focus{
+    background-color: var(--tup-color-hover);
+    color: var(--white);
+}

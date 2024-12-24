@@ -66,8 +66,9 @@
 .circulation-container .checkin-btn:hover,
 .circulation-container .checkin-btn:active,
 .circulation-container .checkin-btn:focus{
-    background-color: var(--tup-color-hover);
-    color: var(--white);
+    background-color: white;
+    border: 1px solid var(--tup-color);
+    color: var(--tup-color);
 }
 
 .circulation-container .checkin-btn .icon{
