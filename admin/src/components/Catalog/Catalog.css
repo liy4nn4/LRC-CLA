@@ -189,6 +189,13 @@
 }
 
 .cat-container .pagination{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cat-container .pagination .buttons{
+    display: flex;
     gap: 5px;
 }
 

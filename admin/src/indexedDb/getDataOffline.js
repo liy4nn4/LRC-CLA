@@ -9,7 +9,7 @@ export const getAllFromStore = async (storeName) => {
 };
 
 //displays resources in catalog page
-export const getCatalogDetailsOffline = async (setCatalog)=>{
+export const getCatalogDetailsOffline = async ()=>{
     const db = await initDB()
     const catalog = [];
 
@@ -75,7 +75,7 @@ export const getCatalogDetailsOffline = async (setCatalog)=>{
 
         console.log(resourceAuthors)
     }
-    setCatalog(catalog) 
+    return catalog
 }
 
 //get all unsynced data

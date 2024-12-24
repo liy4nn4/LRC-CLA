@@ -52,23 +52,31 @@ const Catalog = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-        if (navigator.onLine) {
-            setIsOnline(true);
-            await getCatalogOnline();
-        } else {
-            setIsOnline(false);
-            await getCatalogOffline();
-        }
+      if (navigator.onLine) {
+        setIsOnline(true);
+        await getCatalogOnline();
+      } else {
+        setIsOnline(false);
+        await getCatalogOffline();
+      }
     };
 
     fetchData();
-  }, []);
 
-  useEffect(() => {
-    if (navigator.onLine) {
-        getCatalogOnline();
-    }
+    const handleConnectionChange = () => {
+      setIsOnline(navigator.onLine);
+      fetchData();
+    };
+
+    window.addEventListener('online', handleConnectionChange);
+    window.addEventListener('offline', handleConnectionChange);
+
+    return () => {
+      window.removeEventListener('online', handleConnectionChange);
+      window.removeEventListener('offline', handleConnectionChange);
+    };
   }, [currentPage, pagination]);
+
 
 /*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
 const getCatalogOnline = async () => {
@@ -94,12 +102,12 @@ const getCatalogOnline = async () => {
   }
 };
 
-
-  //get resources details in indexeddb and display in catalog page
-  const getCatalogOffline = async ()=>{
-    await getCatalogDetailsOffline(setCatalog);
-  }
-
+//get catalog offline
+const getCatalogOffline = async () => {
+  const data = await getCatalogDetailsOffline();
+  setCatalog(data);
+  setTotalPages(Math.ceil(data.length / pagination));
+};
 
 /*------------HANDLE CHANGES------------------------------------*/
   const handleSearch = async ()=>{
@@ -420,23 +428,29 @@ const handleNextButton = () => {
             </table> 
             {/* pagination */}
             <nav aria-label="Page navigation example">
-              <div class="pagination justify-content-end">
-                <button
-                  className="btn"
-                  onClick={handlePreviousButton}
-                  disabled={currentPage === 1}
-                  aria-label="Go to previous page"
-                >
-                  Previous
-                </button>
-                <button
-                  className='btn'
-                  onClick={handleNextButton}
-                  disabled={currentPage === totalPages}
-                  aria-label="Go to next page"
-                >
-                  Next
-                </button>
+              <div class="pagination">
+                <span>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <div className='buttons'>
+                  <button
+                    className="btn"
+                    onClick={handlePreviousButton}
+                    disabled={currentPage === 1}
+                    aria-label="Go to previous page"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className='btn'
+                    onClick={handleNextButton}
+                    disabled={currentPage === totalPages}
+                    aria-label="Go to next page"
+                  >
+                    Next
+                  </button>
+                </div>
+                
               </div>
             </nav>
         
