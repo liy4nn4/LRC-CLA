@@ -16,15 +16,16 @@ import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
 
 
-// const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const Catalog = () => {
   const [openAuthor, setOpenAuthor] = useState(false)
   const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
-  // pagination
-  const [startIndex,setStartIndex] = useState(0)
-  const [endIndex,setEndIndex] = useState(5)
+  // Pagination state
+  const [pagination, setPagination] = useState(5); // Items per page
+  const [currentPage, setCurrentPage] = useState(1); // Current page
+  const [totalPages, setTotalPages] = useState(0); // Total pages
   const filterOptions = ['title','author','book','journal','newsletter','thesis']
   const [loading,setLoading] = useState(false)
   const [search, setSearch]=useState({
@@ -39,32 +40,60 @@ const Catalog = () => {
   const [isOnline, setIsOnline] = useState(true)
 
   
-  useEffect(()=>{
-    if(search.searchKeyword==''&&navigator.onLine){
-      getCatalogOnline()
-    }
-  },[search.searchKeyword])
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      if (search.searchKeyword === '' && navigator.onLine) {
+        await getCatalogOnline();
+      }
+    };
+    fetchCatalog();
+  }, [search.searchKeyword]);
+  
 
-  useEffect(()=>{
-    if(navigator.onLine){
-      setIsOnline(true)
-      getCatalogOnline()
-    }else{
-      setIsOnline(false)
-      getCatalogOffline()
+  useEffect(() => {
+    const fetchData = async () => {
+        if (navigator.onLine) {
+            setIsOnline(true);
+            await getCatalogOnline();
+        } else {
+            setIsOnline(false);
+            await getCatalogOffline();
+        }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (navigator.onLine) {
+        getCatalogOnline();
     }
-  },[])
+  }, [currentPage, pagination]);
 
 /*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
-  //get resources details in mysql and display in catalog page
-  const getCatalogOnline = async()=>{
-    try {
-      const response = await axios.get(`http://localhost:3001/catalogdetails`).then(res=>res.data);
-      setCatalog(response)
-    } catch (err) {
-        console.log(err.message);
-    }
+const getCatalogOnline = async () => {
+  try {
+      setLoading(true); // Show loading spinner
+      const offset = (currentPage - 1) * pagination;
+
+      const response = await axios.get(`http://localhost:3001/catalogdetails`, {
+          params: { limit: pagination, offset }
+      });
+
+      if (response.data.records) {
+          setCatalog(response.data.records);
+          setTotalPages(Math.ceil(response.data.total / pagination)); // Calculate total pages
+      } else {
+          setCatalog([]);
+          setTotalPages(0);
+      }
+  } catch (err) {
+      console.error('Error fetching catalog data:', err.message);
+  } finally {
+      setLoading(false); // Hide loading spinner
   }
+};
+
 
   //get resources details in indexeddb and display in catalog page
   const getCatalogOffline = async ()=>{
@@ -146,6 +175,8 @@ const syncResourcesOnline = async () => {
             const adviser = await getResourceAdviser(resource.resource_id);
             await syncAdviserOnline(adviser, serverResourceId);
             break;
+          default:
+            console.warn(`Unhandled resource type: ${resourceType}`);
         }
 
         //  Delete resource from IndexedDB after successful sync
@@ -283,24 +314,19 @@ const syncJournalNewsletterOnline = async (jn, resourceId) => {
   }
 };
 
-/*------------HANDLE PAGINATION---------------- */
-const handlePreviousButton = ()=>{
-  if(startIndex!=0){
-    setStartIndex(startIndex-5)
-    setEndIndex(endIndex-5)
+ /*------------HANDLE PAGINATION---------------- */
+ const handlePreviousButton = () => {
+  if (currentPage > 1) {
+    setCurrentPage(currentPage - 1);
   }
-}
+};
 
-const handleNextButton = ()=>{
-  if(endIndex<=catalog.length){
-    setStartIndex(startIndex+5)
-    setEndIndex(endIndex+5)
+const handleNextButton = () => {
+  if (currentPage < totalPages) {
+    setCurrentPage(currentPage + 1);
   }
-}
-
-  console.log(catalog)
-  console.log(startIndex)
-  console.log(endIndex)
+};
+  console.log(catalog)        
 
   return (
     <div className='cat-container'>
@@ -320,13 +346,14 @@ const handleNextButton = ()=>{
           {/* sync*/}
           <div className="add-author-publisher">
               {/* sync to database */}
-              <button className='btn sync-2-db' onClick={syncData2DB} disabled={!navigator.onLine} title='You need internet connection to sync to database.'>
-                  Sync to database
-              </button>
-              {/* sync from database */}
-              {/* <button className='btn sync-from-db' disabled={!navigator.onLine}>
-                  Sync from database
-              </button> */}
+              <button
+              className='btn sync-2-db'
+              onClick={syncData2DB}
+              disabled={!navigator.onLine}
+              title='You need internet connection to sync to database.'
+            >
+              Sync to database
+            </button>
            </div>
         </div>
         
@@ -365,52 +392,49 @@ const handleNextButton = ()=>{
                 </tr>
               </thead>
               <tbody>
-              {Array.isArray(catalog) && catalog.length > 0 ? (
-              catalog.slice(startIndex, endIndex).map((item, key) => (
-                <tr key={key}>
-                  {/* <td>{item.resource_id}</td> */}
-                  <td>{item.resource_title}</td>
-                  <td>{item.type_name}</td>
-                  <td>
-                    {Array.isArray(item.author_names) && item.author_names.length > 1 ? (
-                      <ul>
-                        {item.author_names.map((author, index) => (
-                          <li key={index}>{author}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <ul>
-                        <li>{item.author_names}</li>
-                      </ul>
-                    )}
-                  </td>
-                  <td>{item.dept_shelf_no}</td>
-                  <td>{item.resource_quantity}</td>
-                  <td>
-                    <Link to={`/view-item/${item.resource_id}`}>
-                      <button className="btn cat-view">
-                        <i className="fa-solid fa-bars"></i>
-                        View
-                      </button>
-                    </Link>
-                  </td>
+              {catalog.length > 0 ? (
+                catalog.map((item, key) => (
+                  <tr key={key}>
+                    <td>{item.resource_title}</td>
+                    <td>{item.type_name}</td>
+                    <td>{item.author_names}</td>
+                    <td>{item.dept_shelf_no}</td>
+                    <td>{item.resource_quantity}</td>
+                    <td>
+                      <Link to={`/view-item/${item.resource_id}`}>
+                        <button className="btn cat-view">
+                          <i className="fa-solid fa-bars"></i>
+                          View
+                        </button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7">No records available</td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7">No records available</td>
-              </tr>
-            )}
+              )}
+            </tbody>
 
-              </tbody>
             </table> 
             {/* pagination */}
             <nav aria-label="Page navigation example">
               <div class="pagination justify-content-end">
-                <button className='btn' onClick={handlePreviousButton} disabled={startIndex==0}>
+                <button
+                  className="btn"
+                  onClick={handlePreviousButton}
+                  disabled={currentPage === 1}
+                  aria-label="Go to previous page"
+                >
                   Previous
                 </button>
-                <button className='btn' onClick={handleNextButton} disabled={endIndex>catalog.length}>
+                <button
+                  className='btn'
+                  onClick={handleNextButton}
+                  disabled={currentPage === totalPages}
+                  aria-label="Go to next page"
+                >
                   Next
                 </button>
               </div>

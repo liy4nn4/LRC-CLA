@@ -914,9 +914,14 @@ db.query(query, [date], (err, result) => {
 });
 
 //get catalog details 
-app.get('/catalogdetails',(req,res)=>{
-    const q =
-    `
+app.get('/catalogdetails', (req, res) => {
+    const { limit, offset } = req.query;
+
+    // Set default values
+    const itemsPerPage = parseInt(limit) || 5;
+    const startIndex = parseInt(offset) || 0;
+
+    const q = `
     SELECT 
         resources.resource_title, 
         resources.resource_id, 
@@ -930,16 +935,29 @@ app.get('/catalogdetails',(req,res)=>{
     JOIN resourcetype ON resources.type_id = resourcetype.type_id 
     JOIN department ON department.dept_id = resources.dept_id
     GROUP BY resources.resource_id
-    ORDER BY resources.resource_title ASC`;
+    ORDER BY resources.resource_title ASC
+    LIMIT ? OFFSET ?`;
 
-    db.query(q,(err,results)=>{
-        if(err) return res.send(err)
-        if(results.length>0){
-            return res.json(results)
-        }
-            
-    })
-})
+    const countQuery = `
+    SELECT COUNT(DISTINCT resources.resource_id) AS total
+    FROM resources 
+    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+    JOIN author ON resourceauthors.author_id = author.author_id`;
+
+    // Get records and total count
+    db.query(q, [itemsPerPage, startIndex], (err, records) => {
+        if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+
+        db.query(countQuery, (countErr, countResults) => {
+            if (countErr) return res.status(500).json({ error: 'Database error', details: countErr.message });
+
+            const total = countResults[0]?.total || 0;
+            res.json({ records, total });
+        });
+    });
+});
+
+
 /*--------VIEW RESOURCE FROM CATALOG-------------*/ 
 app.get('/view/:id',(req,res)=>{
     const id = req.params.id;
