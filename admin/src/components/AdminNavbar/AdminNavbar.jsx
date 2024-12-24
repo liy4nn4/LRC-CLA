@@ -50,17 +50,10 @@ const AdminNavbar = () => {
                     </Link>
                 </li>
 
-                {/* inventory */}
-                {/* <li>
-                    <Link to='/inventory' className="menu">
-                        <img src={inventory} alt="" className='menu-icon'/>
-                        <p>Inventory</p>
-                    </Link>  
-                </li> */}
                 
                 {/* circulation */}
                 <li>
-                    <Link className="menu">
+                    <Link to='/circulation' className="menu">
                         <img src={circulation} alt="" className='menu-icon'/>
                         <p>Circulation</p>
                     </Link>

@@ -112,8 +112,10 @@ const getCatalogOffline = async () => {
 /*------------HANDLE CHANGES------------------------------------*/
   const handleSearch = async ()=>{
     try{
+      setLoading(true)
       const response = await axios.get(`http://localhost:3001/catalog/search`, { params: search });
       console.log(response.data)
+      setLoading(false)
       setCatalog(response.data)
     }catch(err){
       console.log('Cannot search resource. An error occurred: ', err.message)
@@ -371,7 +373,7 @@ const handleNextButton = () => {
             <div className="search-filter">
                 <form class="d-flex " role="search">
                   <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange}/>
-                  <button class="btn cat-search-button" type="submit" onClick={handleSearch}>Search</button>
+                  <button class="btn cat-search-button" onClick={handleSearch}>Search</button>
                 </form>
                 <div class="dropdown">
                   <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -450,7 +452,6 @@ const handleNextButton = () => {
                     Next
                   </button>
                 </div>
-                
               </div>
             </nav>
         

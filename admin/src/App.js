@@ -8,7 +8,6 @@ import AdminLogInPage from './pages/AdminLogInPage/AdminLogInPage';
 import DashboardPage from './pages/DashboardPage/DashboardPage';
 import Admin from './pages/Admin/Admin';
 import LogbookPage from './pages/LogbookPage/LogbookPage';
-import InventoryPage from'./pages/InventoryPage/InventoryPage'
 import PatronsPage from './pages/PatronsPage/PatronsPage';
 import ReportsPage from './pages/ReportsPage/ReportsPage';
 import CatalogPage from './pages/CatalogPage/CatalogPage';
@@ -16,6 +15,7 @@ import AddItemPage from './pages/AddItemPage/AddItemPage';
 import ViewItem from './components/ViewItem/ViewItem';
 import ViewItemPage from './pages/ViewItemPage/ViewItemPage';
 import AttendancePage from './pages/AttendancePage/AttendancePage';
+import CirculationPage from './pages/CirculationPage/CirculationPage';
   
 const App = () => {
   
@@ -27,7 +27,7 @@ const App = () => {
           <Route path='/' element={<DashboardPage/>}/>
           <Route path='/dashboard' element={<DashboardPage/>}/>
           <Route path='/logbook' element={<LogbookPage/>}/>
-          <Route path='/inventory' element={<InventoryPage/>}/>
+          <Route path='/circulation' element={<CirculationPage/>}/>
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>
           <Route path='/admin' element={<Admin/>}/>

@@ -1,22 +1,21 @@
 import React from 'react'
-import './AddItemPageOffline.css'
+import './CirculationPage.css'
 import AdminNavbar from '../../components/AdminNavbar/AdminNavbar'
 import AdminTopNavbar from '../../components/AdminTopNavbar/AdminTopNavbar'
-import AddItemOffline from '../../components/AddItem/AddItemOffline'
+import Circulation from '../../components/Circulation/Circulation'
 
-const AddItemPageOffline = () => {
-  console.log('AddItemPage mounted');
+const CirculationPage = () => {
   return (
-    <div className='additempage'>
+    <div className='circpage'>
       <div>
        <AdminNavbar/>
       </div> 
       <div>
         <AdminTopNavbar/>
-        <AddItemOffline/>
+        <Circulation/>
       </div>
     </div>
   )
 }
 
-export default AddItemPageOffline
+export default CirculationPage

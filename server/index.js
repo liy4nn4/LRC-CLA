@@ -1385,36 +1385,36 @@ app.get('/checkout-info', async (req, res) => {
 
 
 /*-----------DYNAMIC SEARCH IN CATALOG----------- */
-app.get('/catalog/search',(req,res)=>{
+app.get('/catalog/search', (req, res) => {
     const searchKeyword = req.query.searchKeyword || '';
     const searchFilter = req.query.searchFilter || '';
-    console.log(searchFilter)
-    switch(searchFilter){
-        case 'title':
-            searchByTitle(searchKeyword,res)
-            break;
-        case 'author':
-            searchByAuthor(searchKeyword,res);
-            break;
-        case 'book':
-            searchByType(searchKeyword,res,'1');
-            break
-        case 'journal':
-            searchByType(searchKeyword,res,'2');
-            break
-        case 'newsletter':
-            searchByType(searchKeyword,res,'3');
-            break;
-        case 'thesis':
-            searchByType(searchKeyword,res,'4');
-            break;
+    console.log(searchFilter);
+    console.log(searchKeyword);
+    
+    // Validate the input parameters
+    if (!searchKeyword || !searchFilter) {
+        return res.status(400).send('Missing search parameters');
     }
-})
 
+    switch (searchFilter) {
+        case 'title':
+            return searchByTitle(searchKeyword, res);
+        case 'author':
+            return searchByAuthor(searchKeyword, res);
+        case 'book':
+            return searchByType(searchKeyword, res, '1');
+        case 'journal':
+            return searchByType(searchKeyword, res, '2');
+        case 'newsletter':
+            return searchByType(searchKeyword, res, '3');
+        case 'thesis':
+            return searchByType(searchKeyword, res, '4');
+        default:
+            return res.status(400).send('Invalid search filter');
+    }
+});
 
-
-
-const searchByType = (searchKeyword,res,type)=>{
+const searchByType = (searchKeyword, res, type) => {
     const q = `
         SELECT 
             resources.resource_title, 
@@ -1426,24 +1426,23 @@ const searchByType = (searchKeyword,res,type)=>{
         FROM resources 
         JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
         JOIN author ON resourceauthors.author_id = author.author_id 
-        JOIN topic ON resources.topic_id = topic.topic_id 
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE resources.resource_title LIKE ? AND resources.type_id = ?
-        ORDER BY resources.resource_title ASC
-        GROUP BY resources.resource_id`
+        GROUP BY resources.resource_id
+        ORDER BY resources.resource_title ASC`;
 
-        db.query(q, [`%${searchKeyword}%`,type],(err,results)=>{
-            if(err) res.send(err)
-            if(results.length>0){
-                res.json(results)
-                // console.log(results)
-            }else{
-                res.send({})
-            }
-        })
-}
-const searchByTitle = (searchKeyword,res)=>{
+    db.query(q, [`%${searchKeyword}%`, type], (err, results) => {
+        if (err) return res.status(500).send('Error fetching data');
+        if (results.length > 0) {
+            return res.send(results);
+        } else {
+            return res.send([]);
+        }
+    });
+};
+
+const searchByTitle = (searchKeyword, res) => {
     const q = `
         SELECT 
             resources.resource_title, 
@@ -1455,24 +1454,23 @@ const searchByTitle = (searchKeyword,res)=>{
         FROM resources 
         JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
         JOIN author ON resourceauthors.author_id = author.author_id 
-        JOIN topic ON resources.topic_id = topic.topic_id 
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE resources.resource_title LIKE ?
-        ORDER BY resources.resource_title ASC
-        GROUP BY resources.resource_id`
+        GROUP BY resources.resource_id
+        ORDER BY resources.resource_title ASC`;
 
-        db.query(q, [`%${searchKeyword}%`],(err,results)=>{
-            if(err) res.send(err)
-            if(results){
-                res.json(results)
-                // console.log(results)
-            }else{
-                res.send({})
-            }
-        })
-}
-const searchByAuthor = (searchKeyword,res)=>{
+    db.query(q, [`%${searchKeyword}%`], (err, results) => {
+        if (err) return res.status(500).send('Error fetching data');
+        if (results.length > 0) {
+            return res.send(results);
+        } else {
+            return res.send([]);
+        }
+    });
+};
+
+const searchByAuthor = (searchKeyword, res) => {
     const q = `
         SELECT 
             resources.resource_title, 
@@ -1484,22 +1482,22 @@ const searchByAuthor = (searchKeyword,res)=>{
         FROM resources 
         JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
         JOIN author ON resourceauthors.author_id = author.author_id 
-        JOIN topic ON resources.topic_id = topic.topic_id 
         JOIN resourcetype ON resources.type_id = resourcetype.type_id 
         JOIN department ON department.dept_id = resources.dept_id
         WHERE author.author_fname LIKE ? OR author.author_lname LIKE ?
-        ORDER BY resources.resource_title ASC
-        GROUP BY resources.resource_id`
+        GROUP BY resources.resource_id
+        ORDER BY resources.resource_title ASC`;
 
-        db.query(q, [`%${searchKeyword}%`,`%${searchKeyword}%`],(err,results)=>{
-            if(err) res.send(err)
-            if(results.length>0){
-                res.send(results)
-            }else{
-                res.send({})
-            }
-        })
-}
+    db.query(q, [`%${searchKeyword}%`, `%${searchKeyword}%`], (err, results) => {
+        if (err) return res.status(500).send('Error fetching data');
+        if (results.length > 0) {
+            return res.send(results);
+        } else {
+            return res.send([]);
+        }
+    });
+};
+
 
 /*------------SYNC DATA------------------*/
 // Sync resources table
