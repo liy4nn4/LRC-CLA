@@ -1,26 +1,113 @@
-import React from 'react'
-import './Home.css'
-import Navbar from '../Navbar/Navbar'
-import book1 from '../../assets/OPAC/photos/book1.jpg'
-import book2 from '../../assets/OPAC/photos/book2.jpg'
-import Book from '../Book/Book'
-import Footer from '../Footer/Footer'
+import React, { useEffect } from 'react';
+import './Home.css';
+import Navbar from '../Navbar/Navbar';
+import book1 from '../../assets/OPAC/photos/book1.jpg';
+import book2 from '../../assets/OPAC/photos/book2.jpg';
+import Book from '../Book/Book';
+import Footer from '../Footer/Footer';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
+  useEffect(() => {
+    // Hero Section: Zoom In with a Parallax effect
+    gsap.from('.hero .col.content', {
+      opacity: 0,
+      y: 100,
+      duration: 1.5,
+      delay: 0.5,
+      ease: 'power3.out',
+    });
+  
+    gsap.from('.hero .circle img', {
+      opacity: 0,
+      scale: 0.5,
+      stagger: 0.2,
+      duration: 1.5,
+      ease: 'elastic.out(1, 0.5)',
+    });
+  
+    // Featured Books and Journals: Scroll-triggered fade-in
+    gsap.from('.featured-books .header', {
+      scrollTrigger: {
+        trigger: '.featured-books',
+        start: 'top bottom',
+        end: 'top top',
+        scrub: true,
+      },
+      opacity: 0,
+      y: 50,
+      duration: 1.5,
+      ease: 'power3.out',
+    });
+  
+    gsap.from('.featured-books .books', {
+      scrollTrigger: {
+        trigger: '.featured-books',
+        start: 'top bottom',
+        end: 'top top',
+        scrub: true,
+      },
+      opacity: 0,
+      y: 50,
+      duration: 1.5,
+      delay: 0.5,
+      ease: 'power3.out',
+    });
+  
+    // Featured Book Section: Dramatic fade-in from the sides
+    gsap.from('.featured-book .row', {
+      opacity: 0,
+      x: -200,
+      duration: 1.5,
+      delay: 1.5,
+      ease: 'power3.out',
+    });
+  
+    // Thesis and Dissertation Section: Bounce-in Effect
+    gsap.from('.thesis-dissertation', {
+      opacity: 0,
+      y: 100,
+      duration: 1.5,
+      delay: 2,
+      ease: 'bounce.out',
+    });
+  
+    // New Button Hover Effect (Grow and Shrink)
+    gsap.utils.toArray('.btn').forEach((btn) => {
+      gsap.fromTo(
+        btn,
+        { scale: 1 }, // Initial scale
+        {
+          scale: 1.1,  // Grow on hover
+          duration: 0.3,
+          ease: 'power1.out',
+          paused: true,
+          repeat: -1,  // Repeat the scale animation (shrink and grow)
+          yoyo: true,  // Make it reverse and shrink back
+        }
+      );
+    });
+  
+  }, []);
+  
+
   return (
     <div className='client-home-container'>
-      <Navbar/>
+      <Navbar />
 
       {/* hero section */}
       <section className='hero'>
         <div className="row">
           {/* images */}
           <div className="col images">
-              {/* circle */}
-              <div className="circle">
-                <img src={book1} alt="Book 1" className='book1'/>
-                <img src={book2} alt="Book 2" className='book2'/>
-              </div>
+            {/* circle */}
+            <div className="circle">
+              <img src={book1} alt="Book 1" className='book1'/>
+              <img src={book2} alt="Book 2" className='book2'/>
+            </div>
           </div>
 
           {/* content */}
@@ -44,7 +131,7 @@ const Home = () => {
             <button className="btn">See all</button>
           </div>
           <div className="books">
-            <Book/>
+            <Book />
           </div>
         </div>
 
@@ -55,7 +142,7 @@ const Home = () => {
             <button className="btn">See all</button>
           </div>
           <div className="journal-newsletter">
-            <Book/>
+            <Book />
           </div>
         </div>
       </section>
@@ -85,10 +172,9 @@ const Home = () => {
         <button className='btn search-btn'>search more</button>
       </section>
 
-      <Footer/>
-
+      <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
