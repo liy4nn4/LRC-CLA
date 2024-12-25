@@ -36,64 +36,66 @@
 
 }
 
-.services-container{
+.services-container .services-header{
+    background:linear-gradient(
+        rgba(0, 0, 0, 0), /* Top gradient color */
+        rgba(255, 255, 255, 0.486) /* Bottom gradient color */
+      ), url('../../assets/OPAC/photos/cla-hall.png');
     width: 100%;
-}
-
-.services-header-cover{
-    width: 100%;
-    min-height: 50vh;
+    height: 80vh;
+    background-repeat: no-repeat;
     background-size: cover;
-    background: url('../../assets/OPAC/photos/home-background.png');
-}
-
-.services-header{
-    padding: 30px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
     text-align: center;
+    gap: 15px;
 }
 
-.services-header h1{
-    font-size: 2.5rem;
-    color: var(--dark-gray);
-    font-weight: var(--regular);
+.services-container .services-header{
 }
 
-.services-header p{
-    font-size: 1.3rem;
+.services-container .services-header h3{
+    margin-top: 80px;
+    font-size: 3rem;
+}
+
+.services-container .services-header p{
+    width: 50%;
     margin: 0;
+    font-size: 1.1rem;
 }
 
-.services{
-    padding: 80px;
+.services-container .service img{
+    border: 5px solid var(--tup-color);
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.services-container .service-list{
+    padding: 100px 230px;
+    
+}
+
+.services-container .service-list .service{
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 50px;
+    padding: 50px;
 }
 
-.service-list{
-    width: 90%;
-    margin: 0;
-    height: 100vh;
+.services-container .service-list .service div h5{
+    color: var(--tup-color);
+    font-size: 1.3rem;
 }
 
-.service{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 0 20px;
-}
-
-.service img{
-    height: 200px;
-    width: 100%;
-    object-fit: cover;
-}
-
-.service h5{
+.services-container .service-list .service div span{
     font-size: 1.2rem;
-}
-
-.service span{
-    font-size: 1.1rem;
+    color: var(--black);
 }

@@ -1,70 +1,88 @@
-import React from 'react'
-import './Services.css'
-import resourcecollection from '../../assets/OPAC/photos/resource-collection.png'
-import studyspace from '../../assets/OPAC/photos/study-space.png'
-import faculty from '../../assets/OPAC/photos/faculty-consultation.png'
-import eventspace from '../../assets/OPAC/photos/event-space.png'
-import research from '../../assets/OPAC/photos/research-support.png'
+import React, { useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import './Services.css';
+import resourcecollection from '../../assets/OPAC/photos/resource-collection.png';
+import studyspace from '../../assets/OPAC/photos/study-space.png';
+import faculty from '../../assets/OPAC/photos/faculty-consultation.png';
+import eventspace from '../../assets/OPAC/photos/event-space.png';
+import research from '../../assets/OPAC/photos/research-support.png';
+import Navbar from '../Navbar/Navbar';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Services = () => {
+  useEffect(() => {
+    gsap.from('.services-header', {
+      opacity: 0,
+      y: -50,
+      duration: 1.5,
+      ease: 'power3.out',
+    });
+
+    gsap.from('.service', {
+      scrollTrigger: {
+        trigger: '.service-list',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse',
+      },
+      opacity: 0,
+      scale: 0.8,
+      duration: 1.2,
+      stagger: 0.3,
+      ease: 'power3.out',
+    });
+  }, []);
+
   return (
     <div className='services-container'>
-        {/* cover image */}
-        <div className="services-header-cover"></div>
+      <Navbar />
 
-        {/* services */}
-        <section className="container-fluid services">
-            <div className='services-header'>
-                <h1>What We Offer</h1>
-                <p>The College of Liberal Arts’ Learning Resource Center<br/>offers various services</p>
-            </div>
-            
-            <div className="row service-list">
-                {/* service */}
-                <div className="col-4 service">
-                    <img src={resourcecollection} alt="" />
-                    <div>
-                        <h5>Extensive Resource Collection</h5>
-                        <span>Access a diverse collection of books, magazines, newsletter, and theses related to the liberal arts.</span>
-                    </div>
-                </div>
-                <div className=" col-4 service">
-                    <img className="" src={studyspace}/>
-                    <div className="">
-                        <h5 className="">Study and Collaboration Spaces</h5>
-                        <span className="">Find quiet study areas and group study spaces to enhance your learning experience.</span>
-                    </div>
-                </div>
-                {/* service */}
-                <div className="col-4 service">
-                    <img className="" src={faculty} alt=""/>
-                    <div className="">
-                        <h5 className="">Faculty Consultation</h5>
-                        <span className="">Connect with CLA faculty for academic guidance, research assistance, and thesis support.</span>
-                    </div>
-                </div>
-                {/* service */}
-                <div className="col-4 service">
-                    <img className="" src={eventspace} alt=""/>
-                    <div className="">
-                        <h5 className="">Event and Meeting Spaces</h5>
-                        <span className="">Utilize our facilities for student organization meetings, workshops, and other academic events.</span>
-                    </div>
-                </div>
-                {/* service */}
-                <div className="col-4 service">
-                    <img className="" src={research} alt=""/>
-                    <div className="">
-                        <h5 className="">OBE and Research Support</h5>
-                        <span className="">Benefit from the expertise of our OBE Coordinator and Research and Extension staff.</span>
-                    </div>
-                </div>
-                
-                
-            </div>
-        </section>
+      <section className='services-header'>
+        <h3>What We Offer</h3>
+        <p>The College of Liberal Arts’<br/>Learning Resources Center offers<br/>various services</p>
+      </section>
+
+      <div className="row service-list">
+        {/* service */}
+        <div className="col-4 service">
+          <img src={resourcecollection} alt="" />
+          <div>
+            <h5>Extensive Resource Collection</h5>
+            <span>Access a diverse collection of books, magazines, newsletter, and theses related to the liberal arts.</span>
+          </div>
+        </div>
+        <div className="col-4 service">
+          <img src={studyspace} alt="" />
+          <div>
+            <h5>Study and Collaboration Spaces</h5>
+            <span>Find quiet study areas and group study spaces to enhance your learning experience.</span>
+          </div>
+        </div>
+        <div className="col-4 service">
+          <img src={faculty} alt="" />
+          <div>
+            <h5>Faculty Consultation</h5>
+            <span>Connect with CLA faculty for academic guidance, research assistance, and thesis support.</span>
+          </div>
+        </div>
+        <div className="col-6 service">
+          <img src={eventspace} alt="" />
+          <div>
+            <h5>Event and Meeting Spaces</h5>
+            <span>Utilize our facilities for student organization meetings, workshops, and other academic events.</span>
+          </div>
+        </div>
+        <div className="col-6 service">
+          <img src={research} alt="" />
+          <div>
+            <h5>OBE and Research Support</h5>
+            <span>Benefit from the expertise of our OBE Coordinator and Research and Extension staff.</span>
+          </div>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Services
+export default Services;
