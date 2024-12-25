@@ -36,12 +36,23 @@
     background-color: transparent;
 }
 
-.navbar-container nav{
-    position: absolute;
-    width: 100%;
-    margin: 30px;
-    
-}
+.navbar-container nav {
+    position: fixed; /* Keeps the navbar in place as you scroll */
+    top: 0;
+    left: 0;
+    width: 100%; /* Spans the full width of the screen */
+    z-index: 1000; /* Ensures it appears in front of other elements */
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+    box-shadow: 0 2px 5px var(--shadow); /* Optional: adds shadow for better visibility */
+  }
+  
+  .navbar-container .container {
+    display: flex; /* Align items horizontally */
+    justify-content: space-between; /* Spread items across the navbar */
+    align-items: center; /* Center items vertically */
+    padding: 10px 20px; /* Add some padding for spacing */
+  }
+  
 
 .navbar-container .container img{
     width: 50px;
@@ -49,4 +60,9 @@
 
 .navbar-container ul li{
     padding-left: 40px;
+}
+
+.navbar-container .link{
+    text-decoration: none;
+    color: var(--black) !important;
 }

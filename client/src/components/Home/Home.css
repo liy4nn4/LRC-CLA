@@ -36,6 +36,7 @@
     height: 100vh;
     background-repeat: no-repeat;
     background-size: cover;
+    padding-top: 30px;
 }
 
 .client-home-container .images{

@@ -1,118 +1,105 @@
-import React from 'react'
-import './AboutUs.css'
-import staff from '../../assets/OPAC/photos/staff.png'
+import React, { useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Navbar from '../Navbar/Navbar';
+import './AboutUs.css';
+import claDoor from '../../assets/OPAC/photos/cla-lrc-door.JPG';
+import claLrc from '../../assets/OPAC/photos/cla-lrc.JPG';
 
+gsap.registerPlugin(ScrollTrigger);
 
 const AboutUs = () => {
+  useEffect(() => {
+    gsap.from('.aboutus-header', {
+      opacity: 0,
+      y: -50,
+      duration: 1.5,
+      ease: 'power3.out',
+    });
+
+    gsap.from('.purpose .row', {
+      scrollTrigger: {
+        trigger: '.purpose',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse',
+      },
+      opacity: 0,
+      y: 50,
+      stagger: 0.2,
+      duration: 1.5,
+      ease: 'power3.out',
+    });
+
+    gsap.from('.purpose .subtitle, .purpose .subtitle2', {
+      scrollTrigger: {
+        trigger: '.purpose',
+        start: 'top 60%',
+        toggleActions: 'play none none reverse',
+      },
+      opacity: 0,
+      x: -50,
+      duration: 1.5,
+      stagger: 0.3,
+      ease: 'power3.out',
+    });
+
+    gsap.from('.coordinator-box', {
+      scrollTrigger: {
+        trigger: '.coordinator-box',
+        start: 'top 70%',
+        toggleActions: 'play none none reverse',
+      },
+      opacity: 0,
+      scale: 0.8,
+      duration: 1.5,
+      ease: 'elastic.out(1, 0.5)',
+    });
+  }, []);
+
   return (
-    <div className='about-container'>
-        {/* cover image */}
-        <div className="about-header-cover"></div>
+    <div className='aboutus-container'>
+      <Navbar />
 
-        {/* about us */}
-        <section className='about-us'>
-            <h1 className='text-center mb-4'>About Us</h1>
-            <p>The College of Liberal Arts Learning Resource Center (CLA LRC) is your dedicated hub for academic exploration and intellectual growth. Our mission is to provide a comprehensive range of resources and services that support your academic journey.</p>
-        </section>
+      <section className='aboutus-header'>
+        <h3>About Us</h3>
+        <p>The College of Liberal Arts Learning Resource Center (CLA LRC) is your dedicated hub for academic exploration and intellectual growth. Our mission is to provide a comprehensive range of resources and services that support your academic journey.</p>
+      </section>
 
-        {/* mission vision */}
-        <section className='mission-vision-box'>
-            <div className='vision-cover'></div>
-            <div className="vision-content">
-                <h1 className="vision-title">A Space for Learning and Collaboration</h1>
-                <p className='vision-text'>The CLA LRC offers a serene and conducive environment for focused study and collaborative work. Our facilities include study areas and specialized sections for each Liberal Arts discipline: Entrepreneurship, Languages, Hotel and Restaurant Management, Physical Education, Social Sciences.</p>
-            </div>
-            <div className="mission-content">
-                <h2 className="mission-title">Comprehensive Resources at Your Fingertips</h2>
-                <p className='mission-text'>Our extensive collection of books, newsletters, magazines, and theses resources provide you with the tools you need to succeed. Whether you're researching a complex topic, preparing for an exam, or working on a creative project, the CLA LRC has you covered.</p>
-            </div>
-            <div className='mission-cover'></div>
-        </section>
+      <div className="purpose">
+        <div className="row">
+          <div className="col title">A Space for<br/> Learning<br/>and Collaboration</div>
+          <div className="col">
+            <img src={claLrc} alt="CLA LRC" className='cla-lrc'/>
+          </div>
+        </div>
+        <div className="subtitle">
+          The CLA LRC offers a serene and conducive environment for focused study and collaborative work. Our facilities include study areas and specialized sections for each Liberal Arts discipline.
+        </div>
+        <div className="subtitle2">
+          Our extensive collection of books, newsletters, magazines, and theses resources provide you with the tools you need to succeed.
+        </div>
+        <div className="row">
+          <div className="col">
+            <img src={claDoor} alt="CLA Door" className='cla-door'/>
+          </div>
+          <div className="col title2">Comprehensive<br/>Resources at your<br/>Fingertips</div>
+        </div>
+      </div>
 
-        
-        {/* Administration and Staff */}
-        <section className="staff">
-            <div>
-                <h3 className='staff-header'>Administration and Staff</h3>
-                <p className='staff-description'>We are committed to assisting you with your academic needs,<br/>from finding resources to scheduling study spaces.</p>
-            </div>
-            <div className="row staff-members m-0">
-                {/* head */}
-                <div className="col-md-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Jaime Jr. E. Mozo</p>
-                        <p className='satff-position m-0'>Head</p>
-                    </div>
-                </div>
-                {/* staff */}
-                <div className="col-md-4 col-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Student Name</p>
-                        <p className='satff-position m-0'>Staff</p>
-                    </div>
-                </div>
-
-                {/* staff */}
-                <div className="col-md-4 col-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Student Name</p>
-                        <p className='satff-position m-0'>Staff</p>
-                    </div>
-                </div>
-
-                {/* staff */}
-                <div className="col-md-4 col-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Student Name</p>
-                        <p className='satff-position m-0'>Staff</p>
-                    </div>
-                </div>
-                {/* staff */}
-                <div className="col-md-4 col-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Student Name</p>
-                        <p className='satff-position m-0'>Staff</p>
-                    </div>
-                </div>
-                {/* staff */}
-                <div className="col-md-4 col-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Student Name</p>
-                        <p className='satff-position m-0'>Staff</p>
-                    </div>
-                </div>
-                {/* staff */}
-                <div className="col-md-4 col-12 staff-box">
-                    {/* staff ico */}
-                    <img src={staff} className="staff-icon"/>
-                    {/* staff-info */}
-                    <div className="staff-info">
-                        <p className='staff-name m-0'>Student Name</p>
-                        <p className='satff-position m-0'>Staff</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+      <section className="coordinator-box row">
+        <div className="col-6 coor-img">
+          <img src={claLrc} alt="" />
+        </div>
+        <div className="col coor-remarks">
+          <div>
+            <h4>Prof. Jaime Jr. E. Mozo</h4>
+            <p className='position'>Coordinator of College of Liberal Arts’ Learning Resources Center</p>
+          </div>
+          <p className='remark'>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Culpa deleniti non sunt fuga incidunt. Culpa, alias? Libero earum necessitatibus, cumque beatae cupiditate exercitationem quo a quod alias enim fugiat ex aperiam sint corporis dolorem praesentium nam consequatur! Dolorem, explicabo ea aut excepturi, quam neque magnam nisi, facilis animi ut suscipitt.</p>
+        </div>
+      </section>
     </div>
-  )
-}
+  );
+};
 
-export default AboutUs
+export default AboutUs;

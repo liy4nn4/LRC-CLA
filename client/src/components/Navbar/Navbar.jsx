@@ -6,7 +6,6 @@ import MenuModal from '../MenuModal/MenuModal'
 import { Link } from 'react-router-dom'
 
 
-
 const Navbar = () => {
   
   return (
@@ -20,13 +19,13 @@ const Navbar = () => {
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Home</a>
+                <a class="nav-link active" aria-current="page" href="#"><Link to='/' className='link'>Home</Link></a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">Services</a>
+                <a class="nav-link" href="#"><Link to='/services' className='link'>Services</Link></a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">About us</a>
+                <a class="nav-link" href="#"><Link to='/about-us' className='link'>About us</Link></a>
               </li>
             </ul>
           </div>

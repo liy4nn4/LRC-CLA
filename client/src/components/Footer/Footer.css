@@ -44,8 +44,8 @@
     gap: 30px;
     color: var(--white);
     background:linear-gradient(
-        rgba(148, 21, 42, 0.897), /* Top gradient color */
-        rgba(148, 21, 42, 0.849) /* Bottom gradient color */
+        rgba(148, 21, 42, 0.945), /* Top gradient color */
+        rgba(148, 21, 42, 0.918) /* Bottom gradient color */
       ), url('../../assets/OPAC/photos/cla-hall.png');
     background-repeat: no-repeat;
     background-size: cover;
