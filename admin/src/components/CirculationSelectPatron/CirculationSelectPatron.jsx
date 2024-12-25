@@ -12,7 +12,7 @@ const CirculationSelectPatron = () => {
             <Link to='/circulation'>
                 <button className="btn">Back</button>
             </Link>
-            <p>Circulation / <span>Select items</span></p>
+            <p>Circulation / <span>Select patron</span></p>
         </div>
 
         {/* search */}

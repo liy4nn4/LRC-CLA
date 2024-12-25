@@ -18,6 +18,7 @@ import AttendancePage from './pages/AttendancePage/AttendancePage';
 import CirculationPage from './pages/CirculationPage/CirculationPage';
 import CirculationSelectPatronPage from './pages/CirculationSelectPatronPage/CirculationSelectPatronPage';
 import CirculationSelectItemPage from './pages/CirculationSelectItemPage/CirculationSelectItemPage';
+import CirculationCheckoutPage from './pages/CirculationCheckoutPage/CirculationCheckoutPage';
   
 const App = () => {
   
@@ -32,6 +33,7 @@ const App = () => {
           <Route path='/circulation' element={<CirculationPage/>}/>
           <Route path='/circulation/patron' element={<CirculationSelectPatronPage/>}/>
           <Route path='/circulation/patron/item' element={<CirculationSelectItemPage/>}/>
+          <Route path='/circulation/patron/item/checkout' element={<CirculationCheckoutPage/>}/>
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>
           <Route path='/admin' element={<Admin/>}/>

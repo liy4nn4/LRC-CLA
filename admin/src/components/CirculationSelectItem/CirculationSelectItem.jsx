@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBarcode,faPlus,faTrashCan,faX,faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
+
 const CirculationSelectItem = () => {
   return (
     <div className='circ-select-item-container'>
@@ -77,10 +78,12 @@ const CirculationSelectItem = () => {
           
           {/* proceed to checkout */}
           <div className='checkout'>
-            <button className="btn checkout-btn">
-              Proceed to checkout
-              <FontAwesomeIcon icon={faArrowRight} />
-            </button>
+            <Link to='/circulation/patron/item/checkout'>
+              <button className="btn checkout-btn">
+                Proceed to checkout
+                <FontAwesomeIcon icon={faArrowRight} />
+              </button>
+            </Link>
           </div>
         </div>
       </div>
