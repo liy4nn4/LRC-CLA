@@ -1,20 +1,14 @@
-@font-face {
-    font-family: 'Inter';
-    font-weight: 400;
-    src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
-}
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Pacifico&display=swap');
 
 *{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter';
     text-decoration: none;
 }
 
 :root{
-    --black:#0c0c0c;
-    --dark-gray: #131313;
+    --black:#1F1F1F;
     --tup-color: #94152B;
     --white: #fff;
     --button:  #97170E;
@@ -30,239 +24,124 @@
     --table-header: #6F6A6A;
     --table-border-bottom:#D9D9D9;
     --light-red: rgba(148, 21, 43, 0.1);
-    --lightest-red: #FFCBD4;
-    --lightest-green:#C7C48E;
-    --regular: 400;
 }
 
-.home-hero-section{
-    background: url('../../assets/OPAC/photos/cla-hall.png');
+.client-home-container .hero{
+    background:linear-gradient(
+        rgba(0, 0, 0, 0), /* Top gradient color */
+        rgba(255, 255, 255, 0.486) /* Bottom gradient color */
+      ), url('../../assets/OPAC/photos/cla-hall.png');
     width: 100%;
-    height: 90vh;
+    height: 100vh;
     background-repeat: no-repeat;
     background-size: cover;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    text-align: center;
 }
 
-.home-title-subtitle{
-    position: relative;
-    top: -80px;
-}
-
-
-.home-title{
-    font-size: 4.5rem;
-    color: var(--dark-gray);
-    font-weight: 600;
-}
-
-.home-subtitle{
-    font-size: 3.3rem;
-    color: var(--dark-gray);
-    font-weight: 500;
-}
-
-.home-search-bar{
+.client-home-container .images{
     display: flex;
     justify-content: center;
-    gap: 10px;
-    width: 90%;
-    position: relative;
-    top: -80px;
-}
-
-.dropdown-toggle, .home-search-button{
-    text-transform: capitalize;
-    text-align: center;
-    display: flex;
-    gap: 10px;
     align-items: center;
-    justify-content: center;
-    padding: 8px;
-    font-size: 1rem;
-    height: 50px;
-    width: 130px;
-    background-color: var(--tup-color) !important;
-    color: var(--white);
-    border: none;
-    border-radius: 5px;
-    box-shadow: 0px 1px 3px var(--shadow);
-    transition: all 0.2s linear;
-    cursor: pointer;
-}
-
-
-.dropdown-toggle:hover, .home-search-button:hover,.dropdown-toggle:focus, .home-search-button:focus,.dropdown-toggle:active, .home-search-button:active{
-    background-color: var(--button-hover);
-    color: var(--white);
-}
-
-.dropdown-item{
-    text-transform: capitalize;
-}
-
-.home-search{
-    font-size: 1rem;
-    padding: 8px 15px;
-    height: 50px;
-    width: 50%;
-    border: none;
-    box-shadow: 0px 1px 3px var(--shadow);
-    border-radius: 5px;
-}
-
-.home-search:active, .home-search:focus{
-    outline: none;
-    border: 2px solid var(--button);
-}
-
-.home-acquired-books{
-    padding: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-}
-
-.home-acquired-books-header{
-    text-align: center;
-    line-height: 40px;
-}
-
-.newly-acquired-text{
-    font-size: 2.5rem;
-    font-weight: var(--regular);
-    color: var(--dark-gray);
-}
-
-.newly-acquired-description{
-    font-size: 1.3rem;
-    color: var(--dark-gray);
-}
-
-/* the swiper itself */
-.home-acquired-books-gallery .swiper {
-    width: 70%;
-    padding-top: 50px;
-    padding-bottom: 40px !important;
-
-}  
-
-/* bawat box kung saan nakapaloob yung images */
-.home-acquired-books-gallery .swiper-slide {
-    max-width: 350px;
-    max-height: 800px;
-  }
-  
-  .swiper-slide img {
-    display: block;
     width: 100%;
+    height: 100vh;
+    /* background-color: #1F1F1F; */
+}
+
+.client-home-container .hero .images {
+    position: relative; /* Create a positioning context for children */
   }
   
-
-.home-acquired-books-gallery .swiper-button-prev,
-.home-acquired-books-gallery .swiper-button-next {
-  color: var(--white)!important; 
-  width: 30px;
-  height: 30px;
-  background-color: var(--dark-gray);
-  padding: 40px;
-  border-radius: 50%;
-  transition: all 0.2s linear;
+  .client-home-container .hero .images .circle {
+    width: 517px;
+    height: 517px;
+    background-color: var(--tup-color);
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+    margin: 0 auto; 
+  }
   
+  .client-home-container .hero .images img {
+    width: 320px;
+    border-radius: 10px;
+    box-shadow: 1px 0px 10px var(--shadow);
+    position: absolute; 
+  }
+  
+  .client-home-container .hero .images .book1 {
+    top: -20px;
+    left: 200px; 
+    z-index: 2; 
+  }
+  
+  .client-home-container .hero .images .book2 {
+    top: 150px;
+    left: -20px;
+    z-index: 1; 
+  }
+  
+.client-home-container .hero .content{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
 }
 
-.home-acquired-books-gallery .swiper-button-prev:hover,
-.home-acquired-books-gallery .swiper-button-next:hover{
-    background-color: var(--black);
-} 
-
-.home-acquired-books-gallery .swiper-pagination-bullet{
-    background-color: var(--black) !important;
+.client-home-container .content p,
+.client-home-container .content h2{
+    margin: 0;
 }
 
-.home-search-filter-content{
-    position: absolute;
-    width: 100px;
+.client-home-container .content h2{
+    font-family: "Crimson Text", serif;
+    font-size: 3rem;
+    color: var(--black);
+}
+
+.client-home-container .content h2 span{
+    font-family: "Pacifico", serif;
+    color: var(--tup-color);
+}
+
+.client-home-container .content p{
+    width: 80%;
+    font-size: 1.2rem;
+}
+
+.client-home-container .content button{
+    text-transform: uppercase;
+    font-size: 1rem;
+    margin-top: 30px;
     background-color: var(--white);
-    margin-top: 5px;
-    border-radius: 5px;
-    overflow: hidden;
-    display: none;
+    border: 1px solid var(--tup-color);
+    color: var(--tup-color);
+    padding: 15px;
 }
 
-.home-search-filter-content p{
-    padding: 8px;
-    transition: all 0.2s linear;
-    cursor: pointer;
-
-}
-
-.home-search-filter-content p:hover{
-    background-color: var(--button-hover);
+.client-home-container .content button:hover,
+.client-home-container .content button:active,
+.client-home-container .content button:focus{
+    background-color: var(--tup-color);
     color: var(--white);
 }
 
-
-.show-filter-content{
-    display: block;
+.client-home-container .books-jn{
+    /* background-color: #5499CB; */
+    width: 100%;
+    padding: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 70px;
 }
 
-.home-coverflow-description{
-    margin-top: 60px;
-    font-size: 1.3rem;
-    width: 60%;
-    text-align: center;
+.client-home-container .featured-books,
+.client-home-container .journals-newsletters{
+    width: 100%;
+    height: auto;
 }
 
-.link{
-    text-decoration: none !important;
-}
-
-@media screen and (max-width:700px) {
-    
-    .home-title{
-        font-size: 2rem;
-    }
-    .home-subtitle{
-        font-size: 1.5rem;
-    }
-    .button-text{
-        display: none;
-    }
-    .home-search-bar .dropdown-toggle, .home-search-button{
-        width: 50px;
-        height: 50px;
-    }
-    .home-search-bar{
-        width: 90%;
-        gap: 5px;
-    }
-    .home-search{
-        width: 70%;
-    }
-    .home-acquired-books{
-        padding: 70px 40px;
-        gap: 30px;
-    }
-    .newly-acquired-text{
-        font-size: 1.5rem;
-    }
-    .newly-acquired-description{
-        font-size: 1rem;
-    }
-    .swiper-button-prev,
-    .swiper-button-next{
-        display: none !important;
-    }
-    .home-coverflow-description{
-        width: 100%;
-        font-size: 1rem;
-    }
-
+.client-home-container .featured-books .header,
+.client-home-container .journals-newsletters .header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }

@@ -8,33 +8,30 @@ import { Link } from 'react-router-dom'
 
 
 const Navbar = () => {
-  const [overlay,setOverlay]=useState(false)
-
+  
   return (
     <div className='navbar-container'>
-      <div className={overlay?"overlay":''}></div>
-        <nav class="navbar navbar-expand-lg">
-            <div class="container navbar-cont">
-              <div className='logos'>
-              <a class="navbar-brand m-0" href="#"><img src={tupLogo} alt="tup-logo" className='logo'/></a>
-              <a class="navbar-brand m-0" href="#"><img src={claLogo} alt="cla-logo" className='logo'/></a>
-              </div>
-                
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation" onClick={()=>setOverlay(!overlay)}>
-                <span class="navbar-toggler-icon"></span>
-                </button>
-                {/* menu that will appear when hamburger is clicked */}
-                <div class="collapse navbar-collapse " id="navbarNavAltMarkup">
-                    {/* ms auto moves the menu to the right */}
-                    <div class="navbar-nav ms-auto">
-                        <Link class="nav-link" to='/'>Home</Link>
-                        <Link class="nav-link" to='/about-us'>About Us</Link>
-                        {/* <Link class="nav-link" to="/department">Departments</Link> */}
-                        <Link class="nav-link" to="/services">Services</Link>
-                    </div>
-                </div>
-            </div>
-            </nav>
+      <nav class="navbar navbar-expand-lg">
+        <div class="container">
+          <img src={claLogo} alt="CLA Logo" />
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Services</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">About us</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
     </div>
     
   )

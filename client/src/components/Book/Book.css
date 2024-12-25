@@ -1,14 +1,9 @@
-@font-face {
-    font-family: 'Inter';
-    font-weight: 400;
-    src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
-}
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Pacifico&display=swap');
 
 *{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter';
     text-decoration: none;
 }
 
@@ -31,22 +26,24 @@
     --light-red: rgba(148, 21, 43, 0.1);
 }
 
-.navbar-container .container{
-    /* background-color: #5499CB; */
-    background-color: transparent;
+.book-container{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.navbar-container nav{
-    position: absolute;
-    width: 100%;
-    margin: 30px;
-    
+.book-container p{
+    margin: 0;
 }
 
-.navbar-container .container img{
-    width: 50px;
+.book-container img{
+    width: 230px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px var(--shadow);
 }
 
-.navbar-container ul li{
-    padding-left: 40px;
+.book-container .title{
+    font-weight: 500;
+    font-size: 1.2rem;
 }
+
