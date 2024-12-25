@@ -4,6 +4,7 @@ import Navbar from '../Navbar/Navbar'
 import book1 from '../../assets/OPAC/photos/book1.jpg'
 import book2 from '../../assets/OPAC/photos/book2.jpg'
 import Book from '../Book/Book'
+import Footer from '../Footer/Footer'
 
 const Home = () => {
   return (
@@ -58,6 +59,33 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* featured book */}
+      <section className="featured-book">
+        <div className="row">
+          {/* image */}
+          <div className="col image">
+            <img src={book1} alt="" />
+          </div>
+          {/* content */}
+          <div className="col content">
+            <h3 className='m-0'>Bread & Pastry Production Manual</h3>
+            <p className="author mb-4">by Jessica Pryce-Jones</p>
+            <p className="description">According to Jessica Pryce-Jones, happiness at work is not some abstract idea but a practical reality with a clear impact on you and your workplace. This book reveals that the happier you are the more you ll achieve, yielding tangible benefits to you and your organization.</p>
+            <button className="btn search-btn">search more like this</button>
+          </div>
+        </div>
+      </section>
+
+      {/* thesis and dissertation */}
+      <section className="thesis-dissertation">
+        <h3>The Learning Resources Center also houses<br/> 
+        Theses and Dissertations</h3>
+        <p>Look for inspiration or ideas for your upcoming projects here</p>
+        <button className='btn search-btn'>search more</button>
+      </section>
+
+      <Footer/>
 
     </div>
   )

@@ -7,19 +7,23 @@ const Footer = () => {
   return (
     <div className='footer-container'>
       {/* footer logo and college name */}
-      <div className='footer-logo-text'>
-        <div className='footer-logos'>
-                <a class="navbar-brand" href="#"><img src={tupLogo} alt="tup-logo" className='footer-logo'/></a>
-                <a class="navbar-brand" href="#"><img src={claLogo} alt="cla-logo" className='footer-logo'/></a>
-          </div>
-          <div className='footer-main-texts'>
-            <p className='m-0 footer-main-text'>Collge of Liberal Arts</p>
-            <p className='m-0 footer-main-text'>Learning Resource Center</p>
-          </div>
+      <div className='footer-text'>
+        <p>College of Liberal Arts</p>
+        <p>Learning Resource Center</p>
+      </div>
+      {/* connect with us */}
+      <div className="connect">
+        <p className='m-2'>Connect with us</p>
+        <div className="socials">
+          <i class="fa-brands fa-facebook"></i>
+          <i class="fa-brands fa-x-twitter"></i>
+          <i class="fa-brands fa-instagram"></i>
+          <i class="fa-regular fa-envelope"></i>
+          <i class="fa-regular fa-phone"></i>
+        </div>
       </div>
       {/* copyright */}
-      <p className='m-0 footer-copyright'>© TUP-CLA Learning Resource Center 2024</p>
-       
+       <p className='m-0 copyright'>Copyright©2024. All Rights Reserved TUP-CLA Learning Resource Center</p>
     </div>
   )
 }

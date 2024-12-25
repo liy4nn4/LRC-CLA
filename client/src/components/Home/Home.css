@@ -11,6 +11,7 @@
     --black:#1F1F1F;
     --tup-color: #94152B;
     --white: #fff;
+    --white-shadow: #ffffff91;
     --button:  #97170E;
     --button-hover:  #75110a;
     --shadow: #0000003b;
@@ -109,7 +110,7 @@
 
 .client-home-container .content button{
     text-transform: uppercase;
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin-top: 30px;
     background-color: var(--white);
     border: 1px solid var(--tup-color);
@@ -144,4 +145,101 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.client-home-container .featured-book{
+    background-color: var(--tup-color);
+    width: 100%;
+    height: 80vh;
+}
+
+
+.client-home-container .featured-book .image{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.client-home-container .featured-book .image img{
+    width: 450px;
+    position: relative;
+    bottom: -60px;
+    border: 20px solid var(--white-shadow);
+}
+
+
+.client-home-container .featured-book .content{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    color: var(--white);
+}
+
+.client-home-container .featured-book .content p{
+    margin: 0;
+    font-weight: 300;
+}
+
+.client-home-container .featured-book .content h3{
+    font-size:2.5rem;
+}
+
+.client-home-container .featured-book .search-btn{
+    background-color: var(--white);
+    color: var(--tup-color);
+    font-size: 0.8rem;
+}
+
+.client-home-container .featured-book .search-btn:hover,
+.client-home-container .featured-book .search-btn:active,
+.client-home-container .featured-book .search-btn:focus{
+    background-color: var(--black);
+    color: var(--white);
+}
+
+.client-home-container .thesis-dissertation{
+    margin-top: 200px;
+    background:linear-gradient(
+        rgba(0, 0, 0, 0.842), /* Top gradient color */
+        rgba(0, 0, 0, 0.712) /* Bottom gradient color */
+      ), url('../../assets/OPAC/photos/cla-hall.png');
+    width: 100%;
+    height: 50vh;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+}
+
+.client-home-container .thesis-dissertation{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--white);
+    text-align: center;
+    gap: 10px;
+}
+
+.client-home-container .thesis-dissertation h3{
+    font-family: "Crimson Text", serif;
+    font-size: 2.5rem;
+}
+
+.client-home-container .thesis-dissertation p{
+    font-size: 1.2rem;
+}
+
+.client-home-container .thesis-dissertation .search-btn{
+    color: var(--white);
+    text-transform: uppercase;
+    border: 1px solid var(--white);
+    padding: 10px;
+    font-size: 0.8rem;
+}
+
+.client-home-container .thesis-dissertation .search-btn:hover{
+    color: var(--black);
+    background-color: var(--white);
+    border-color: var(--white);
 }

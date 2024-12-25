@@ -15,7 +15,7 @@
 :root{
     --black:#0c0c0c;
     --dark-gray: #131313;
-    --tup-color: #94152B;
+    --tup-color: rgb(148, 21, 43);
     --white: #fff;
     --button:  #97170E;
     --button-hover:  #75110a;
@@ -36,60 +36,46 @@
 
 .footer-container{
     width: 100%;
-    padding: 30px;
-    background-color: var(--tup-color);
     display: flex;
+    padding: 50px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 30px;
     color: var(--white);
+    background:linear-gradient(
+        rgba(148, 21, 42, 0.897), /* Top gradient color */
+        rgba(148, 21, 42, 0.849) /* Bottom gradient color */
+      ), url('../../assets/OPAC/photos/cla-hall.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
 }
 
-.footer-logo-text{
+
+.footer-container .footer-text p{
+    margin: 0;
+    padding: 0;
     text-align: center;
+    font-family: "Crimson Text", serif;
+    font-size: 1.3rem;
+    /* line-height: 20px; */
+}
+
+.footer-container .connect .socials{
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     gap: 10px;
 }
 
-.footer-logos{
-    display: flex;
-    justify-content: center;
-    gap: 7px;
+
+.footer-container .connect p{
+    margin: 5px;
+    font-size: 0.9rem;
+    font-weight: 300;
 }
 
-.footer-logo{
-    width: 50px;
-    height: 50px;
-}
-
-.footer-main-texts{
-    line-height: 20px;
-}
-
-.footer-main-text{
-    font-size: 14px;
-}
-
-.footer-copyright{
-    font-weight: 200;
-    text-align: center;
-    font-size: 14px;
-}
-
-@media screen and (max-width:700px) {
-    .footer-container{
-        padding: 30px;
-        gap: 25px;
-    }
-    .footer-logo-text{
-        gap: 5px;
-    }
-    .footer-main-text{
-        font-size: 1rem;
-    }
-    .footer-copyright{
-        font-size: 0.8rem;
-    }
+.footer-container .copyright{
+    font-size: 0.9rem;
+    font-weight: 300;
 }
