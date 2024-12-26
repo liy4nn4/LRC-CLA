@@ -7,6 +7,8 @@ import Book from '../Book/Book';
 import Footer from '../Footer/Footer';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -115,9 +117,11 @@ const Home = () => {
             <h2>Welcome to <span>College of Liberal Arts'</span></h2>
             <h2>Learning Resources Center</h2>
             <p>Want to find academic resources for your next project? Our online catalog has been designed to make your search simple and intuitive.</p>
-            <button className="btn">
-              Start exploring now
-            </button>
+            <Link to='/search'>
+              <button className="btn">
+                Start exploring now
+              </button>
+            </Link>
           </div>
         </div>
       </section>

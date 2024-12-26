@@ -5,6 +5,7 @@ import Navbar from '../Navbar/Navbar';
 import './AboutUs.css';
 import claDoor from '../../assets/OPAC/photos/cla-lrc-door.JPG';
 import claLrc from '../../assets/OPAC/photos/cla-lrc.JPG';
+import Footer from '../Footer/Footer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -98,6 +99,8 @@ const AboutUs = () => {
           <p className='remark'>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Culpa deleniti non sunt fuga incidunt. Culpa, alias? Libero earum necessitatibus, cumque beatae cupiditate exercitationem quo a quod alias enim fugiat ex aperiam sint corporis dolorem praesentium nam consequatur! Dolorem, explicabo ea aut excepturi, quam neque magnam nisi, facilis animi ut suscipitt.</p>
         </div>
       </section>
+
+      <Footer/>
     </div>
   );
 };

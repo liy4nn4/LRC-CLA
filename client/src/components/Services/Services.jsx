@@ -8,6 +8,7 @@ import faculty from '../../assets/OPAC/photos/faculty-consultation.png';
 import eventspace from '../../assets/OPAC/photos/event-space.png';
 import research from '../../assets/OPAC/photos/research-support.png';
 import Navbar from '../Navbar/Navbar';
+import Footer from '../Footer/Footer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -81,6 +82,8 @@ const Services = () => {
           </div>
         </div>
       </div>
+
+      <Footer/>
     </div>
   );
 };

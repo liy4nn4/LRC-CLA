@@ -47,3 +47,33 @@
     font-size: 1.2rem;
 }
 
+
+.search-book-container .search-book{
+    width: 180px;
+}
+
+.search-book-container{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.search-book-container p{
+    margin: 0;
+}
+
+.search-book-container img{
+    width: 20px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px var(--shadow);
+}
+
+.search-book-container .title{
+    font-weight: 500;
+    font-size: 1rem !important;
+}
+
+.search-book-container .author{
+    font-size: 1rem !important;
+}

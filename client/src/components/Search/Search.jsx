@@ -1,150 +1,112 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import './Search.css'
-import cover from '../../assets/OPAC/photos/sample-cover.jpeg'
-import {Link, useNavigate, useParams} from 'react-router-dom'
-import { useLocation } from 'react-router-dom'; //for retrieving query
-import axios from 'axios'
+import claLogo  from '../../assets/OPAC/icons/cla-logo.png'
+import Book from '../Book/Book'
+import Footer from '../Footer/Footer'
+import { Link } from 'react-router-dom'
+
 
 const Search = () => {
-  const location = useLocation();
-
-  // Retrieve the query parameters
-  const searchParams = new URLSearchParams(location.search);
-  const query = searchParams.get('q');
-  const filter = searchParams.get('filter');
-
-  //this is used to navigate to different pages
-  //just put the page route
-  const navigate = useNavigate();
-
-  //this is where the search input is stored
-  const [search,setSearch]=useState('');
-
-  //filters
-  const [searchFilter, setSearchFilter]= useState('all'); 
-  const filterOptions = ['all','book','journal','newsletter','thesis','author']
-
-  console.log(query)
-
-  //store results from database
-  const [results, setResults] = useState([]);
-
-  const [image,setImage]=useState(null)
-
-  useEffect(()=>{
-    setSearch(query)
-    getResource()
-  },[query])
-
-  const getResource = async()=>{
-    try{
-      const response = await axios.get(`http://localhost:3001/resource/search?q=${query}&filter=${filter}`);
-      console.log(response.data);
-      setResults(response.data)
-      
-    }catch(err){
-      console.log('An error occurred: ', err.message)
-    }
-  }
-
-  //for handling filter
-  const handleFilter = (value)=>{
-    setSearchFilter(value)
-  }
-  
-  const handleCover = (cover)=>{
-   console.log(cover.data)
-    // return URL.createObjectURL(new Blob([Buffer.from(cover.data)]));
-    if (cover && cover.data) {
-      const blob = new Blob([new Uint8Array(cover.data)], { type: 'image/jpeg' });
-      return URL.createObjectURL(blob);
-    }
-    return null; // Handle case where there is no cover
-  }
-
-  //handling search 
-  const handleSearch = (searchInput,searchFilter)=>{
-    navigate(`/results?q=${searchInput}&filter=${searchFilter}`)
-  }
-
-
-  console.log(search)
-
+  const [isSearch, setIsSearch] = useState(true)
+  const [open, setOpen] = useState(true)
   return (
     <div className='search-container'>
-      {/* header cover */}
-      <div className="search-header-cover">
-        <div className="search-bar">
-            {/* filter button */}
-            <button className="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span>{searchFilter}</span>
-            </button>
-            <ul className="dropdown-menu">
-              {filterOptions.map(item=>(
-                  <li onClick={()=>handleFilter(item)}><a className="dropdown-item" href="#" >{item}</a></li>
-              ))}
-            </ul>
-            {/* search bar */}
-            <input type="text" name="searchInput" id="searchInput" className='search' placeholder='Search for resources' value={search} onChange={(e)=>setSearch(e.target.value)}/>
-            {/* search button */}
-            <button className='search-button' onClick={()=>handleSearch(search,'all')}>
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <span className='button-text'>Search</span> 
-            </button>
+      {/* logo-search */}
+      <div className="logo-search container">
+        <img src={claLogo} alt="CLA Logo" />
+        {/* search */}
+        <div className="search">
+          <input type="text" placeholder='Search for resources'/>
+          <button className="search-btn">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
         </div>
       </div>
 
-      {/* results section */}
-      {results.length!=0?<section className="search-results-box">
-        <div className="search-results-filter">
-          {/* search results total number */}
-          <p className='search-results-total m-0'>Search Results (<span>{results?results.length:''}</span>)</p>
-          <div className='search-sort'>
-            {/* filter button */}
-            <div class="dropdown">
-              <button class="btn results-filter-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <span>Relevance</span>
-                <i class="fa-solid fa-caret-down"></i>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Action</a></li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
-                <li><a class="dropdown-item" href="#">Something else here</a></li>
-              </ul>
+      {/* path */}
+      <div className="container path">
+        <p><Link to='/' className='home'>Home</Link> / <span>Search</span></p>
+      </div>
+
+      {/* search-results */}
+      <div className="filter-results container">
+        <div className="row filter-box">
+          <div className="filter col-2">
+              {/* resource type */}
+              <div className="filter-cat">
+                <p>Resource Type</p>
+                  <div className="option">
+                    <input type="checkbox" name="book" id="book" />
+                    <label htmlFor="book">Book</label>
+                  </div>
+              </div>
+
+              {/* department */}
+              <div className="filter-cat">
+                <p>Department</p>
+                  <div className="option">
+                    <input type="checkbox" name="book" id="book" />
+                    <label htmlFor="book">Book</label>
+                  </div>
+                  <button>VIEW MORE</button>
+              </div>
+
+              {/* topic */}
+              <div className="filter-cat">
+                <p>Topic</p>
+                  <div className="option">
+                    <input type="checkbox" name="book" id="book" />
+                    <label htmlFor="book">Book</label>
+                  </div>
+                  <button>VIEW MORE</button>
+              </div>
+
+              {/* author */}
+              <div className="filter-cat">
+                <p>Author</p>
+                  <div className="option">
+                    <input type="checkbox" name="author_fname" id="author_fname" />
+                    <label htmlFor="author_fname">First name</label>
+                  </div>
+                  <div className="option">
+                    <input type="checkbox" name="author_lname" id="author_lname" />
+                    <label htmlFor="author_lname">Last name</label>
+                  </div>
+              </div>
+          </div>
+
+          {/* results */}
+          <div className="results col">
+            {/* header */}
+            <div className="header">
+              <div className="title-subtitle">
+                <p className='title'>Restaurant</p>
+                <p className='subtitle'>Showing results for Restaurant</p>
+              </div>
+
+              {/* sort */}
+              <div className="sort">
+                <p>Sort by:</p>
+                <select name="" id="">
+                  <option value="">Newest</option>
+                </select>
+              </div>
             </div>
+
+            {/* resources */}
+            <div className="resources">
+              <button className='resource'>
+                <Book isSearch={isSearch}/>
+              </button>              
+            </div>
+
+            </div>
+
+
           </div>
         </div>
-        </section>:
-        <div class="spinner-grow text-danger container" role="status">
-          <span class="sr-only">Loading...</span>
-        </div>}
-      
 
-      {/* book results */}
-      <section className="book-results">
-        <div className="row">
-          
-          
-          {/* book */}
-          {results.length!=0?results.map(item=>{
-           return <div className="card search-book col-md-2"><Link to={`/resource/${item.id}?q=${query}&filter=${filter}`} className='book-link'>
-                    <img className="card-img-top search-book-cover" src={handleCover(item.cover)} alt="Card image cap"/>
-                    <div className="card-body">
-                      <h5 className="card-title">{item.title}</h5>
-                      <p className="card-text">by {item.author}</p>
-                    </div></Link>
-                  </div>
-          }):''}
-          
-        </div>
-      </section>
-
-      {/* results pagination */}
-      {results.length!=0?<section className="search-more">
-        <button className='load-more'>Load more</button>
-      </section>:''}
-      
-    
+        <Footer/>
     </div>
   )
 }
