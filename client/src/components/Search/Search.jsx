@@ -4,11 +4,13 @@ import claLogo  from '../../assets/OPAC/icons/cla-logo.png'
 import Book from '../Book/Book'
 import Footer from '../Footer/Footer'
 import { Link } from 'react-router-dom'
+import ResourceModal from '../ResourceModal/ResourceModal'
 
 
 const Search = () => {
   const [isSearch, setIsSearch] = useState(true)
   const [open, setOpen] = useState(true)
+
   return (
     <div className='search-container'>
       {/* logo-search */}
@@ -95,7 +97,7 @@ const Search = () => {
 
             {/* resources */}
             <div className="resources">
-              <button className='resource'>
+              <button className='resource' onClick={()=>setOpen(true)}>
                 <Book isSearch={isSearch}/>
               </button>              
             </div>
@@ -107,6 +109,7 @@ const Search = () => {
         </div>
 
         <Footer/>
+        <ResourceModal open={open} close={()=>setOpen(false)}/>
     </div>
   )
 }
