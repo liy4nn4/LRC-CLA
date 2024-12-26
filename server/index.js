@@ -1829,7 +1829,7 @@ app.post("/attendance", (req, res) => {
     });
   });
 
-/*----------------------OPAC-------------------------- */
+/*---------------------ONLINE CATALOG-------------------------- */
 app.get('/featured-books', (req, res) => {
     const q = `
     SELECT 
@@ -1903,6 +1903,34 @@ app.get('/featured-book', (req, res) => {
     LIMIT 1`;
 
     db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        console.log(results)
+        return res.json(results); // Send the response as JSON
+    });
+});
+
+app.get('/resources', (req, res) => {
+    const offset = parseInt(req.query.offset, 10) || 0;
+    const q = `
+    SELECT 
+        resources.resource_title,
+        resources.resource_description,
+        resources.resource_id, 
+        book.book_cover, 
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
+    FROM resourceauthors
+    JOIN resources ON resourceauthors.resource_id = resources.resource_id
+    JOIN author ON resourceauthors.author_id = author.author_id
+    JOIN book ON book.resource_id = resources.resource_id
+    GROUP BY resources.resource_id, resources.resource_title, book.book_cover
+    ORDER BY resources.resource_title ASC
+    LIMIT 8 OFFSET ?`;
+
+    db.query(q, [offset], (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).send({ error: 'Database query failed' });

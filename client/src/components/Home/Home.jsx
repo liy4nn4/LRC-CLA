@@ -17,6 +17,8 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 // import required modules
 import { Pagination } from 'swiper/modules';
+import Loading from '../Loading/Loading';
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,117 +27,131 @@ const Home = () => {
   const [featuredBook, setFeaturedBook] = useState({})
   const [journalNewsletter, setJournalNewsletter] = useState([])
   const [preview,setPreview] = useState()
+  const [loading,setLoading] = useState(false)
 
   useEffect(() => {
-    // Hero Section: Zoom In with a Parallax effect
-    gsap.from('.hero .col.content', {
-      opacity: 0,
-      y: 100,
-      duration: 1.5,
-      delay: 0.5,
-      ease: 'power3.out',
-    });
-  
-    gsap.from('.hero .circle img', {
-      opacity: 0,
-      scale: 0.5,
-      stagger: 0.2,
-      duration: 1.5,
-      ease: 'elastic.out(1, 0.5)',
-    });
-  
-    // Featured Books and Journals: Scroll-triggered fade-in
-    gsap.from('.featured-books .header', {
-      scrollTrigger: {
-        trigger: '.featured-books',
-        start: 'top bottom',
-        end: 'top top',
-        scrub: true,
-      },
-      opacity: 0,
-      y: 50,
-      duration: 1.5,
-      ease: 'power3.out',
-    });
-  
-    gsap.from('.featured-books .books', {
-      scrollTrigger: {
-        trigger: '.featured-books',
-        start: 'top bottom',
-        end: 'top top',
-        scrub: true,
-      },
-      opacity: 0,
-      y: 50,
-      duration: 1.5,
-      delay: 0.5,
-      ease: 'power3.out',
-    });
-  
-    // Featured Book Section: Dramatic fade-in from the sides
-    gsap.from('.featured-book .row', {
-      opacity: 0,
-      x: -200,
-      duration: 1.5,
-      delay: 1.5,
-      ease: 'power3.out',
-    });
-  
-    // Thesis and Dissertation Section: Bounce-in Effect
-    gsap.from('.thesis-dissertation', {
-      opacity: 0,
-      y: 100,
-      duration: 1.5,
-      delay: 2,
-      ease: 'bounce.out',
-    });
-  
-    // New Button Hover Effect (Grow and Shrink)
-    gsap.utils.toArray('.btn').forEach((btn) => {
-      gsap.fromTo(
-        btn,
-        { scale: 1 }, // Initial scale
-        {
-          scale: 1.1,  // Grow on hover
-          duration: 0.3,
-          ease: 'power1.out',
-          paused: true,
-          repeat: -1,  // Repeat the scale animation (shrink and grow)
-          yoyo: true,  // Make it reverse and shrink back
-        }
-      );
-    });
-
-    //get books
-    getFeaturedBooks()
-    // get journals and newsletters
-    getJournalNewsletter()
-    // get featured book
-    getFeaturedBook()
+    // check if the page has already been loaded (only show loading on first access)
+    if (!sessionStorage.getItem('hasVisited')) {
+      sessionStorage.setItem('hasVisited', 'true');
+      setLoading(true);
+      getData();
+    } else {
+      getData();
+    }
   }, []);
 
-  useEffect(()=>{
-      if(!featuredBook.book_cover) return;
-  
-      let objectUrl;
-      try{
-          objectUrl = URL.createObjectURL(featuredBook.book_cover);
-          setPreview(objectUrl);
-         
-          
-      }catch{
-          const blob = new Blob([new Uint8Array(featuredBook.book_cover.data)], { type: 'image/jpeg' });
-          objectUrl = URL.createObjectURL(blob);
-          setPreview(objectUrl)  
-      }
-  
-       // Cleanup function to revoke the Object URL
-       return () => {
-          if (objectUrl) {
-              URL.revokeObjectURL(objectUrl);
+  useEffect(() => {
+    // Only run GSAP animations when loading is complete
+    if (!loading) {
+      gsap.from('.hero .col.content', {
+        opacity: 0,
+        y: 100,
+        duration: 1.5,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+      gsap.from('.hero .circle img', {
+        opacity: 0,
+        scale: 0.5,
+        stagger: 0.2,
+        duration: 1.5,
+        ease: 'elastic.out(1, 0.5)',
+      });
+
+      gsap.from('.featured-books .header', {
+        scrollTrigger: {
+          trigger: '.featured-books',
+          start: 'top bottom',
+          end: 'top top',
+          scrub: true,
+        },
+        opacity: 0,
+        y: 50,
+        duration: 1.5,
+        ease: 'power3.out',
+      });
+
+      gsap.from('.featured-books .books', {
+        scrollTrigger: {
+          trigger: '.featured-books',
+          start: 'top bottom',
+          end: 'top top',
+          scrub: true,
+        },
+        opacity: 0,
+        y: 50,
+        duration: 1.5,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+      gsap.from('.featured-book .row', {
+        opacity: 0,
+        x: -200,
+        duration: 1.5,
+        delay: 1.5,
+        ease: 'power3.out',
+      });
+
+      gsap.from('.thesis-dissertation', {
+        opacity: 0,
+        y: 100,
+        duration: 1.5,
+        delay: 2,
+        ease: 'bounce.out',
+      });
+
+      gsap.utils.toArray('.btn').forEach((btn) => {
+        gsap.fromTo(
+          btn,
+          { scale: 1 }, 
+          {
+            scale: 1.1, 
+            duration: 0.3,
+            ease: 'power1.out',
+            paused: true,
+            repeat: -1,  
+            yoyo: true,  
           }
-        };
-    },[featuredBook])
+        );
+      });
+    }
+  }, [loading]);
+
+  useEffect(()=>{
+    if(!featuredBook.book_cover) return;
+
+    let objectUrl;
+    try{
+        objectUrl = URL.createObjectURL(featuredBook.book_cover);
+        setPreview(objectUrl);
+       
+        
+    }catch{
+        const blob = new Blob([new Uint8Array(featuredBook.book_cover.data)], { type: 'image/jpeg' });
+        objectUrl = URL.createObjectURL(blob);
+        setPreview(objectUrl)  
+    }
+
+     // Cleanup function to revoke the Object URL
+     return () => {
+        if (objectUrl) {
+            URL.revokeObjectURL(objectUrl);
+        }
+      };
+  },[featuredBook])
+
+  const getData = async()=>{
+    // setLoading(true)
+    //get books
+    await getFeaturedBooks()
+    // get journals and newsletters
+    await getJournalNewsletter()
+    // get featured book
+    await getFeaturedBook()
+    setLoading(false)
+  }
 
   const getFeaturedBooks = async () => {
     console.log('getting featured books')
@@ -290,6 +306,7 @@ const Home = () => {
       </section>
 
       <Footer />
+      <Loading loading={loading}/>
     </div>
   );
 };

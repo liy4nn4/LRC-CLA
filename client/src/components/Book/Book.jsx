@@ -5,7 +5,11 @@ import './Book.css'
 
 const Book = ({isSearch, isView, item}) => {
   console.log(item)
-  const authors = item?item.author_name.split(','):''
+  const authors = item && item.author_name 
+    ? item.author_name.includes(',') 
+      ? item.author_name.split(',') 
+      : [item.author_name] 
+    : [];
   const [preview,setPreview] =useState()
 
   useEffect(()=>{
@@ -49,8 +53,6 @@ const Book = ({isSearch, isView, item}) => {
             <p className='title'>{item?item.resource_title:''}</p>
             <p className='author'>By {Array.isArray(authors)?authors[0]:''}</p>
         </div>}
-        
-        
     </div>
   )
 }

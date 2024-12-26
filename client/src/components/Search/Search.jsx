@@ -1,15 +1,40 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './Search.css'
 import claLogo  from '../../assets/OPAC/icons/cla-logo.png'
 import Book from '../Book/Book'
 import Footer from '../Footer/Footer'
 import { Link } from 'react-router-dom'
 import ResourceModal from '../ResourceModal/ResourceModal'
-
+import axios from 'axios'
 
 const Search = () => {
   const [isSearch, setIsSearch] = useState(true)
   const [open, setOpen] = useState(false)
+  const [resources, setResources] = useState([])
+  const [offset, setOffset] = useState(0)
+
+  useEffect(()=>{
+    getResources()
+  },[offset])
+
+  const getResources = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/resources', { params: { offset } });
+      if (Array.isArray(response.data)) {
+        setResources(prevResources => [...prevResources, ...response.data]);
+      } else {
+        console.error('Unexpected response format:', response.data);
+      }
+    } catch (error) {
+      console.error('Error retrieving featured books:', error.message);
+    }
+  };
+  
+
+  const loadMoreResources = () => setOffset(prevOffset => prevOffset + 8);
+
+
+  console.log(offset)
 
   return (
     <div className='search-container'>
@@ -82,9 +107,10 @@ const Search = () => {
             {/* header */}
             <div className="header">
               <div className="title-subtitle">
-                <p className='title'>Restaurant</p>
-                <p className='subtitle'>Showing results for Restaurant</p>
+                <p className='title'>Results</p>
+                <p className='subtitle'>Showing all books</p>
               </div>
+              
 
               {/* sort */}
               <div className="sort">
@@ -97,12 +123,24 @@ const Search = () => {
 
             {/* resources */}
             <div className="resources">
-              <button className='resource' onClick={()=>setOpen(true)}>
-                <Book isSearch={isSearch}/>
-              </button>              
+              {Array.isArray(resources) && resources.length > 0 ? (
+                resources.map((item, index) => (
+                  <button key={index} className="resource" onClick={() => setOpen(true)}>
+                    <Book item={item} isSearch={isSearch} />
+                  </button>
+                ))
+              ) : (
+                <p>No resources available.</p>
+              )}
             </div>
 
-            </div>
+
+            {/* load more */}
+            {Array.isArray(resources) && resources.length > 0 ?<div className="load-more-box">
+              <button className="btn load-btn" onClick={loadMoreResources}>LOAD MORE</button>
+            </div>:''}
+            
+          </div>
 
 
           </div>
