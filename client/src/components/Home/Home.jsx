@@ -22,6 +22,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
   const [featuredBooks, setFeaturedBooks] = useState([])
+  const [featuredBook, setFeaturedBook] = useState({})
+  const [journalNewsletter, setJournalNewsletter] = useState([])
+  const [preview,setPreview] = useState()
 
   useEffect(() => {
     // Hero Section: Zoom In with a Parallax effect
@@ -105,7 +108,34 @@ const Home = () => {
 
     //get books
     getFeaturedBooks()
+    // get journals and newsletters
+    getJournalNewsletter()
+    // get featured book
+    getFeaturedBook()
   }, []);
+
+  useEffect(()=>{
+      if(!featuredBook.book_cover) return;
+  
+      let objectUrl;
+      try{
+          objectUrl = URL.createObjectURL(featuredBook.book_cover);
+          setPreview(objectUrl);
+         
+          
+      }catch{
+          const blob = new Blob([new Uint8Array(featuredBook.book_cover.data)], { type: 'image/jpeg' });
+          objectUrl = URL.createObjectURL(blob);
+          setPreview(objectUrl)  
+      }
+  
+       // Cleanup function to revoke the Object URL
+       return () => {
+          if (objectUrl) {
+              URL.revokeObjectURL(objectUrl);
+          }
+        };
+    },[featuredBook])
 
   const getFeaturedBooks = async () => {
     console.log('getting featured books')
@@ -117,8 +147,32 @@ const Home = () => {
         console.error('Error retrieving featured books:', error.message);
     }
   };
+
+  const getJournalNewsletter = async () => {
+    console.log('getting journals/newsletter')
+    try {
+        const response = await axios.get('http://localhost:3001/journals-newsletters');
+        console.log('Journal and newsletters:', response);
+        setJournalNewsletter(response.data);
+    } catch (error) {
+        console.error('Error retrieving journals and newsletters:', error.message);
+    }
+  };
+
+  const getFeaturedBook = async () => {
+    console.log('getting featured book')
+    try {
+        const response = await axios.get('http://localhost:3001/featured-book');
+        console.log('Featured book:', response);
+        setFeaturedBook(response.data[0]);
+    } catch (error) {
+        console.error('Error retrieving featured book:', error.message);
+    }
+  };
   
   console.log(featuredBooks)
+  console.log(journalNewsletter)
+  console.log(featuredBook)
 
 
   return (
@@ -169,10 +223,13 @@ const Home = () => {
               className="mySwiper"
             >
                <div className="books">
-                {Array.isArray(featuredBooks)?featuredBooks.map(item=>(
-                  <SwiperSlide><Book item={item}/></SwiperSlide>
-                  
-                )):''}
+               {Array.isArray(featuredBooks) && featuredBooks.length > 0 ? (
+                  featuredBooks.map(item => (
+                    <SwiperSlide><Book item={item} /></SwiperSlide>
+                  ))
+                ) : (
+                  <p>No featured books available.</p>
+                )}
               </div>
             </Swiper>
         </div>
@@ -184,7 +241,25 @@ const Home = () => {
             <button className="btn">See all</button>
           </div>
           <div className="journal-newsletter">
-            <Book />
+          <Swiper
+              slidesPerView={5}
+              spaceBetween={5}
+              // pagination={{
+              //   clickable: true,
+              // }}
+              modules={[Pagination]}
+              className="mySwiper"
+            >
+               <div className="books">
+               {Array.isArray(journalNewsletter) && journalNewsletter.length > 0 ? (
+                  journalNewsletter.map(item => (
+                    <SwiperSlide><Book item={item} /></SwiperSlide>
+                  ))
+                ) : (
+                  <p>No journals or newsletters available.</p>
+                )}
+              </div>
+            </Swiper>
           </div>
         </div>
       </section>
@@ -194,13 +269,13 @@ const Home = () => {
         <div className="row">
           {/* image */}
           <div className="col image">
-            <img src={book1} alt="" />
+            <img src={preview} alt="" />
           </div>
           {/* content */}
           <div className="col content">
-            <h3 className='m-0'>Bread & Pastry Production Manual</h3>
-            <p className="author mb-4">by Jessica Pryce-Jones</p>
-            <p className="description">According to Jessica Pryce-Jones, happiness at work is not some abstract idea but a practical reality with a clear impact on you and your workplace. This book reveals that the happier you are the more you ll achieve, yielding tangible benefits to you and your organization.</p>
+            <h3 className='m-0'>{featuredBook.resource_title}</h3>
+            <p className="author mb-4">by {featuredBook.author_name}</p>
+            <p className="description">{featuredBook.resource_description}</p>
             <button className="btn search-btn">search more like this</button>
           </div>
         </div>

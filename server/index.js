@@ -10,7 +10,7 @@ import { Server } from 'socket.io';
 const app = express()
 app.use(express.json())
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000','http://localhost:3002'],
     methods: 'GET,POST,PUT,DELETE'
 }));
 
@@ -52,7 +52,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         // URL for frontend
-        origin: "http://localhost:3000",
+        origin: ['http://localhost:3000','http://localhost:3002'],
+        
     }
 });
 
@@ -1845,6 +1846,61 @@ app.get('/featured-books', (req, res) => {
     ORDER BY RAND()
     LIMIT 10
 `;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        console.log(results)
+        return res.json(results); // Send the response as JSON
+    });
+});
+
+app.get('/journals-newsletters', (req, res) => {
+    const q = `
+    SELECT 
+        resources.resource_title, 
+        resources.resource_id, 
+        journalnewsletter.jn_cover, 
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
+    FROM resourceauthors
+    JOIN resources ON resourceauthors.resource_id = resources.resource_id
+    JOIN author ON resourceauthors.author_id = author.author_id
+    JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
+    WHERE resources.type_id = '2' OR resources.type_id = '3'  
+    GROUP BY resources.resource_id, resources.resource_title, journalnewsletter.jn_cover
+    ORDER BY RAND()
+    LIMIT 10`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        console.log(results)
+        return res.json(results); // Send the response as JSON
+    });
+});
+
+app.get('/featured-book', (req, res) => {
+    const q = `
+    SELECT 
+        resources.resource_title,
+        resources.resource_description,
+        resources.resource_id, 
+        book.book_cover, 
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
+    FROM resourceauthors
+    JOIN resources ON resourceauthors.resource_id = resources.resource_id
+    JOIN author ON resourceauthors.author_id = author.author_id
+    JOIN book ON book.resource_id = resources.resource_id
+    WHERE resources.resource_description != 'n/a' AND 
+    resources.type_id='1'
+    GROUP BY resources.resource_id, resources.resource_title, book.book_cover
+    LIMIT 1`;
 
     db.query(q, (err, results) => {
         if (err) {
