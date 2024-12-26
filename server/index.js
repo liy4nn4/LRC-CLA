@@ -1828,6 +1828,34 @@ app.post("/attendance", (req, res) => {
     });
   });
 
+/*----------------------OPAC-------------------------- */
+app.get('/featured-books', (req, res) => {
+    const q = `
+    SELECT 
+        resources.resource_title, 
+        resources.resource_id, 
+        book.book_cover, 
+        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
+    FROM resourceauthors
+    JOIN resources ON resourceauthors.resource_id = resources.resource_id
+    JOIN author ON resourceauthors.author_id = author.author_id
+    JOIN book ON book.resource_id = resources.resource_id
+    WHERE resources.type_id = '1'
+    GROUP BY resources.resource_id, resources.resource_title, book.book_cover
+    ORDER BY RAND()
+    LIMIT 10
+`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        console.log(results)
+        return res.json(results); // Send the response as JSON
+    });
+});
 
 
 server.listen(3001,()=>{

@@ -148,6 +148,11 @@
     justify-content: space-between;
 }
 
+.client-home-container .featured-books .books{
+    display: flex;
+    justify-content: space-evenly;
+}
+
 .client-home-container .featured-book{
     background-color: var(--tup-color);
     width: 100%;
@@ -244,3 +249,19 @@
     background-color: var(--white);
     border-color: var(--white);
 }
+
+.swiper {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .swiper-slide {
+    text-align: center;
+    font-size: 18px;
+    background: #fff;
+  
+    /* Center slide text vertically */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }

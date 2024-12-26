@@ -30,6 +30,18 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    /* width: 24%; */
+    /* background-color: #5499CB; */
+    align-items: center;
+    padding: 0 20px;
+}
+
+.book-container div p{
+    text-align: center;
+}
+
+.book-container .books{
+    display: flex;
 }
 
 .book-container p{
@@ -38,13 +50,17 @@
 
 .book-container img{
     width: 230px;
+    height: 350px;
+    object-fit: cover;
     border-radius: 10px;
     box-shadow: 1px 1px 5px var(--shadow);
 }
 
 .book-container .title{
     font-weight: 500;
-    font-size: 1.2rem;
+    font-size: 1rem;
+    width: 100%;
+    /* background-color: #54CB58; */
 }
 
 

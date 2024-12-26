@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Home.css';
 import Navbar from '../Navbar/Navbar';
 import book1 from '../../assets/OPAC/photos/book1.jpg';
@@ -8,11 +8,21 @@ import Footer from '../Footer/Footer';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Link } from 'react-router-dom';
+import axios from 'axios'
 
+// Import Swiper React components
+import { Swiper, SwiperSlide } from 'swiper/react';
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+// import required modules
+import { Pagination } from 'swiper/modules';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Home = () => {
+  const [featuredBooks, setFeaturedBooks] = useState([])
+
   useEffect(() => {
     // Hero Section: Zoom In with a Parallax effect
     gsap.from('.hero .col.content', {
@@ -92,9 +102,24 @@ const Home = () => {
         }
       );
     });
-  
+
+    //get books
+    getFeaturedBooks()
   }, []);
+
+  const getFeaturedBooks = async () => {
+    console.log('getting featured books')
+    try {
+        const response = await axios.get('http://localhost:3001/featured-books');
+        console.log('Featured Books:', response);
+        setFeaturedBooks(response.data);
+    } catch (error) {
+        console.error('Error retrieving featured books:', error.message);
+    }
+  };
   
+  console.log(featuredBooks)
+
 
   return (
     <div className='client-home-container'>
@@ -129,14 +154,27 @@ const Home = () => {
       {/* featured books and journal */}
       <section className='books-jn'>
         {/* featured books */}
-        <div className="featured-books">
+        <div className="featured-books ">
           <div className="header mb-3">
             <h4>Featured Books</h4>
             <button className="btn">See all</button>
           </div>
-          <div className="books">
-            <Book />
-          </div>
+          <Swiper
+              slidesPerView={5}
+              spaceBetween={5}
+              // pagination={{
+              //   clickable: true,
+              // }}
+              modules={[Pagination]}
+              className="mySwiper"
+            >
+               <div className="books">
+                {Array.isArray(featuredBooks)?featuredBooks.map(item=>(
+                  <SwiperSlide><Book item={item}/></SwiperSlide>
+                  
+                )):''}
+              </div>
+            </Swiper>
         </div>
 
         {/* journal */}

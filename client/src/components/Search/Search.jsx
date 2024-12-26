@@ -9,7 +9,7 @@ import ResourceModal from '../ResourceModal/ResourceModal'
 
 const Search = () => {
   const [isSearch, setIsSearch] = useState(true)
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
 
   return (
     <div className='search-container'>
