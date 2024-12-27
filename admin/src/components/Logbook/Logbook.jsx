@@ -132,6 +132,7 @@ const Logbook = () => {
                     value={entriesPerPage}
                     onChange={(e) => setEntriesPerPage(e.target.value)}
                 >
+                    <option value="">All</option>
                     <option value="5">5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>

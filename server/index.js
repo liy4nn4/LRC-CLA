@@ -1243,10 +1243,10 @@ app.get('/getBorrowers', (req, res) => {
 
 app.get('/getAddedBooks', (req, res) => {
     const q = `SELECT 
-        r.resource_id, 
-        r.resource_title, 
-        r.resource_quantity, 
-        GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', \n ') AS authors
+    r.resource_id, 
+    r.resource_title, 
+    r.resource_quantity, 
+    GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', ') AS authors
     FROM 
         resources AS r
     JOIN 
@@ -1254,7 +1254,9 @@ app.get('/getAddedBooks', (req, res) => {
     JOIN 
         author AS a ON ra.author_id = a.author_id
     GROUP BY 
-        r.resource_id, r.resource_title, r.resource_quantity;
+        r.resource_id, r.resource_title, r.resource_quantity
+    ORDER BY 
+        r.resource_id DESC LIMIT 10;
 `;
 
     db.query(q, (err, results) => {
@@ -1829,7 +1831,9 @@ app.post("/attendance", (req, res) => {
     });
   });
 
-/*---------------------ONLINE CATALOG-------------------------- */
+
+
+/*----------------------OPAC-------------------------- */
 app.get('/featured-books', (req, res) => {
     const q = `
     SELECT 
