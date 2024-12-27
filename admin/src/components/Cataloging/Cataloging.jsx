@@ -54,6 +54,8 @@ const Cataloging = ({disabled,handleChange,bookData,handleToggle,formValidation,
             console.log("Couldn't retrieve topics online. An error occurred: ", err.message)
         }
     }
+
+    
     
 
   return (
