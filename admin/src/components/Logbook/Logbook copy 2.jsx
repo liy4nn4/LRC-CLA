@@ -26,8 +26,8 @@ const Logbook = () => {
                 search: searchInput,
                 startDate,
                 endDate,
-                limit: entriesPerPage === "All" ? null : entriesPerPage,
-                page: entriesPerPage === "All" ? 1 : currentPage, // Include current page in the request
+                limit: entriesPerPage,
+                page: currentPage, // Include current page in the request
             };
             const query = new URLSearchParams(params).toString();
             const response = await axios.get(`http://localhost:3001/patronSort?${query}`);
@@ -64,9 +64,7 @@ const Logbook = () => {
 
         // Format data for Excel
         const data = patron.map((item, index) => ({
-            'Number': entriesPerPage === "All"
-            ? index + 1 // Sequential numbering when "All" is selected
-            : index + 1 + (currentPage - 1) * entriesPerPage,
+            'Number': index + 1 + (currentPage - 1) * entriesPerPage,
             'TUP ID': item.tup_id,
             'First Name': item.patron_fname,
             'Last Name': item.patron_lname,
@@ -128,12 +126,11 @@ const Logbook = () => {
                     <select
                         className="form-select"
                         value={entriesPerPage}
-                        onChange={(e) => setEntriesPerPage(e.target.value === "All" ? "All" : Number(e.target.value))}
+                        onChange={(e) => setEntriesPerPage(Number(e.target.value))}
                     >
                         <option value={5}>5</option>
                         <option value={10}>10</option>
                         <option value={20}>20</option>
-                        <option value="All">All</option>
                     </select>
                 </div>
 
@@ -182,9 +179,7 @@ const Logbook = () => {
                         {patron.length > 0 ? (
                             patron.map((item, index) => (
                                 <tr key={index}>
-                                    <td>{entriesPerPage === "All"
-                        ? index + 1 
-                        : index + 1 + (currentPage - 1) * entriesPerPage}</td>
+                                    <td>{index + 1 + (currentPage - 1) * entriesPerPage}</td>
                                     <td>{item.tup_id}</td>
                                     <td>{item.patron_fname}</td>
                                     <td>{item.patron_lname}</td>
@@ -211,26 +206,6 @@ const Logbook = () => {
                 <div className="logbook-table-entries">
                     Showing {patron.length} of {totalEntries} Entries
                 </div>
-                {entriesPerPage !== "All" && (
-                    <div className="logbook-table-button-pagination">
-                        <button onClick={() => handlePageChange(currentPage - 1)} className="btn btn-outline-danger">
-                            <img src={left} alt="" />
-                        </button>
-                        <div className="logbook-pages">
-                            Page {currentPage} of {totalPages}
-                        </div>
-                        <button onClick={() => handlePageChange(currentPage + 1)} className="btn btn-outline-danger">
-                            <img src={right} alt="" />
-                        </button>
-                    </div>
-                )}
-            </div>
-
-
-            {/* <div className="logbook-table-pagination">
-                <div className="logbook-table-entries">
-                    Showing {patron.length} of {totalEntries} Entries
-                </div>
                 <div className="logbook-table-button-pagination">
                     <button onClick={() => handlePageChange(currentPage - 1)} class="btn btn-outline-danger">
                         <img src={left} alt="" />
@@ -242,7 +217,7 @@ const Logbook = () => {
                         <img src={right} alt="" />
                     </button>
                 </div>
-            </div> */}
+            </div>
         </div>
     );
 };

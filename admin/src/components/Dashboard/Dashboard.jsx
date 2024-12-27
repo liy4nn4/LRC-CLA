@@ -252,7 +252,7 @@ const Dashboard = () => {
             <tbody>
                       {addedBooks?addedBooks.length>0?addedBooks.map((item,key)=>(
                       <tr key={key}>
-                          <td>{key + 1}</td>
+                          <td>{item.resource_id}</td>
                           <td>{item.resource_title}</td>
                           <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.authors}</span></pre></td>
                           <td>{item.resource_quantity}</td>
