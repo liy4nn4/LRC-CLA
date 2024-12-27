@@ -1256,7 +1256,7 @@ app.get('/getAddedBooks', (req, res) => {
     GROUP BY 
         r.resource_id, r.resource_title, r.resource_quantity
     ORDER BY 
-        r.resource_id DESC LIMIT 10;
+        r.resource_id DESC LIMIT 5;
 `;
 
     db.query(q, (err, results) => {
@@ -1272,7 +1272,7 @@ app.get('/getAddedBooks', (req, res) => {
 });
 
 
-app.get('/patronSort', (req, res) => {
+/* app.get('/patronSort', (req, res) => {
     const { search, startDate, endDate, limit } = req.query;
     
     // Base query with JOINs
@@ -1335,9 +1335,146 @@ app.get('/patronSort', (req, res) => {
             res.json({ message: 'No patrons found' });
         }
     })
-}) 
+})  */
 
+    /* app.get('/patronSort', (req, res) => {
+        const { search, startDate, endDate, limit, page } = req.query;
+    
+        let q = `
+            SELECT 
+                patron.patron_id, 
+                patron.tup_id, 
+                patron.patron_fname, 
+                patron.patron_lname, 
+                patron.patron_sex, 
+                patron.patron_mobile,
+                patron.patron_email, 
+                course.course_name AS course, 
+                college.college_name AS college, 
+                DATE(attendance.att_date) AS att_date, 
+                attendance.att_log_in_time 
+            FROM patron 
+            JOIN course ON patron.course_id = course.course_id 
+            JOIN college ON patron.college_id = college.college_id 
+            JOIN attendance ON patron.patron_id = attendance.patron_id 
+            WHERE 1=1
+        `;
+    
+        const params = [];
+        if (search) {
+            q += ` AND (patron.tup_id LIKE ? OR patron.patron_fname LIKE ? OR patron.patron_lname LIKE ?)`;
+            params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        }
+    
+        if (startDate) {
+            q += ` AND DATE(attendance.att_date) >= ?`;
+            params.push(startDate);
+        }
+    
+        if (endDate) {
+            q += ` AND DATE(attendance.att_date) <= ?`;
+            params.push(endDate);
+        }
+    
+        const countQuery = `SELECT COUNT(*) AS total FROM (${q}) AS countQuery`;
+    
+        db.query(countQuery, params, (err, countResult) => {
+            if (err) {
+                console.error(err.message);
+                res.status(500).send('Database error: ' + err.message);
+                return;
+            }
+    
+            const total = countResult[0].total;
+    
+            // Add pagination
+            const offset = (page - 1) * limit;
+            q += ` ORDER BY att_date DESC, att_log_in_time DESC LIMIT ? OFFSET ?`;
+            params.push(parseInt(limit), parseInt(offset));
+    
+            db.query(q, params, (err, results) => {
+                if (err) {
+                    console.error(err.message);
+                    res.status(500).send('Database error: ' + err.message);
+                } else {
+                    res.json({ results, total });
+                }
+            });
+        });
+    }); */
 
+    
+    app.get('/patronSort', (req, res) => {
+        const { search, startDate, endDate, limit, page } = req.query;
+    
+        let q = `
+            SELECT 
+                patron.patron_id, 
+                patron.tup_id, 
+                patron.patron_fname, 
+                patron.patron_lname, 
+                patron.patron_sex, 
+                patron.patron_mobile,
+                patron.patron_email, 
+                course.course_name AS course, 
+                college.college_name AS college, 
+                DATE(attendance.att_date) AS att_date, 
+                attendance.att_log_in_time 
+            FROM patron 
+            JOIN course ON patron.course_id = course.course_id 
+            JOIN college ON patron.college_id = college.college_id 
+            JOIN attendance ON patron.patron_id = attendance.patron_id 
+            WHERE 1=1
+        `;
+    
+        const params = [];
+        if (search) {
+            q += ` AND (patron.tup_id LIKE ? OR patron.patron_fname LIKE ? OR patron.patron_lname LIKE ?)`;
+            params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        }
+    
+        if (startDate) {
+            q += ` AND DATE(attendance.att_date) >= ?`;
+            params.push(startDate);
+        }
+    
+        if (endDate) {
+            q += ` AND DATE(attendance.att_date) <= ?`;
+            params.push(endDate);
+        }
+    
+        const countQuery = `SELECT COUNT(*) AS total FROM (${q}) AS countQuery`;
+    
+        db.query(countQuery, params, (err, countResult) => {
+            if (err) {
+                console.error(err.message);
+                res.status(500).send('Database error: ' + err.message);
+                return;
+            }
+    
+            const total = countResult[0].total;
+    
+            // Add pagination only if limit is not "All"
+            if (limit !== "null") {
+                const offset = (page - 1) * limit;
+                q += ` ORDER BY att_date DESC, att_log_in_time DESC LIMIT ? OFFSET ?`;
+                params.push(parseInt(limit), parseInt(offset));
+            } else {
+                q += ` ORDER BY att_date DESC, att_log_in_time DESC`; // No limit or offset
+            }
+    
+            db.query(q, params, (err, results) => {
+                if (err) {
+                    console.error(err.message);
+                    res.status(500).send('Database error: ' + err.message);
+                } else {
+                    res.json({ results, total });
+                }
+            });
+        });
+    });
+        
+    
 
 app.get('/getCover', (req, res) => {
     const query = `SELECT 

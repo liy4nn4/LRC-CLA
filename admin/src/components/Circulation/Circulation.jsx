@@ -1,10 +1,29 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import axios from 'axios'
 import './Circulation.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCartPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom'
 
 const Circulation = () => {
+  const [borrowers, setBorrower] = useState([]);
+
+    useEffect(() => {
+        // Fetch data from backend API
+        
+    }, []);
+
+   
+    const getBorrowers = async()=>{
+      try {
+        const response = await axios.get(`http://localhost:3001/getBorrowers`).then(res=>res.data);
+        setBorrower(response)
+        console.log(response)
+      } catch (err) {
+          console.log(err.message);
+      }
+    }
+    
   return (
     <div className='circulation-container'>
       <h1>Circulation</h1>

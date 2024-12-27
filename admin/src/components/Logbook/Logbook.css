@@ -157,7 +157,16 @@
     width: 100%;
     border-radius: 10px;
     border: 1px solid var(--tup-color);
-    overflow: hidden;
+    overflow: auto;
+    height: 50vh;
+    scrollbar-width: thin;
+}
+
+.logbook-table-box thead{
+    position: sticky;
+    top: 0;
+
+    
 }
 
 .logbook-table thead{
@@ -187,6 +196,10 @@
     display: flex;
     justify-content: space-between;
 
+}
+
+.logbook-table-pagination button{
+    border: none;
 }
 
 .logbook-current-entry,.logbook-total-entry{
