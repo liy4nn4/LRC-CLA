@@ -14,23 +14,26 @@ const ResourceModal = ({ open, close, resource }) => {
     useEffect(()=>{
       if(!resource) return;
   
-      let objectUrl;
-      try{
-  
-            objectUrl = URL.createObjectURL(resource.resource_cover);
-            setPreview(objectUrl);
-      }catch{
-          const blob = new Blob([new Uint8Array(resource.resource_cover.data)], { type: 'image/jpeg' });
-          objectUrl = URL.createObjectURL(blob);
-          setPreview(objectUrl)
+      if(resource.type_id!=4){
+        let objectUrl;
+        try{
+    
+              objectUrl = URL.createObjectURL(resource.resource_cover);
+              setPreview(objectUrl);
+        }catch{
+            const blob = new Blob([new Uint8Array(resource.resource_cover.data)], { type: 'image/jpeg' });
+            objectUrl = URL.createObjectURL(blob);
+            setPreview(objectUrl)
+        }
+    
+        // Cleanup function to revoke the Object URL
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+          };
       }
-  
-       // Cleanup function to revoke the Object URL
-       return () => {
-          if (objectUrl) {
-              URL.revokeObjectURL(objectUrl);
-          }
-        };
+      
     },[resource])
 
   console.log(resource)
@@ -107,7 +110,13 @@ const ResourceModal = ({ open, close, resource }) => {
 
           {/* Resource images */}
           <div className="res-img col">
-            <img src={preview} alt="Book Cover" />
+            {resource.type_id!=4?
+            (<img src={preview} alt="Book Cover" />):(
+              <div className='thesis-cover'>
+                <p className="title">{resource?resource.resource_title:''}</p>
+              </div>
+            )}
+            
           </div>
 
           {/* Related resources */}

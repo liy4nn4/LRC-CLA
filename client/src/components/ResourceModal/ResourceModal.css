@@ -146,7 +146,7 @@
     
 }
 
-.res-img img {
+.res-img img, .res-img .thesis-cover{
     width: 400px;
     height: 550px;
     border-radius: 5px;
@@ -154,6 +154,13 @@
     box-shadow: 0 4px 8px var(--shadow);
 }
 
+.res-img .thesis-cover .title{
+    font-size: 1rem !important;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .res-status {
     background-color: var(--green);
     padding: 10px 20px;
