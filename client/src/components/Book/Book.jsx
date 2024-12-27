@@ -13,29 +13,17 @@ const Book = ({isSearch, isView, item}) => {
   const [preview,setPreview] =useState()
 
   useEffect(()=>{
-    if(!item) return;
+    if(!item.resource_cover) return;
 
     let objectUrl;
     try{
-        if(item.book_cover){
-          objectUrl = URL.createObjectURL(item.book_cover);
+
+          objectUrl = URL.createObjectURL(item.resource_cover);
           setPreview(objectUrl);
-        }else{
-          objectUrl = URL.createObjectURL(item.jn_cover);
-          setPreview(objectUrl);
-        }
-        
     }catch{
-      if(item.book_cover){
-        const blob = new Blob([new Uint8Array(item.book_cover.data)], { type: 'image/jpeg' });
+        const blob = new Blob([new Uint8Array(item.resource_cover.data)], { type: 'image/jpeg' });
         objectUrl = URL.createObjectURL(blob);
         setPreview(objectUrl)
-      }else{
-        const blob = new Blob([new Uint8Array(item.jn_cover.data)], { type: 'image/jpeg' });
-        objectUrl = URL.createObjectURL(blob);
-        setPreview(objectUrl)
-      }
-        
     }
 
      // Cleanup function to revoke the Object URL

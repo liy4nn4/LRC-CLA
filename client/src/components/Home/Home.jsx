@@ -7,7 +7,7 @@ import Book from '../Book/Book';
 import Footer from '../Footer/Footer';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios'
 
 // Import Swiper React components
@@ -28,6 +28,9 @@ const Home = () => {
   const [journalNewsletter, setJournalNewsletter] = useState([])
   const [preview,setPreview] = useState()
   const [loading,setLoading] = useState(false)
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [searchFilter, setSearchFilter] = useState('all')
+  const navigate = useNavigate()
 
   useEffect(() => {
     // check if the page has already been loaded (only show loading on first access)
@@ -185,10 +188,21 @@ const Home = () => {
         console.error('Error retrieving featured book:', error.message);
     }
   };
+
+/*---------------HANDLE CHANGE--------------------- */
+const handleChange = async(e)=>{
+  const {value}=e.target;
+  setSearchKeyword(value)
+}
+
+const handleSearch = async()=>{
+  if(searchKeyword!=''){
+    navigate(`/search?keyword=${searchKeyword}`)
+  }
   
-  console.log(featuredBooks)
-  console.log(journalNewsletter)
-  console.log(featuredBook)
+}
+  
+  console.log(searchKeyword)
 
 
   return (
@@ -212,11 +226,12 @@ const Home = () => {
             <h2>Welcome to <span>College of Liberal Arts'</span></h2>
             <h2>Learning Resources Center</h2>
             <p>Want to find academic resources for your next project? Our online catalog has been designed to make your search simple and intuitive.</p>
-            <Link to='/search'>
-              <button className="btn">
-                Start exploring now
+            <div className="search-bar">
+              <input type="text" placeholder='Search for resources' name='term' onChange={(e)=>handleChange(e)}/>
+              <button className='btn' onClick={handleSearch}>
+                <i class="fa-solid fa-magnifying-glass"></i>
               </button>
-            </Link>
+            </div>
           </div>
         </div>
       </section>

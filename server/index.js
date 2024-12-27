@@ -1990,7 +1990,7 @@ app.get('/featured-books', (req, res) => {
     SELECT 
         resources.resource_title, 
         resources.resource_id, 
-        book.book_cover, 
+        book.book_cover as resource_cover, 
         GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
     FROM resourceauthors
     JOIN resources ON resourceauthors.resource_id = resources.resource_id
@@ -2018,7 +2018,7 @@ app.get('/journals-newsletters', (req, res) => {
     SELECT 
         resources.resource_title, 
         resources.resource_id, 
-        journalnewsletter.jn_cover, 
+        journalnewsletter.jn_cover as resource_cover, 
         GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
     FROM resourceauthors
     JOIN resources ON resourceauthors.resource_id = resources.resource_id
@@ -2070,31 +2070,108 @@ app.get('/featured-book', (req, res) => {
 
 app.get('/resources', (req, res) => {
     const offset = parseInt(req.query.offset, 10) || 0;
-    const q = `
-    SELECT 
-        resources.resource_title,
-        resources.resource_description,
-        resources.resource_id, 
-        book.book_cover, 
-        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
-    FROM resourceauthors
-    JOIN resources ON resourceauthors.resource_id = resources.resource_id
-    JOIN author ON resourceauthors.author_id = author.author_id
-    JOIN book ON book.resource_id = resources.resource_id
-    GROUP BY resources.resource_id, resources.resource_title, book.book_cover
-    ORDER BY resources.resource_title ASC
-    LIMIT 8 OFFSET ?`;
+    const keyword = req.query.keyword || '';
+    const filter = req.query.filter || '';
+    
+    switch(filter){
+        case '':
+            getAllResourcesOnlineCatalog(keyword,filter,offset, res);
+            break;
+    }
 
-    db.query(q, [offset], (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send({ error: 'Database query failed' });
-        }
-
-        console.log(results)
-        return res.json(results); // Send the response as JSON
-    });
+    console.log('keyword: ', keyword);
+    console.log('filter: ', filter)
 });
+
+const getAllResourcesOnlineCatalog = async (keyword, filter, offset, res) => {
+    const searchKeyword = `%${keyword}%`; // For partial matching
+    const q = `
+        SELECT 
+            resources.resource_title,
+            resources.resource_description,
+            resources.resource_id, 
+            resources.type_id,
+            CASE
+                WHEN resources.type_id = '1' THEN book.book_cover
+                WHEN resources.type_id = '2' OR resources.type_id = '3' THEN journalnewsletter.jn_cover
+                ELSE NULL
+            END AS resource_cover,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
+        FROM resources
+        LEFT JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
+        LEFT JOIN author ON resourceauthors.author_id = author.author_id
+        LEFT JOIN book ON book.resource_id = resources.resource_id
+        LEFT JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
+        WHERE resources.resource_title LIKE ?
+        GROUP BY resources.resource_id, resources.resource_title, resources.resource_description, resources.type_id
+        ORDER BY resources.resource_title ASC
+        LIMIT 10 OFFSET ?
+    `;
+
+    const countQ = `
+        SELECT COUNT(*) AS total
+        FROM resources
+        WHERE resources.resource_title LIKE ?
+    `;
+
+    try {
+        // Execute the main query
+        const results = await new Promise((resolve, reject) => {
+            db.query(q, [searchKeyword, offset], (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            });
+        });
+
+        // Execute the count query
+        const countResult = await new Promise((resolve, reject) => {
+            db.query(countQ, [searchKeyword], (err, results) => {
+                if (err) return reject(err);
+                resolve(results[0].total);
+            });
+        });
+
+        return res.json({ results, total: countResult });
+    } catch (error) {
+        console.error('Database error:', error.message);
+        return res.status(500).send({ error: 'Database query failed' });
+    }
+};
+
+
+// app.get('/resources', (req, res) => {
+//     const offset = parseInt(req.query.offset, 10) || 0;
+//     const keyword = req.query.keyword;
+//     const filter = req.query.filter;
+
+    
+//     const q = `
+//     SELECT 
+//         resources.resource_title,
+//         resources.resource_description,
+//         resources.resource_id, 
+//         book.book_cover, 
+//         CONCAT(author.author_fname, ' ', author.author_lname) AS author_name
+//     FROM resourceauthors
+//     JOIN resources ON resourceauthors.resource_id = resources.resource_id
+//     JOIN author ON resourceauthors.author_id = author.author_id
+//     JOIN book ON book.resource_id = resources.resource_id
+//     GROUP BY resources.resource_id, resources.resource_title, book.book_cover
+//     ORDER BY resources.resource_title ASC
+//     LIMIT 8 OFFSET ?`;
+
+//     db.query(q, [offset], (err, results) => {
+//         if (err) {
+//             console.error(err);
+//             return res.status(500).send({ error: 'Database query failed' });
+//         }
+
+//         db.query(countQ)
+//         console.log(results)
+//         return res.json(results); // Send the response as JSON
+//     });
+// });
+
 
 
 server.listen(3001,()=>{
