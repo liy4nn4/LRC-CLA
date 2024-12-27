@@ -6,6 +6,7 @@ import Footer from '../Footer/Footer'
 import { Link, useLocation } from 'react-router-dom'
 import ResourceModal from '../ResourceModal/ResourceModal'
 import axios from 'axios'
+import Navbar from '../Navbar/Navbar'
 
 const Search = () => {
   const [isSearch, setIsSearch] = useState(true)
@@ -30,7 +31,7 @@ const Search = () => {
     getTopic();
     getResources();
     setRenderKeyword(keyword)
-  }, [offset]);
+  }, [offset,selectedFilters]);
 
   const getResources = async () => {
     setRenderKeyword(keyword)
@@ -68,6 +69,7 @@ const Search = () => {
       setLoading(false);
     }
   };
+
   /*-------------HANDLE CHANGES---------------- */
   const handleFilterChange = (filterCategory, value) => {
     setSelectedFilters((prevFilters) => {
@@ -119,7 +121,7 @@ const Search = () => {
     }
   }
 
-  console.log(keyword)
+  console.log(selectedFilters)
 
   const handleResourceClick = (resource) => {
     setSelectedResource(resource); // Store the selected book
@@ -129,9 +131,10 @@ const Search = () => {
 
   return (
     <div className='search-container'>
+      <Navbar/>
       {/* logo-search */}
       <div className="logo-search container">
-        <img src={claLogo} alt="CLA Logo" />
+        {/* <img src={claLogo} alt="CLA Logo" /> */}
         {/* search */}
         <div className="search">
           <input type="text" placeholder='Search for resources' value={keyword} onChange={(e)=>handleChange(e)}/>
@@ -140,6 +143,7 @@ const Search = () => {
           </button>
         </div>
       </div>
+      
 
       {/* path */}
       <div className=" path">
@@ -239,14 +243,14 @@ const Search = () => {
                 </button>
               ))
             ) : loading ? '' : (
-              <p className="mt-5">No resources available.</p>
+              <p className="mt-5 no-resources">No resources available.</p>
             )}
             </div>
 
             {/* load more */}
             {Array.isArray(resources) && resources.length > 0 && !loading?<div className="load-more-box">
               <button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount==resources.length}>LOAD MORE</button>
-              </div>:<div className="spinner-container">
+              </div>:resources.length==0 && !loading?'':<div className="spinner-container">
                   <div className="spinner-grow text-danger" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
