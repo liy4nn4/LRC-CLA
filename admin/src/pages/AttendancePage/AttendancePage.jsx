@@ -30,6 +30,7 @@ const AttendancePage = () => {
     // Check if the student ID was scanned recently
     if (lastScannedId === studentId && lastScanTime && currentTime - lastScanTime < 5000) {
         setMessage("This student ID was scanned recently. Please wait a few seconds.");
+        setStudentId("")
         return;
     }
 

@@ -92,27 +92,7 @@ const Patrons = () => {
                     ))}
                     </tbody>
 
-                {/* <tbody>
-                    <tr>
-                        <td>xxxx-xx-xxxx</td>
-                        <td>xxxx xxxx</td>
-                        <td>xxxx@gmail.com</td>
-                        <td>xxxx</td>
-                        <td>0/0</td>
-                        <td>₱<span>0.00</span></td>
-                        <td className='patron-edit-checkout'>
-                            <button className='patron-edit-button'>
-                                <img src={edit} alt="" />
-                                Edit
-                            </button>
-                            <button className='patron-checkout-button'>
-                                <img src={checkout} alt="" />
-                                Checkout
-                            </button>
-                        </td>
-                       
-                    </tr>
-                </tbody> */}
+                
             </table>
         </div>
       

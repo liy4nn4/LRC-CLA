@@ -1243,10 +1243,10 @@ app.get('/getBorrowers', (req, res) => {
 
 app.get('/getAddedBooks', (req, res) => {
     const q = `SELECT 
-        r.resource_id, 
-        r.resource_title, 
-        r.resource_quantity, 
-        GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', \n ') AS authors
+    r.resource_id, 
+    r.resource_title, 
+    r.resource_quantity, 
+    GROUP_CONCAT(CONCAT(a.author_fname, ' ', a.author_lname) ORDER BY a.author_lname SEPARATOR ', ') AS authors
     FROM 
         resources AS r
     JOIN 
@@ -1254,7 +1254,9 @@ app.get('/getAddedBooks', (req, res) => {
     JOIN 
         author AS a ON ra.author_id = a.author_id
     GROUP BY 
-        r.resource_id, r.resource_title, r.resource_quantity;
+        r.resource_id, r.resource_title, r.resource_quantity
+    ORDER BY 
+        r.resource_id DESC LIMIT 10;
 `;
 
     db.query(q, (err, results) => {
@@ -1333,10 +1335,24 @@ app.get('/patronSort', (req, res) => {
             res.json({ message: 'No patrons found' });
         }
     })
-})
+}) 
+
+
 
 app.get('/getCover', (req, res) => {
-    const query = 'SELECT book_cover, resource_id FROM book ORDER BY book_id DESC LIMIT 5';
+    const query = `SELECT 
+                    b.book_cover, 
+                    b.resource_id, 
+                    r.resource_title
+                FROM 
+                    book b
+                JOIN 
+                    resources r
+                ON 
+                    b.resource_id = r.resource_id
+                ORDER BY 
+                    b.book_id DESC
+                LIMIT 5`;
     
     db.query(query, (error, results) => {
         if (error) return res.status(500).json({ error });
@@ -1344,8 +1360,8 @@ app.get('/getCover', (req, res) => {
         // Convert BLOB data to base64 for use in React
         const covers = results.map(book => ({
             cover: Buffer.from(book.book_cover).toString('base64'),
-            resource_id: (book.resource_id)
-
+            resource_id: (book.resource_id),
+            resource_title: (book.resource_title)
         }));
         
         res.json(covers);
@@ -1829,7 +1845,9 @@ app.post("/attendance", (req, res) => {
     });
   });
 
-/*---------------------ONLINE CATALOG-------------------------- */
+
+
+/*----------------------OPAC-------------------------- */
 app.get('/featured-books', (req, res) => {
     const q = `
     SELECT 
