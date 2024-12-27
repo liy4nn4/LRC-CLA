@@ -2096,9 +2096,10 @@ app.get('/resources', (req, res) => {
         params.push(...department);
     }
 
+    // Only apply topic filter to book and journalnewsletter tables
     if (topic.length > 0) {
-        whereClauses.push(`resources.topic_id IN (${topic.map(() => '?').join(', ')})`);
-        params.push(...topic);
+        whereClauses.push(`(book.topic_id IN (${topic.map(() => '?').join(', ')}) OR journalnewsletter.topic_id IN (${topic.map(() => '?').join(', ')}) )`);
+        params.push(...topic, ...topic);  // Push the topic filter twice: once for book and once for journalnewsletter
     }
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -2129,15 +2130,18 @@ app.get('/resources', (req, res) => {
         LIMIT 10 OFFSET ?
     `;
 
-    const countQ = `
+     const countQ = `
         SELECT COUNT(*) AS total
         FROM resources
         LEFT JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
         LEFT JOIN author ON resourceauthors.author_id = author.author_id
+        LEFT JOIN book ON book.resource_id = resources.resource_id
+        LEFT JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
         ${whereClause}
     `;
 
-    console.log(filter);
+    console.log(q)
+    console.log(params);
     params.push(offset); // Add the offset as the last parameter
 
     // Execute the count query first
@@ -2155,11 +2159,12 @@ app.get('/resources', (req, res) => {
                 console.error(err);
                 return res.status(500).send({ error: 'Database query failed' });
             }
-            console.log(results);
+            // console.log(results);
             return res.json({ results, total });
         });
     });
 });
+
 
 const getAllResourcesOnlineCatalog = async (keyword, filter, offset, res) => {
     const searchKeyword = `%${keyword}%`; // For partial matching

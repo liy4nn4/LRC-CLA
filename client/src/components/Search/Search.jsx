@@ -41,6 +41,7 @@ const Search = () => {
     console.log('Getting resources...');
     setRenderKeyword(keyword);
     setResources({})
+
     try {
       // Set loading state
       setLoading(true);
@@ -151,7 +152,7 @@ const Search = () => {
         {/* <img src={claLogo} alt="CLA Logo" /> */}
         {/* search */}
         <div className="search">
-          <input type="text" placeholder='Search for resources' value={keyword} onChange={(e)=>handleChange(e)}/>
+          <input type="text" placeholder='Search for resources by title or author' value={keyword} onChange={(e)=>handleChange(e)}/>
           <button className="search-btn" onClick={getResources}>
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
@@ -161,7 +162,7 @@ const Search = () => {
 
       {/* path */}
       <div className=" path">
-        <p><Link to='/' className='home'>Home</Link> / <span>Search</span></p>
+        <Link to='/' className='home'><span>Go back</span></Link>
       </div>
 
       {/* search-results */}
@@ -234,8 +235,8 @@ const Search = () => {
             {/* header */}
             <div className="header">
               <div className="title-subtitle">
-                <p className='title'>{renderKeyword}</p>
-                <p className='subtitle'>Showing all results for {renderKeyword}</p>
+                <p className='title'>{renderKeyword||"Results"}</p>
+                <p className='subtitle'>{renderKeyword?`Showing all results for ${renderKeyword}`:'Showing all resources'}</p>
               </div>
               
 

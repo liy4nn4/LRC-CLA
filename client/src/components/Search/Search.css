@@ -99,11 +99,13 @@
 .search-container .path span{
     color: var(--tup-color);
     font-weight: 500;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--tup-color);
 }
 
 
 .search-container .filter-results{
-    /* margin-top: 100px; */
+    margin-top: 20px; 
     /* padding-bottom: 100px; */
     padding: 0 100px 100px;
 }
