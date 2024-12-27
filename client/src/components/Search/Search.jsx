@@ -22,6 +22,7 @@ const Search = () => {
   const queryParams = new URLSearchParams(location.search);
   const [keyword,setKeyword] = useState(queryParams.get('keyword'));
   const [renderKeyword, setRenderKeyword] = useState('')
+  const [selectedResource, setSelectedResource] = useState(null);
 
   useEffect(() => {
     getType();
@@ -119,6 +120,12 @@ const Search = () => {
   }
 
   console.log(keyword)
+
+  const handleResourceClick = (resource) => {
+    setSelectedResource(resource); // Store the selected book
+    setOpen(true); // Open the modal
+  };
+
 
   return (
     <div className='search-container'>
@@ -225,29 +232,25 @@ const Search = () => {
 
             {/* resources */}
             <div className="resources">
-              {loading ? (
-                <div className="spinner-container">
-                  <div className="spinner-grow text-danger" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                </div>
-              ) : Array.isArray(resources) && resources.length > 0 ? (
-                resources.map((item, index) => (
-                  <button key={index} className="resource" onClick={() => setOpen(true)}>
-                    <Book item={item} isSearch={isSearch} />
-                  </button>
-                ))
-              ) : (
-                <p className="mt-5">No resources available.</p>
-              )}
+            {Array.isArray(resources) && resources.length > 0 && !loading ? (
+              resources.map((item, index) => (
+                <button key={index} className="resource" onClick={() => handleResourceClick(item)}>
+                  <Book item={item} isSearch={isSearch} />
+                </button>
+              ))
+            ) : loading ? '' : (
+              <p className="mt-5">No resources available.</p>
+            )}
             </div>
-
-
 
             {/* load more */}
             {Array.isArray(resources) && resources.length > 0 && !loading?<div className="load-more-box">
               <button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount==resources.length}>LOAD MORE</button>
-            </div>:''}
+              </div>:<div className="spinner-container">
+                  <div className="spinner-grow text-danger" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>}
             
           </div>
 
@@ -256,7 +259,8 @@ const Search = () => {
         </div>
 
         <Footer/>
-        <ResourceModal open={open} close={()=>setOpen(false)}/>
+        <ResourceModal open={open} close={() => setOpen(false)} resource={selectedResource} />
+
     </div>
   )
 }

@@ -19,6 +19,7 @@
     --yellow-filter: brightness(0) saturate(10%) invert(90%) sepia(41%) saturate(1000%) hue-rotate(332deg) brightness(103%) contrast(103%);
     --white-filter:  brightness(100%) saturate(0) invert(100%) sepia(0) saturate(0) hue-rotate(0) brightness(1000%) contrast(100%);
     --green: #54CB58;
+    --emerald: #022403;
     --light-gray: #F7F7F7;
     --blue: #5499CB;
     --table-header: #6F6A6A;
@@ -65,20 +66,22 @@
 
 
 .search-book-container .search-book{
-    width: 200px;
+    width: 220px;
     height: 300px;
     object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px var(--shadow);
     
 }
 
 .search-book-container{
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: start;
     gap: 15px;
     padding: 0 20px;
     /* background-color: #54CB58; */
-    height: 420px;
+    min-height: 500px;
 }
 
 .search-book-container p{
@@ -98,4 +101,21 @@
 
 .search-book-container .author{
     font-size: 1rem !important;
+}
+
+.thesis-cover{
+    width: 220px;
+    height: 300px;
+    background-color: var(--tup-color);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px var(--shadow);
+}
+
+.thesis-cover .title{
+    font-size: 0.6rem !important;
 }

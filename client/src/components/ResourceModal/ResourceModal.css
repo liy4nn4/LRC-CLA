@@ -110,28 +110,30 @@
     display: flex;
     flex-direction: column;
     align-items: start;
-    gap: 30px;
+    gap: 40px;
 }
 
 .title-author h4 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--black);
+    margin: 0;
+}
+
+.title-author p {
+    
+    font-size: 1.4rem;
+    color: var(--dark-gray);
+}
+
+.description h4 {
     font-size: 1.5rem;
     margin-bottom: 10px;
     color: var(--black);
 }
 
-.title-author p {
-    font-size: 1rem;
-    color: var(--dark-gray);
-}
-
-.description h4 {
-    font-size: 1.25rem;
-    margin-bottom: 10px;
-    color: var(--black);
-}
-
 .description p {
-    font-size: 1rem;
+    font-size: 1.3rem;
     line-height: 1.5;
     color: var(--dark-gray);
 }
@@ -139,15 +141,17 @@
 .res-img {
     flex: 1;
     display: flex;
-    justify-content: center;
+    justify-content: end;
     align-items: center;
+    
 }
 
 .res-img img {
-    width: 300px;
-    height: auto;
+    width: 400px;
+    height: 550px;
     border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
+    box-shadow: 0 4px 8px var(--shadow);
 }
 
 .res-status {
@@ -155,7 +159,8 @@
     padding: 10px 20px;
     color: var(--black);
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    text-transform: capitalize;
 }
 
 .resource {

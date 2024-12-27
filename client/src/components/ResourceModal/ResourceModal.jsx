@@ -4,11 +4,38 @@ import book1 from '../../assets/OPAC/photos/book1.jpg';
 import Book from '../Book/Book';
 import { gsap } from 'gsap';
 
-const ResourceModal = ({ open, close }) => {
+const ResourceModal = ({ open, close, resource }) => {
   const [isView, setIsView] = useState(true);
+  const [preview,setPreview] =useState()
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
+ 
+  
+    useEffect(()=>{
+      if(!resource) return;
+  
+      let objectUrl;
+      try{
+  
+            objectUrl = URL.createObjectURL(resource.resource_cover);
+            setPreview(objectUrl);
+      }catch{
+          const blob = new Blob([new Uint8Array(resource.resource_cover.data)], { type: 'image/jpeg' });
+          objectUrl = URL.createObjectURL(blob);
+          setPreview(objectUrl)
+      }
+  
+       // Cleanup function to revoke the Object URL
+       return () => {
+          if (objectUrl) {
+              URL.revokeObjectURL(objectUrl);
+          }
+        };
+    },[resource])
 
+  console.log(resource)
+
+ 
   useEffect(() => {
     if (open) {
       // Fade in upwards
@@ -63,26 +90,24 @@ const ResourceModal = ({ open, close }) => {
           {/* Resource details */}
           <div className="res-details col-7">
             {/* Resource status */}
-            <div className="res-status">Available</div>
+            <div className="res-status">{resource.avail_name}</div>
             {/* Title and author */}
             <div className="title-author">
-              <h4>Happiness at WORK: Maximizing your psychological capital for success</h4>
-              <p className="m-0">by Jessica Pryce-Jones</p>
+              <h4>{resource.resource_title}</h4>
+              <p className="m-0">by {resource.author_name}</p>
             </div>
             {/* Description */}
             <div className="description">
               <h4>Description</h4>
               <p className="m-0">
-                According to Jessica Pryce-Jones, happiness at work is not some abstract idea but a practical reality
-                with a clear impact on you and your workplace. This book reveals that the happier you are the more
-                you’ll achieve, yielding tangible benefits to you and your organization.
+                {resource.resource_description}
               </p>
             </div>
           </div>
 
           {/* Resource images */}
           <div className="res-img col">
-            <img src={book1} alt="Book Cover" />
+            <img src={preview} alt="Book Cover" />
           </div>
 
           {/* Related resources */}
