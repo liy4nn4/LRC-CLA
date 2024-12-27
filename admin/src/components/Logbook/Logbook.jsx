@@ -15,7 +15,6 @@ const Logbook = () => {
     const [endDate, setEndDate] = useState('');
     const [entriesPerPage, setEntriesPerPage] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalEntries, setTotalEntries] = useState(0);
 
     useEffect(()=>{
         getPatron()
@@ -29,29 +28,20 @@ const Logbook = () => {
                 startDate,
                 endDate,
                 limit: entriesPerPage,
-                //offset: (currentPage - 1) * entriesPerPage,
+                
             };
           const query = new URLSearchParams(params).toString();
           const response = await axios.get(`http://localhost:3001/patronSort?${query}`).then(res=>res.data);
           setPatron(response)
-          setTotalEntries(response.data.totalCount);
+          
           console.log(response)
         } catch (err) {
             console.log(err.message);
         }
       }
-
-      const getPatron11 = async()=>{
-        try {
-          const response = await axios.get(`http://localhost:3001/patron`).then(res=>res.data);
-          setPatron(response)
-          console.log(response)
-        } catch (err) {
-            console.log(err.message);
-        }
-      }
+       
     
-      const handleClear = () => {
+    const handleClear = () => {
         setSearchInput('');
         setStartDate('');
         setEndDate('');
@@ -97,12 +87,7 @@ const Logbook = () => {
         XLSX.writeFile(workbook, 'Logbook.xlsx');
     };
 
-    /* useEffect(()=>{
-        getPatron()
-        console.log(patron)
-        
-      },[]) */
-
+    
   return (
     <div className='logbook-container'>
         <h1>Logbook</h1>
@@ -181,14 +166,7 @@ const Logbook = () => {
                         <td>{item.college}</td>
                         <td>{new Date(item.att_date).toLocaleDateString("en-CA")}</td>
                         <td>{item.att_log_in_time}</td>
-                        {/* <td>
-                        { <Link to={`/view-item/${item.resource_id}`}>
-                            <button className='btn cat-view'>
-                            <i class="fa-solid fa-bars"></i>
-                            View
-                            </button>
-                        </Link> }
-                        </td> */}
+                        
                     </tr> )):
                         <tr>
                             <td colSpan="7">No records available</td> 
@@ -213,6 +191,8 @@ const Logbook = () => {
                 <img src={right}alt="" />
             </div>
         </div>
+
+        
 
              
             

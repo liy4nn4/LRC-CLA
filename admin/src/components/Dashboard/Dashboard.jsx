@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import './Dashboard.css'
-import { Link } from 'react-router-dom'
+import { Link,  useNavigate  } from 'react-router-dom'
 import dropdown_black from '../../assets/Management System/dashboard/dropdown-black.svg'
 import visitors from '../../assets/Management System/dashboard/total-visitors.svg'
 import borrowed from '../../assets/Management System/dashboard/total-borrowed.svg'
@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [dropdown, setDropdown]= useState(false);
   const [checkoutData, setCheckoutData] = useState([]);
   // sample data
+  let navigate = useNavigate();
 
 
   const [user,setUser] = useState({
@@ -200,10 +201,12 @@ const Dashboard = () => {
         <div className='borrowers-list'>
           <div className='borrowers-heading'>
             <p className='list-heading'>Borrowers List</p>
+            <Link to='/circulation/patron'>
             <button className='btn list-add-button'>
               <img src={add} alt="" className='add-icon'/>
               Add new
             </button>
+            </Link>
           </div>
           <table className='borrower-table'>
             <tr>
@@ -270,15 +273,21 @@ const Dashboard = () => {
        <div className="popular-choices">
           <p className='popular-choices-text'>Popular Choices</p>
           <div className="popular-books">
+            
             {covers.map((item, index) => (
+              <div>
               <Link to={`/view-item/${item.resource_id}`}>
                     <img 
                         key={index} 
                         src={`data:image/jpeg;base64,${item.cover}`} 
-                        alt={`Book Cover ${index + 1}`} 
+                        alt={`Book Cover ${item.resource_title}`} 
                     />
+                    <p>{item.resource_title}</p>
               </Link>
+              </div>
+            
                 ))}
+            
           </div>
         </div>
 

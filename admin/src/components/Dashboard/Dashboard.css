@@ -242,6 +242,13 @@ th{
 .popular-books{
     display: flex;
     gap: 20px;
+    margin:auto;
+}
+.popular-books div{
+    display: flex;
+    gap: 20px;
+    margin:auto;
+    transition: transform .2s;
 }
 
 .popular-books img{
@@ -249,7 +256,24 @@ th{
     width: 200px;
     height: 300px;
     border-radius: 15px;
+    
 }
+
+.popular-books p{
+    margin: auto;
+    text-align: center;
+    color: black;
+    width: 170px;
+    height: 90px;
+    border-radius: 15px;
+    font-size: .8rem;
+    transition: transform .2s;
+}
+
+.popular-books div:hover{
+    transform: scale(1.1);
+}
+
 
 .overdue-book-list,.books-issued, .statistics{
     background-color: var(--light-gray);

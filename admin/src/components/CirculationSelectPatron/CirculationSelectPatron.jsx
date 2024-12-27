@@ -1,17 +1,18 @@
 import React from 'react'
 import './CirculationSelectPatron.css'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const CirculationSelectPatron = () => {
+    const navigate = useNavigate();
   return (
     <div className='circ-select-patron-container'>
         <h1>Circulation</h1>
       
         {/* path and back */}
         <div className="back-path">
-            <Link to='/circulation'>
-                <button className="btn">Back</button>
-            </Link>
+            {/* <Link to='/circulation'> */}
+                <button onClick={() => navigate(-1)}className="btn">Back</button>
+            {/* </Link> */}
             <p>Circulation / <span>Select patron</span></p>
         </div>
 

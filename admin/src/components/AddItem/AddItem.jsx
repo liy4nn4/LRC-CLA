@@ -655,11 +655,11 @@ const AddItem = () => {
             <h1 className='m-0'>Cataloging</h1>
 
             <div className='add-item-path-button'>
-                <Link to='/catalog'>
-                    <button className='btn add-item-back-button'>
+                {/* <Link to='/catalog'> */}
+                    <button onClick={() => navigate(-1)} className='btn add-item-back-button'>
                         Back
                     </button>
-                </Link>
+                {/* </Link> */}
                 <div className="add-item-path">
                     <p>Cataloging / <span>{disabled?'View':editMode?'Edit':'Add new'} Item</span></p>
                 </div>

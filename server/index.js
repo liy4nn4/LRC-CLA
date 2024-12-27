@@ -1335,10 +1335,24 @@ app.get('/patronSort', (req, res) => {
             res.json({ message: 'No patrons found' });
         }
     })
-})
+}) 
+
+
 
 app.get('/getCover', (req, res) => {
-    const query = 'SELECT book_cover, resource_id FROM book ORDER BY book_id DESC LIMIT 5';
+    const query = `SELECT 
+                    b.book_cover, 
+                    b.resource_id, 
+                    r.resource_title
+                FROM 
+                    book b
+                JOIN 
+                    resources r
+                ON 
+                    b.resource_id = r.resource_id
+                ORDER BY 
+                    b.book_id DESC
+                LIMIT 5`;
     
     db.query(query, (error, results) => {
         if (error) return res.status(500).json({ error });
@@ -1346,8 +1360,8 @@ app.get('/getCover', (req, res) => {
         // Convert BLOB data to base64 for use in React
         const covers = results.map(book => ({
             cover: Buffer.from(book.book_cover).toString('base64'),
-            resource_id: (book.resource_id)
-
+            resource_id: (book.resource_id),
+            resource_title: (book.resource_title)
         }));
         
         res.json(covers);
