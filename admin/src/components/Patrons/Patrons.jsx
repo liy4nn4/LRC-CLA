@@ -83,10 +83,7 @@ const Patrons = () => {
                                 <img src={edit} alt="" />
                                 Edit
                             </button>
-                            <button className='patron-checkout-button'>
-                                <img src={checkout} alt="" />
-                                Checkout
-                            </button>
+                            
                         </td>
                         </tr>
                     ))}

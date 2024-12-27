@@ -6,18 +6,18 @@ import { faCartPlus } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom'
 
 const Circulation = () => {
-  const [borrowers, setBorrower] = useState([]);
+  const [borrowers, setBorrowers] = useState([]);
 
     useEffect(() => {
-        // Fetch data from backend API
+        getBorrowers();
         
     }, []);
 
    
     const getBorrowers = async()=>{
       try {
-        const response = await axios.get(`http://localhost:3001/getBorrowers`).then(res=>res.data);
-        setBorrower(response)
+        const response = await axios.get(`http://localhost:3001/getCirculation`).then(res=>res.data);
+        setBorrowers(response)
         console.log(response)
       } catch (err) {
           console.log(err.message);
@@ -63,40 +63,31 @@ const Circulation = () => {
               <th>No. of book/s issued</th>
               <th>Book/s issued</th>
               <th>Course</th>
+              <th>Borrow Date</th>
               <th>Return Date</th>
-              <th>Time in</th>
             </tr>
           </thead>
+
           <tbody>
-            <tr>
-              <td>TUPM-21-222</td>
-              <td>Giolliana Plandez</td>
-              <td>2</td>
-              <td>
-                <ul>
-                  <li>Book1</li>
-                  <li>Book2</li>
-                </ul>
-              </td>
-              <td>BSIT-NS</td>
-              <td>07-21-2024</td>
-              <td>7:12:01 AM</td>
-            </tr>
-            <tr>
-              <td>TUPM-21-222</td>
-              <td>Giolliana Plandez</td>
-              <td>2</td>
-              <td>
-                <ul>
-                  <li>Book1</li>
-                  <li>Book2</li>
-                </ul>
-              </td>
-              <td>BSIT-NS</td>
-              <td>07-21-2024</td>
-              <td>7:12:01 AM</td>
-            </tr>
-          </tbody>
+              {borrowers.map((borrower, index) => (
+                  <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
+                  <td style={{ padding: "10px" }}>{borrower.tup_id}</td>
+                  <td style={{ padding: "10px" }}>
+                      {borrower.patron_fname} {borrower.patron_lname}
+                  </td>
+                  <td style={{ padding: "10px" }}>{borrower.total_checkouts}</td>
+                  <td style={{ padding: "10px" }}>{borrower.borrowed_books}</td>
+                  <td style={{ padding: "10px" }}>{borrower.course}</td>
+                  <td style={{ padding: "10px" }}>{new Date(borrower.checkout_date).toLocaleDateString('en-CA')}</td>
+                  <td style={{ padding: "10px" }}>{new Date(borrower.checkout_due).toLocaleDateString('en-CA')}</td>
+                  
+                  
+                  
+                  </tr>
+              ))}
+            </tbody>
+
+          
         </table>
       </div>
       
