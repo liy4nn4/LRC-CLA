@@ -2070,17 +2070,95 @@ app.get('/featured-book', (req, res) => {
 
 app.get('/resources', (req, res) => {
     const offset = parseInt(req.query.offset, 10) || 0;
-    const keyword = req.query.keyword || '';
-    const filter = req.query.filter || '';
-    
-    switch(filter){
-        case '':
-            getAllResourcesOnlineCatalog(keyword,filter,offset, res);
-            break;
+    const keyword = `%${req.query.keyword || ''}%`;
+    let filter;
+
+    try {
+        filter = JSON.parse(req.query.filter || '{}');
+    } catch (e) {
+        return res.status(400).send({ error: 'Invalid filter format' });
     }
 
-    console.log('keyword: ', keyword);
-    console.log('filter: ', filter)
+    const type = filter.type || [];
+    const department = filter.department || [];
+    const topic = filter.topic || [];
+
+    let whereClauses = [`(resources.resource_title LIKE ? OR author.author_fname LIKE ? OR author.author_lname LIKE ?)`];
+    let params = [keyword, keyword, keyword];
+
+    if (type.length > 0) {
+        whereClauses.push(`resources.type_id IN (${type.map(() => '?').join(', ')})`);
+        params.push(...type);
+    }
+
+    if (department.length > 0) {
+        whereClauses.push(`resources.dept_id IN (${department.map(() => '?').join(', ')})`);
+        params.push(...department);
+    }
+
+    if (topic.length > 0) {
+        whereClauses.push(`resources.topic_id IN (${topic.map(() => '?').join(', ')})`);
+        params.push(...topic);
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const q = `
+        SELECT 
+            resources.resource_title,
+            resources.resource_description,
+            resources.resource_id, 
+            resources.type_id,
+            availability.avail_name,
+            resources.dept_id,
+            CASE
+                WHEN resources.type_id = '1' THEN book.book_cover
+                WHEN resources.type_id = '2' OR resources.type_id = '3' THEN journalnewsletter.jn_cover
+                ELSE NULL
+            END AS resource_cover,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_name
+        FROM resources
+        LEFT JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
+        LEFT JOIN author ON resourceauthors.author_id = author.author_id
+        LEFT JOIN availability ON resources.avail_id = availability.avail_id
+        LEFT JOIN book ON book.resource_id = resources.resource_id
+        LEFT JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
+        ${whereClause}
+        GROUP BY resources.resource_id, resources.resource_title, resources.resource_description, resources.type_id
+        ORDER BY resources.resource_title ASC
+        LIMIT 10 OFFSET ?
+    `;
+
+    const countQ = `
+        SELECT COUNT(*) AS total
+        FROM resources
+        LEFT JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
+        LEFT JOIN author ON resourceauthors.author_id = author.author_id
+        ${whereClause}
+    `;
+
+    console.log(filter);
+    params.push(offset); // Add the offset as the last parameter
+
+    // Execute the count query first
+    db.query(countQ, params.slice(0, -1), (countErr, countResults) => {
+        if (countErr) {
+            console.error(countErr);
+            return res.status(500).send({ error: 'Failed to fetch total count' });
+        }
+
+        const total = countResults[0].total;
+
+        // Execute the main query
+        db.query(q, params, (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send({ error: 'Database query failed' });
+            }
+            console.log(results);
+            return res.json({ results, total });
+        });
+    });
 });
 
 const getAllResourcesOnlineCatalog = async (keyword, filter, offset, res) => {

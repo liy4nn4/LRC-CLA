@@ -31,57 +31,71 @@ const Search = () => {
     getTopic();
     getResources();
     setRenderKeyword(keyword)
-  }, [offset,selectedFilters]);
+  }, [offset]);
+
+  useEffect(() => {
+    getResources();
+  }, [selectedFilters]);
 
   const getResources = async () => {
-    setRenderKeyword(keyword)
+    console.log('Getting resources...');
+    setRenderKeyword(keyword);
+    setResources({})
     try {
       // Set loading state
       setLoading(true);
   
-      const response = await axios.get('http://localhost:3001/resources', {
-        params: { offset, keyword, filter: selectedFilters },
+      // Serialize filters to a JSON string
+      const filter = JSON.stringify({
+        type: selectedFilters.type || [],
+        department: selectedFilters.department || [],
+        topic: selectedFilters.topic || [],
       });
-
-      console.log(response.data)
+  
+      const response = await axios.get('http://localhost:3001/resources', {
+        params: { offset, keyword, filter },
+      });
+  
+      console.log(response.data);
   
       if (Array.isArray(response.data.results)) {
         if (offset === 0) {
-          // New search: Replace existing resources
+          // Replace resources for a new search
           setResources(response.data.results);
         } else {
-          // Append results for pagination
-          setResources((prevResources) => [...prevResources, ...response.data.results]);
+          // Append resources for pagination
+          setResources((prev) => [...prev, ...response.data.results]);
         }
   
-        // Update total count for pagination (if returned by API)
         if (response.data.total) {
-          setTotalCount(response.data.total);
+          setTotalCount(response.data.total); // Update total count
         }
       } else {
         console.error('Unexpected response format:', response.data);
       }
     } catch (error) {
       console.error('Error retrieving resources:', error.message);
-      alert('Failed to fetch resources. Please try again later.');
     } finally {
       // Clear loading state
       setLoading(false);
     }
   };
+  
+  
 
   /*-------------HANDLE CHANGES---------------- */
   const handleFilterChange = (filterCategory, value) => {
     setSelectedFilters((prevFilters) => {
-      const updatedFilters = { ...prevFilters };
-      if (updatedFilters[filterCategory].includes(value)) {
-        updatedFilters[filterCategory] = updatedFilters[filterCategory].filter((item) => item !== value);
-      } else {
-        updatedFilters[filterCategory].push(value);
-      }
-      return updatedFilters;
+      const updatedFilters = { 
+        ...prevFilters, 
+        [filterCategory]: prevFilters[filterCategory].includes(value)
+          ? prevFilters[filterCategory].filter((item) => item !== value)
+          : [...prevFilters[filterCategory], value]
+      };
+      return updatedFilters; // Ensure a new reference
     });
   };
+    
 
   const handleChange = async(e)=>{
     const {value}=e.target;
@@ -121,7 +135,7 @@ const Search = () => {
     }
   }
 
-  console.log(selectedFilters)
+  console.log(resources)
 
   const handleResourceClick = (resource) => {
     setSelectedResource(resource); // Store the selected book
@@ -202,7 +216,7 @@ const Search = () => {
               </div>
 
               {/* author */}
-              <div className="filter-cat">
+              {/* <div className="filter-cat">
                 <p>Author</p>
                   <div className="option">
                     <input type="checkbox" name="author_fname" id="author_fname" />
@@ -212,7 +226,7 @@ const Search = () => {
                     <input type="checkbox" name="author_lname" id="author_lname" />
                     <label htmlFor="author_lname">Last name</label>
                   </div>
-              </div>
+              </div> */}
           </div>
 
           {/* results */}

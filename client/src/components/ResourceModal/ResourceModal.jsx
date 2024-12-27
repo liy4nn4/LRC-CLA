@@ -36,7 +36,7 @@ const ResourceModal = ({ open, close, resource }) => {
       
     },[resource])
 
-  console.log(resource)
+  // console.log(resource)
 
  
   useEffect(() => {

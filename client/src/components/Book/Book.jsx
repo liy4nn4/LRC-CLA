@@ -3,7 +3,7 @@ import book1 from '../../assets/OPAC/photos/book1.jpg';
 import './Book.css';
 
 const Book = ({ isSearch, isView, item }) => {
-  console.log(item);
+  // console.log(item);
   
   const authors = item && item.author_name
     ? item.author_name.includes(',')
