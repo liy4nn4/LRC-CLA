@@ -1226,7 +1226,49 @@ app.get('/getBorrowers', (req, res) => {
         ORDER BY 
             MAX(c.checkout_date) DESC
         LIMIT 5;
+`;
 
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
+
+app.get('/getCirculation', (req, res) => {
+    const q = `SELECT 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            c.checkout_date,
+            c.checkout_due,
+            GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
+            course.course_name AS course, 
+            COUNT(c.checkout_id) AS total_checkouts
+        FROM 
+            patron p
+        INNER JOIN 
+            checkout c ON p.patron_id = c.patron_id
+        INNER JOIN 
+            resources r ON c.resource_id = r.resource_id
+        JOIN 
+            course ON p.course_id = course.course_id
+        GROUP BY 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            course.course_name
+        ORDER BY 
+            MAX(c.checkout_date) DESC;
 `;
 
     db.query(q, (err, results) => {

@@ -10,9 +10,7 @@ const CirculationSelectPatron = () => {
       
         {/* path and back */}
         <div className="back-path">
-            {/* <Link to='/circulation'> */}
                 <button onClick={() => navigate(-1)}className="btn">Back</button>
-            {/* </Link> */}
             <p>Circulation / <span>Select patron</span></p>
         </div>
 
