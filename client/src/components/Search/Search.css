@@ -195,7 +195,7 @@
     display: flex;
     justify-content: start;
     flex-wrap: wrap;
-    padding: 0 20px;
+    padding: 20px 20px 0;
 }
 
 /* .search-container .spinner-container {

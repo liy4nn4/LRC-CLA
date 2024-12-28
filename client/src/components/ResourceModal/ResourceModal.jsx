@@ -93,17 +93,45 @@ const ResourceModal = ({ open, close, resource }) => {
           {/* Resource details */}
           <div className="res-details col-7">
             {/* Resource status */}
-            <div className="res-status">{resource.avail_name}</div>
+            <div className="res-status">Available</div>
             {/* Title and author */}
             <div className="title-author">
               <h4>{resource.resource_title}</h4>
               <p className="m-0">by {resource.author_name}</p>
             </div>
-            {/* Description */}
-            <div className="description">
-              <h4>Description</h4>
+            {/* Published Date */}
+            <div className="detail">
+              <h4>Published Date</h4>
               <p className="m-0">
-                {resource.resource_description}
+                2024
+              </p>
+            </div>
+            {/* Department */}
+            <div className="detail">
+              <h4>Department</h4>
+              <p className="m-0">
+                Hospitality and Restaurant Management
+              </p>
+            </div>
+            {/* Topic */}
+            <div className="detail">
+              <h4>Topic</h4>
+              <p className="m-0">
+                Food Preparation and Service
+              </p>
+            </div>
+            {/* Shelf no */}
+            <div className="detail">
+              <h4>Shelf No.</h4>
+              <p className="m-0">
+                1
+              </p>
+            </div>
+            {/* Row no */}
+            <div className="detail">
+              <h4>Row No.</h4>
+              <p className="m-0">
+                1
               </p>
             </div>
           </div>
@@ -116,11 +144,10 @@ const ResourceModal = ({ open, close, resource }) => {
                 <p className="title">{resource?resource.resource_title:''}</p>
               </div>
             )}
-            
           </div>
 
           {/* Related resources */}
-          <div className="col-12">
+          <div className="col-12 related-res">
             <h4>Related Resources</h4>
             {/* Resources */}
             <div className="resource">

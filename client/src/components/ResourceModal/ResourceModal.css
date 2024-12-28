@@ -47,7 +47,7 @@
     align-items: center;
 }
 
-.res-modal-overlay {
+.res-modal-container .res-modal-overlay {
     background: linear-gradient(
         rgba(255, 255, 255, 0.904), /* Top gradient color */
         #ffffff /* Bottom gradient color */
@@ -60,7 +60,7 @@
     z-index: 1001; /* Below the modal content */
 }
 
-.res-content {
+.res-modal-container .res-content {
     position: relative;
     max-width: 70%;
     max-height: 80%; 
@@ -69,23 +69,23 @@
 }
 
 /* Hide the scrollbar for WebKit browsers */
-.res-content::-webkit-scrollbar {
+.res-modal-container .res-content::-webkit-scrollbar {
     display: none;
 }
 
 /* For compatibility with Edge and Chrome */
-.res-content {
+.res-modal-container .res-content {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer and Edge */
 }
 
-.close-box{
+.res-modal-container .close-box{
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.close-btn {
+.res-modal-container .close-btn {
     background-color: transparent;
     border: 1px solid var(--black);
     width: 40px;
@@ -95,73 +95,73 @@
 }
 
 
-
-.close-btn i {
+.res-modal-container .close-btn i {
     font-size: 1rem;
     color: var(--black);
 }
 
 
-.res-info {
+.res-modal-container .res-info {
     margin-top: 100px;
+    column-gap: 50px;
+   
 }
 
-.res-details {
+.res-modal-container .res-details {
     display: flex;
     flex-direction: column;
     align-items: start;
-    gap: 40px;
+    gap: 20px;
 }
 
-.title-author h4 {
-    font-size: 2rem;
-    margin-bottom: 10px;
+.res-modal-container .title-author h4 {
+    font-size: 2.3em;
     color: var(--black);
     margin: 0;
 }
 
-.title-author p {
-    
-    font-size: 1.4rem;
+.res-modal-container .title-author p {
+    margin-bottom: 20px !important;
+    font-size: 1.5rem;
     color: var(--dark-gray);
 }
 
-.description h4 {
+.res-modal-container .detail h4 {
     font-size: 1.5rem;
     margin-bottom: 10px;
     color: var(--black);
 }
 
-.description p {
+.res-modal-container .detail p {
     font-size: 1.3rem;
     line-height: 1.5;
     color: var(--dark-gray);
 }
 
-.res-img {
+.res-modal-container .res-img {
     flex: 1;
     display: flex;
     justify-content: end;
-    align-items: center;
+    align-items: start;
     
 }
 
-.res-img img, .res-img .thesis-cover{
-    width: 400px;
-    height: 550px;
+.res-modal-container .res-img img, .res-modal-container .res-img .thesis-cover{
+    width: 100%;
+    height: auto;
     border-radius: 5px;
     object-fit: cover;
-    box-shadow: 0 4px 8px var(--shadow);
+    box-shadow: 2px 4px 5px var(--shadow);
 }
 
-.res-img .thesis-cover .title{
+.res-modal-container .res-img .thesis-cover .title{
     font-size: 1rem !important;
     text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-.res-status {
+.res-modal-container .res-status {
     background-color: var(--green);
     padding: 10px 20px;
     color: var(--black);
@@ -170,12 +170,16 @@
     text-transform: capitalize;
 }
 
-.resource {
+.res-modal-container .resource {
     margin-top: 20px;
 }
 
-.resource h4 {
+.res-modal-container .resource h4 {
     font-size: 1.25rem;
     margin-bottom: 15px;
     color: var(--black);
+}
+
+.res-modal-container .related-res{
+    margin-top: 100px;
 }

@@ -2158,11 +2158,8 @@ app.get('/resources', (req, res) => {
     const q = `
         SELECT 
             resources.resource_title,
-            resources.resource_description,
             resources.resource_id, 
             resources.type_id,
-            availability.avail_name,
-            resources.dept_id,
             CASE
                 WHEN resources.type_id = '1' THEN book.book_cover
                 WHEN resources.type_id = '2' OR resources.type_id = '3' THEN journalnewsletter.jn_cover
@@ -2172,7 +2169,6 @@ app.get('/resources', (req, res) => {
         FROM resources
         LEFT JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
         LEFT JOIN author ON resourceauthors.author_id = author.author_id
-        LEFT JOIN availability ON resources.avail_id = availability.avail_id
         LEFT JOIN book ON book.resource_id = resources.resource_id
         LEFT JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
         ${whereClause}
