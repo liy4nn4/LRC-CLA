@@ -2140,23 +2140,18 @@ app.get('/resources', (req, res) => {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-    let sortBy;
+    let sortBy = 'ORDER BY resources.resource_title ASC'; // Default sorting
 
-    if(sort=='a-z'){
-        sortBy = 'ORDER BY resources.resource_title ASC'
+    if (sort === 'a-z') {
+        sortBy = 'ORDER BY resources.resource_title ASC';
+    } else if (sort === 'z-a') {
+        sortBy = 'ORDER BY resources.resource_title DESC';
+    } else if (sort === 'newest') {
+        sortBy = 'ORDER BY resources.resource_published_date DESC';
+    } else if (sort === 'oldest') {
+        sortBy = 'ORDER BY resources.resource_published_date ASC';
     }
 
-    if(sort=='z-a'){
-        sortBy = 'ORDER BY resources.resource_title DESC'
-    }
-
-    if(sort=='newest'){
-        sortBy = 'ORDER BY resources.resource_published_date DESC'
-    }
-
-    if(sort=='oldest'){
-        sortBy = 'ORDER BY resources.resource_published_date ASC'
-    }
     
 
     console.log(sort)

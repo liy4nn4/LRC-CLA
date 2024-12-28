@@ -77,11 +77,12 @@
 .search-book-container{
     display: flex;
     flex-direction: column;
-    align-items: start;
+    align-items: center;
     gap: 15px;
     padding: 0 20px;
     /* background-color: #54CB58; */
     min-height: 500px;
+    text-align: center;
 }
 
 .search-book-container p{
@@ -95,12 +96,15 @@
 }
 
 .search-book-container .title{
+    /* background-color: #022403; */
     font-weight: 500;
     font-size: 1rem !important;
+    width: 100% !important;
 }
 
 .search-book-container .author{
     font-size: 1rem !important;
+    width: 100%;
 }
 
 .thesis-cover{
