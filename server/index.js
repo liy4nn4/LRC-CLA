@@ -2071,17 +2071,10 @@ app.get('/featured-book', (req, res) => {
 app.get('/resources', (req, res) => {
     const offset = parseInt(req.query.offset, 10) || 0;
     const keyword = `%${req.query.keyword || ''}%`;
-    let filter;
+    const type = req.query.type ? req.query.type.map(item => parseInt(item, 10)) : []
+    const department = req.query.department ? req.query.department.map(item => parseInt(item, 10)) : []
+    const topic = req.query.topic ? req.query.topic.map(item => parseInt(item, 10)) : []
 
-    try {
-        filter = JSON.parse(req.query.filter || '{}');
-    } catch (e) {
-        return res.status(400).send({ error: 'Invalid filter format' });
-    }
-
-    const type = filter.type || [];
-    const department = filter.department || [];
-    const topic = filter.topic || [];
 
     let whereClauses = [`(resources.resource_title LIKE ? OR author.author_fname LIKE ? OR author.author_lname LIKE ?)`];
     let params = [keyword, keyword, keyword];
@@ -2131,7 +2124,7 @@ app.get('/resources', (req, res) => {
     `;
 
      const countQ = `
-        SELECT COUNT(*) AS total
+        SELECT COUNT(DISTINCT resources.resource_id) AS total
         FROM resources
         LEFT JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id
         LEFT JOIN author ON resourceauthors.author_id = author.author_id
@@ -2140,9 +2133,14 @@ app.get('/resources', (req, res) => {
         ${whereClause}
     `;
 
-    console.log(q)
-    console.log(params);
+
+    console.log('type: ', type)
+    console.log('offset: ', offset)
+    console.log('keyword: ', keyword)
+    console.log('q: ', q)
+    
     params.push(offset); // Add the offset as the last parameter
+    console.log('params: ', params)
 
     // Execute the count query first
     db.query(countQ, params.slice(0, -1), (countErr, countResults) => {

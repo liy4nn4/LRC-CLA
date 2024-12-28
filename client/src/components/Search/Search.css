@@ -198,13 +198,13 @@
     padding: 0 20px;
 }
 
-.search-container .spinner-container {
+/* .search-container .spinner-container {
     display: flex;
     justify-content: center;
     width: 100%; 
     margin-top: 100px;
    
-  }
+  } */
 
 .search-container .resource{
     text-decoration: none;

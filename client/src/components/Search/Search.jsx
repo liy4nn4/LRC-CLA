@@ -29,60 +29,72 @@ const Search = () => {
     getType();
     getDepartment();
     getTopic();
-    getResources();
-    setRenderKeyword(keyword)
-  }, [offset]);
+    getResources()
+  }, []);
 
-  useEffect(() => {
-    getResources();
-  }, [selectedFilters]);
+  useEffect(()=>{
+    getResources()
+  },[selectedFilters])
 
-  const getResources = async () => {
-    console.log('Getting resources...');
+
+  const getResources = async()=>{
+    //load 
+    setLoading(true)
+    //reset everything
+    setResources([])
+    const resetOffset = 0;
+    setOffset(resetOffset)
+    setTotalCount(0)
+    // setSelectedFilters({ type: [], department: [], topic: [] })
+
+    // display search word
     setRenderKeyword(keyword);
-    setResources({})
-
-    try {
-      // Set loading state
-      setLoading(true);
-  
-      // Serialize filters to a JSON string
-      const filter = JSON.stringify({
-        type: selectedFilters.type || [],
-        department: selectedFilters.department || [],
-        topic: selectedFilters.topic || [],
-      });
-  
+    
+    console.log(selectedFilters)
+    try{
+      console.log(selectedFilters.type)
       const response = await axios.get('http://localhost:3001/resources', {
-        params: { offset, keyword, filter },
+        params: { offset:resetOffset, keyword, type: selectedFilters.type, department: selectedFilters.department, topic:selectedFilters.topic },
       });
-  
-      console.log(response.data);
-  
-      if (Array.isArray(response.data.results)) {
-        if (offset === 0) {
-          // Replace resources for a new search
-          setResources(response.data.results);
-        } else {
-          // Append resources for pagination
-          setResources((prev) => [...prev, ...response.data.results]);
-        }
-  
-        if (response.data.total) {
-          setTotalCount(response.data.total); // Update total count
-        }
-      } else {
-        console.error('Unexpected response format:', response.data);
+        
+      if (response.data.results) {
+        setResources(response.data.results);
+        setTotalCount(response.data.total || 0);
       }
-    } catch (error) {
-      console.error('Error retrieving resources:', error.message);
-    } finally {
-      // Clear loading state
-      setLoading(false);
+    }catch(error){
+      console.error('Error fetching resources:', error);
+    }finally{
+      setLoading(false)
     }
+  }
+
+ /*-----------FUNCTION FOR LOADING MORE RESOURCES----------- */
+  const loadMoreResources = async () => {
+    // handle offset
+    const newOffset = offset+10;
+    setOffset(newOffset)
+
+    console.log('filter inside loadMoreResources:',selectedFilters)
+
+    //load 
+    setLoading(true)
+     try{
+       const response = await axios.get('http://localhost:3001/resources', {
+         params: { offset:newOffset, keyword, filter: selectedFilters },
+       });
+         
+       if (response.data.results) {
+        setResources((prev)=>([...prev, ...response.data.results]));
+         setTotalCount(response.data.total || 0);
+       }
+     }catch(error){
+      console.error('Error loading more resources:', error);
+     }finally{
+       setLoading(false)
+     }
+
   };
-  
-  
+
 
   /*-------------HANDLE CHANGES---------------- */
   const handleFilterChange = (filterCategory, value) => {
@@ -102,8 +114,6 @@ const Search = () => {
     const {value}=e.target;
     setKeyword(value)
   }
-  /*-----------FUNCTION FOR LOADING MORE RESOURCES----------- */
-  const loadMoreResources = () => setOffset(prevOffset => prevOffset + 8);
 
   /*----------INITIALIZE USESTATES----------- */
   // get type
@@ -136,13 +146,16 @@ const Search = () => {
     }
   }
 
-  console.log(resources)
+  console.log('resources length:' ,resources.length)
+  console.log('total count:', totalCount)
+  console.log('offset: ', offset)
+  console.log('resources: ', resources)
+  console.log('selectedFilter: ', selectedFilters)
 
   const handleResourceClick = (resource) => {
     setSelectedResource(resource); // Store the selected book
     setOpen(true); // Open the modal
   };
-
 
   return (
     <div className='search-container'>
@@ -178,7 +191,7 @@ const Search = () => {
                       name={item.type_name}
                       id={item.type_name}
                       value={item.type_id}
-                      onChange={() => handleFilterChange('type', item.type_id)}
+                      onChange={() => {handleFilterChange('type', item.type_id)}}
                     />
                     <label htmlFor={item.type_name}>{item.type_name}</label>
                   </div>)):''}
@@ -251,25 +264,35 @@ const Search = () => {
 
             {/* resources */}
             <div className="resources">
-            {Array.isArray(resources) && resources.length > 0 && !loading ? (
+            {Array.isArray(resources) && resources.length > 0 ? (
               resources.map((item, index) => (
                 <button key={index} className="resource" onClick={() => handleResourceClick(item)}>
                   <Book item={item} isSearch={isSearch} />
                 </button>
               ))
-            ) : loading ? '' : (
-              <p className="mt-5 no-resources">No resources available.</p>
-            )}
+            ) :  ''}
             </div>
 
             {/* load more */}
-            {Array.isArray(resources) && resources.length > 0 && !loading?<div className="load-more-box">
+            
+            <div className="load-more-box">
+              {Array.isArray(resources)&& resources.length>0&&!loading?<button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount==resources.length}>LOAD MORE</button>:loading?<div className="spinner-container">
+                  <div className="spinner-grow text-danger" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>:`"${keyword}" in this category is not available.`}
+              
+              
+            </div>
+
+           
+            {/* {Array.isArray(resources) && resources.length > 0 && !loading?<div className="load-more-box">
               <button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount==resources.length}>LOAD MORE</button>
               </div>:resources.length==0 && !loading?'':<div className="spinner-container">
                   <div className="spinner-grow text-danger" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
-                </div>}
+                </div>} */}
             
           </div>
 
