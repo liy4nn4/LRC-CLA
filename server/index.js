@@ -2116,6 +2116,7 @@ app.get('/resources', (req, res) => {
     const type = req.query.type ? req.query.type.map(item => parseInt(item, 10)) : []
     const department = req.query.department ? req.query.department.map(item => parseInt(item, 10)) : []
     const topic = req.query.topic ? req.query.topic.map(item => parseInt(item, 10)) : []
+    const sort = req.query.sort
 
 
     let whereClauses = [`(resources.resource_title LIKE ? OR author.author_fname LIKE ? OR author.author_lname LIKE ?)`];
@@ -2139,6 +2140,26 @@ app.get('/resources', (req, res) => {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
+    let sortBy;
+
+    if(sort=='a-z'){
+        sortBy = 'ORDER BY resources.resource_title ASC'
+    }
+
+    if(sort=='z-a'){
+        sortBy = 'ORDER BY resources.resource_title DESC'
+    }
+
+    if(sort=='newest'){
+        sortBy = 'ORDER BY resources.resource_published_date DESC'
+    }
+
+    if(sort=='oldest'){
+        sortBy = 'ORDER BY resources.resource_published_date ASC'
+    }
+    
+
+    console.log(sort)
     const q = `
         SELECT 
             resources.resource_title,
@@ -2161,7 +2182,7 @@ app.get('/resources', (req, res) => {
         LEFT JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
         ${whereClause}
         GROUP BY resources.resource_id, resources.resource_title, resources.resource_description, resources.type_id
-        ORDER BY resources.resource_title ASC
+        ${sortBy}
         LIMIT 10 OFFSET ?
     `;
 

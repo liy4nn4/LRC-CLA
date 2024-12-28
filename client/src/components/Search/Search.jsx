@@ -18,6 +18,7 @@ const Search = () => {
   const [topic, setTopic] = useState([])
   const [offset, setOffset] = useState(0)
   const [selectedFilters, setSelectedFilters] = useState({ type: [], department: [], topic: [] });
+  const [sort, setSort] = useState('a-z')
   const [totalCount, setTotalCount] = useState(0)
   const location = useLocation()
   const queryParams = new URLSearchParams(location.search);
@@ -35,7 +36,7 @@ const Search = () => {
 
   useEffect(()=>{
     getResources()
-  },[selectedFilters])
+  },[selectedFilters, sort])
 
   const getResources = async () => {
     // Set loading to true immediately when the request starts
@@ -65,6 +66,7 @@ const Search = () => {
           type: selectedFilters.type,
           department: selectedFilters.department,
           topic: selectedFilters.topic,
+          sort
         },
         signal: controller.signal,  // Attach the signal to the request
       });
@@ -95,7 +97,13 @@ const Search = () => {
 
   try {
     const response = await axios.get('http://localhost:3001/resources', {
-      params: { offset: newOffset, keyword, type: selectedFilters.type, department: selectedFilters.department, topic: selectedFilters.topic }
+      params: { 
+        offset: newOffset, 
+        keyword, 
+        type: selectedFilters.type, 
+        department: selectedFilters.department, 
+        topic: selectedFilters.topic 
+      }
     });
 
     if (response.data.results) {
@@ -127,9 +135,14 @@ const Search = () => {
   };
     
 
-  const handleChange = async(e)=>{
+  const handleChange = (e)=>{
     const {value}=e.target;
     setKeyword(value)
+  }
+
+  const handleSortChange = (e)=>{
+    const value = e.target.value
+    setSort(value)
   }
 
   /*----------INITIALIZE USESTATES----------- */
@@ -275,8 +288,12 @@ const Search = () => {
               {/* sort */}
               <div className="sort">
                 <p>Sort by:</p>
-                <select name="" id="">
-                  <option value="">Newest</option>
+                <select name="" id="" onChange={handleSortChange}>
+                  <option value="a-z" selected>Sort by Title (A-Z)</option>
+                  <option value="z-a">Sort by Title (Z-A)</option>
+                  <option value="newest">Sort by Year (Newest First)</option>
+                  <option value="oldest">Sort by Year (Oldest First)</option>
+                  
                 </select>
               </div>
             </div>
