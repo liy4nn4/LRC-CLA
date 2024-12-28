@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './Search.css'
 import claLogo  from '../../assets/OPAC/icons/cla-logo.png'
 import Book from '../Book/Book'
@@ -24,76 +24,93 @@ const Search = () => {
   const [keyword,setKeyword] = useState(queryParams.get('keyword'));
   const [renderKeyword, setRenderKeyword] = useState('')
   const [selectedResource, setSelectedResource] = useState(null);
+  
+  const abortControllerRef = useRef(null); // Use a ref for AbortController
 
   useEffect(() => {
     getType();
     getDepartment();
     getTopic();
-    getResources()
   }, []);
 
   useEffect(()=>{
     getResources()
   },[selectedFilters])
 
-
-  const getResources = async()=>{
-    //load 
-    setLoading(true)
-    //reset everything
-    setResources([])
-    const resetOffset = 0;
-    setOffset(resetOffset)
-    setTotalCount(0)
-    // setSelectedFilters({ type: [], department: [], topic: [] })
-
-    // display search word
+  const getResources = async () => {
+    // Set loading to true immediately when the request starts
+    setLoading(true);
+  
+    // Abort the previous request if it's still ongoing
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  
+    // Create a new AbortController instance
+    const controller = new AbortController();
+    abortControllerRef.current = controller; // Store the new controller for future requests
+  
+    // Reset states
+    setResources([]);
+    setOffset(0);
+    setTotalCount(0);
     setRenderKeyword(keyword);
-    
-    console.log(selectedFilters)
-    try{
-      console.log(selectedFilters.type)
+  
+    try {
+      console.log('getting resources');
       const response = await axios.get('http://localhost:3001/resources', {
-        params: { offset:resetOffset, keyword, type: selectedFilters.type, department: selectedFilters.department, topic:selectedFilters.topic },
+        params: {
+          offset: 0,
+          keyword,
+          type: selectedFilters.type,
+          department: selectedFilters.department,
+          topic: selectedFilters.topic,
+        },
+        signal: controller.signal,  // Attach the signal to the request
       });
-        
+  
       if (response.data.results) {
         setResources(response.data.results);
         setTotalCount(response.data.total || 0);
+        setLoading(false)
       }
-    }catch(error){
-      console.error('Error fetching resources:', error);
-    }finally{
-      setLoading(false)
-    }
-  }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted'); // Optional: log the abort
+      } else {
+        console.error('Error fetching resources:', error);
+      }
+    } 
+  };
+  
+
 
  /*-----------FUNCTION FOR LOADING MORE RESOURCES----------- */
   const loadMoreResources = async () => {
-    // handle offset
-    const newOffset = offset+10;
-    setOffset(newOffset)
+  setLoading(true);
 
-    console.log('filter inside loadMoreResources:',selectedFilters)
+  // Handle offset
+  const newOffset = offset + 10;
+  setOffset(newOffset);
 
-    //load 
-    setLoading(true)
-     try{
-       const response = await axios.get('http://localhost:3001/resources', {
-         params: { offset:newOffset, keyword, filter: selectedFilters },
-       });
-         
-       if (response.data.results) {
-        setResources((prev)=>([...prev, ...response.data.results]));
-         setTotalCount(response.data.total || 0);
-       }
-     }catch(error){
+  try {
+    const response = await axios.get('http://localhost:3001/resources', {
+      params: { offset: newOffset, keyword, type: selectedFilters.type, department: selectedFilters.department, topic: selectedFilters.topic }
+    });
+
+    if (response.data.results) {
+      setResources((prev) => [...prev, ...response.data.results]);
+      setTotalCount(response.data.total || 0);
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') {
       console.error('Error loading more resources:', error);
-     }finally{
-       setLoading(false)
-     }
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
-  };
 
 
   /*-------------HANDLE CHANGES---------------- */
@@ -151,6 +168,8 @@ const Search = () => {
   console.log('offset: ', offset)
   console.log('resources: ', resources)
   console.log('selectedFilter: ', selectedFilters)
+  console.log('loading: ', loading)
+  console.log('abortController: ', abortControllerRef)
 
   const handleResourceClick = (resource) => {
     setSelectedResource(resource); // Store the selected book
@@ -276,15 +295,20 @@ const Search = () => {
             {/* load more */}
             
             <div className="load-more-box">
-              {Array.isArray(resources)&& resources.length>0&&!loading?<button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount==resources.length}>LOAD MORE</button>:loading?<div className="spinner-container">
+              {loading ? (
+                <div className="spinner-container">
                   <div className="spinner-grow text-danger" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
-                </div>:`"${keyword}" in this category is not available.`}
-              
-              
+                </div>
+              ) : resources.length > 0 ? (
+                <button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount === resources.length}>
+                  LOAD MORE
+                </button>
+              ) : (
+                <p className="no-results-message">No results found for "{keyword}". Please try a different search.</p>
+              )}
             </div>
-
            
             {/* {Array.isArray(resources) && resources.length > 0 && !loading?<div className="load-more-box">
               <button className="btn load-btn" onClick={loadMoreResources} disabled={totalCount==resources.length}>LOAD MORE</button>
