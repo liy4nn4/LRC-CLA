@@ -276,7 +276,7 @@ const Search = () => {
             <div className="header">
               <div className="title-subtitle">
                 <p className='title'>{renderKeyword||"Results"}</p>
-                <p className='subtitle'>{renderKeyword?`Showing all results for ${renderKeyword}`:'Showing all resources'}</p>
+                <p className='subtitle'>{renderKeyword && totalCount!=0?`A total of ${totalCount} resource/s found for ${renderKeyword}`:'Showing all resources'}</p>
               </div>
               
 

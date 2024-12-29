@@ -66,8 +66,8 @@
 
 
 .search-book-container .search-book{
-    width: 220px;
-    height: 300px;
+    width: 95%;
+    height: 320px;
     object-fit: cover;
     border-radius: 10px;
     box-shadow: 1px 1px 5px var(--shadow);

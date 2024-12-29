@@ -24,7 +24,7 @@
     --yellow-hover: rgb(218, 168, 3);
     --yellow-filter: brightness(0) saturate(10%) invert(90%) sepia(41%) saturate(1000%) hue-rotate(332deg) brightness(103%) contrast(103%);
     --white-filter: brightness(100%) saturate(0) invert(100%) sepia(0) saturate(0) hue-rotate(0) brightness(1000%) contrast(100%);
-    --green: #8adf8d;
+    --green: #7dff82;
     --light-gray: #d4d4d4;
     --blue: #5499CB;
     --table-header: #6F6A6A;
@@ -37,7 +37,7 @@
 
 .res-modal-container {
     width: 100%;
-    height: auto;
+    padding-bottom: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -64,6 +64,7 @@
     text-decoration: none;
     color: var(--tup-color);
     border-bottom: 1px solid var(--tup-color);
+    font-weight: 500;
 }
 
 
@@ -121,7 +122,7 @@
 
 .res-modal-container .res-img img, .res-modal-container .res-img .thesis-cover{
     width: 100%;
-    height: auto;
+    height: 100%;
     border-radius: 5px;
     object-fit: cover;
     box-shadow: 2px 4px 5px var(--shadow);
@@ -143,16 +144,17 @@
     text-transform: capitalize;
 }
 
-.res-modal-container .resource {
+.res-modal-container .related-res .resource {
     margin-top: 20px;
-    width: 100%;
+    width: 20%;
     display: flex;
-    justify-content: center;
+    justify-content: start;
     text-decoration: none;
     color: var(--black);
+    /* background-color: #5499CB; */
 }
 
-.res-modal-container .resource h4 {
+.res-modal-container .related-res .resource h4 {
     font-size: 1.25rem;
     margin-bottom: 15px;
     color: var(--black);
