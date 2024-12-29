@@ -3,7 +3,7 @@ import ReactDom from 'react-dom';
 import './Loading.css';
 import claLogo  from '../../assets/OPAC/icons/cla-logo.png'
 
-const Loading = ({ loading }) => {
+const Loading = ({ loading, isView}) => {
   const [loadingText, setLoadingText] = useState("Loading");
   const [dotCount, setDotCount] = useState(0);
   const texts = ["Retrieving Resources", "Please Wait", "Almost There", "Just a Moment", "Don't leave yet"];
@@ -39,10 +39,13 @@ const Loading = ({ loading }) => {
   return ReactDom.createPortal(
     <div className="loading-container">
       <div className="loading-modal-overlay">
-        <img src={claLogo} alt="" />
-        <div className="loading-text">
+        {!isView?<img src={claLogo} alt="" />:''}
+        {!isView?<div className="loading-text">
           {loadingText}{'.'.repeat(dotCount)}
-        </div>
+        </div>:<div className="spinner-grow text-danger" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>}
+        
       </div>
     </div>,
     document.getElementById('portal')

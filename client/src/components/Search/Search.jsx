@@ -184,11 +184,6 @@ const Search = () => {
   console.log('loading: ', loading)
   console.log('abortController: ', abortControllerRef)
 
-  const handleResourceClick = (resource) => {
-    setSelectedResource(resource); // Store the selected book
-    setOpen(true); // Open the modal
-  };
-
   return (
     <div className='search-container'>
       <Navbar/>
@@ -302,9 +297,9 @@ const Search = () => {
             <div className="resources">
             {Array.isArray(resources) && resources.length > 0 ? (
               resources.map((item, index) => (
-                <button key={index} className="resource" onClick={() => handleResourceClick(item)}>
+                <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`}className="resource" >
                   <Book item={item} isSearch={isSearch} />
-                </button>
+                </Link>
               ))
             ) :  ''}
             </div>
@@ -342,8 +337,6 @@ const Search = () => {
         </div>
 
         <Footer/>
-        <ResourceModal open={open} close={() => setOpen(false)} resource={selectedResource} />
-
     </div>
   )
 }
