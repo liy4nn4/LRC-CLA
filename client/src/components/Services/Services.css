@@ -64,7 +64,7 @@
 .services-container .services-header p{
     width: 50%;
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
 }
 
 .services-container .service img{
@@ -92,10 +92,10 @@
 
 .services-container .service-list .service div h5{
     color: var(--tup-color);
-    font-size: 1.3rem;
+    font-size: 1.5rem;
 }
 
 .services-container .service-list .service div span{
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: var(--black);
 }

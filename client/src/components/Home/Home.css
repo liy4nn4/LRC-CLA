@@ -167,11 +167,18 @@
     height: auto;
 }
 
+
 .client-home-container .featured-books .header,
 .client-home-container .journals-newsletters .header{
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 100px;
+}
+
+.client-home-container .see-all{
+    text-decoration: none;
+    color: var(--black);
 }
 
 
@@ -215,18 +222,21 @@
     font-size:2.5rem;
 }
 
-.client-home-container .featured-book .search-btn{
+.client-home-container .featured-book .view-resource{
     background-color: var(--white);
     color: var(--tup-color);
     font-size: 0.9rem;
+    /* font-weight: 600; */
     padding: 15px;
     text-transform: uppercase;
     margin-top: 20px;
+    text-decoration: none;
+    border-radius: 5px;
 }
 
-.client-home-container .featured-book .search-btn:hover,
-.client-home-container .featured-book .search-btn:active,
-.client-home-container .featured-book .search-btn:focus{
+.client-home-container .featured-book .view-resource:hover,
+.client-home-container .featured-book .view-resource:active,
+.client-home-container .featured-book .view-resource:focus{
     background-color: var(--black);
     color: var(--white);
 }
@@ -291,4 +301,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  .client-home-container .home-resource{
+    text-decoration: none;
+    color: var(--black);
   }

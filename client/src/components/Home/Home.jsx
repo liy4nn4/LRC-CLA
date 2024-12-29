@@ -199,10 +199,13 @@ const handleSearch = async()=>{
   if(searchKeyword!=''){
     navigate(`/search?keyword=${searchKeyword}`)
   }
-  
 }
-  
-  console.log(searchKeyword)
+
+//display page from the top
+const handleNavigate = () => {
+  window.scrollTo(0, 0);
+};
+  console.log(journalNewsletter)
 
 
   return (
@@ -242,7 +245,7 @@ const handleSearch = async()=>{
         <div className="featured-books ">
           <div className="header mb-3">
             <h4>Featured Books</h4>
-            <button className="btn">See all</button>
+            <Link to={`/search?keyword=`} onClick={handleNavigate} className='see-all'>See all</Link>
           </div>
           <Swiper
               slidesPerView={5}
@@ -256,7 +259,7 @@ const handleSearch = async()=>{
                <div className="books">
                {Array.isArray(featuredBooks) && featuredBooks.length > 0 ? (
                   featuredBooks.map(item => (
-                    <SwiperSlide><Book item={item} /></SwiperSlide>
+                    <SwiperSlide><Link to={`/resource/?q=home&id=${item.resource_id}`} onClick={handleNavigate} className='home-resource'><Book item={item} /></Link></SwiperSlide>
                   ))
                 ) : (
                   <p>No featured books available.</p>
@@ -269,7 +272,7 @@ const handleSearch = async()=>{
         <div className="journals-newsletters">
           <div className="header mb-3">
             <h4>Journals and Newsletters</h4>
-            <button className="btn">See all</button>
+            <Link to={`/search?keyword=`} onClick={handleNavigate} className='see-all'>See all</Link>
           </div>
           <div className="journal-newsletter">
           <Swiper
@@ -284,7 +287,7 @@ const handleSearch = async()=>{
                <div className="books">
                {Array.isArray(journalNewsletter) && journalNewsletter.length > 0 ? (
                   journalNewsletter.map(item => (
-                    <SwiperSlide><Book item={item} /></SwiperSlide>
+                    <SwiperSlide><Link to={`/resource/?q=home&id=${item.resource_id}`} onClick={handleNavigate} className='home-resource'><Book item={item} /></Link></SwiperSlide>
                   ))
                 ) : (
                   <p>No journals or newsletters available.</p>
@@ -307,7 +310,7 @@ const handleSearch = async()=>{
             <h3 className='m-0'>{featuredBook.resource_title}</h3>
             <p className="author mb-4">by {featuredBook.author_name}</p>
             <p className="description">{featuredBook.resource_description}</p>
-            <button className="btn search-btn">search more like this</button>
+            <Link to={`/resource/?q=home&id=${featuredBook.resource_id}`} onClick={handleNavigate} className="view-resource">View resource</Link>
           </div>
         </div>
       </section>

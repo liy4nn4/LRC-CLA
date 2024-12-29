@@ -176,6 +176,11 @@ const Search = () => {
     }
   }
 
+  //display page from the top
+  const handleNavigate = () => {
+    window.scrollTo(0, 0);
+  };
+
   console.log('resources length:' ,resources.length)
   console.log('total count:', totalCount)
   console.log('offset: ', offset)
@@ -202,7 +207,7 @@ const Search = () => {
 
       {/* path */}
       <div className=" path">
-        <Link to='/' className='home'><span>Go back</span></Link>
+        <Link to='/' onClick={handleNavigate} className='home'><span>Go back</span></Link>
       </div>
 
       {/* search-results */}
@@ -297,7 +302,7 @@ const Search = () => {
             <div className="resources">
             {Array.isArray(resources) && resources.length > 0 ? (
               resources.map((item, index) => (
-                <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`}className="resource" >
+                <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`}className="resource" onClick={handleNavigate} >
                   <Book item={item} isSearch={isSearch} />
                 </Link>
               ))

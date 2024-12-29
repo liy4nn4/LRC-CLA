@@ -17,6 +17,7 @@ const ResourceModal = () => {
   const queryParams = new URLSearchParams(location.search);
   const [keyword, setKeyword] = useState(queryParams.get('keyword') || '');
   const id = queryParams.get('id');
+  const home = queryParams.get('q')
   const [loading, setLoading] = useState(false);
 
   // Refs for GSAP animations
@@ -77,7 +78,12 @@ const ResourceModal = () => {
     }
   };
 
-  console.log(id);
+  //display page from the top
+  const handleNavigate = () => {
+    window.scrollTo(0, 0);
+  };
+
+  console.log('home', home);
 
   return (
     <div className="res-modal-container">
@@ -87,7 +93,7 @@ const ResourceModal = () => {
       <div className="res-content container">
         {/* Exit */}
         <div className="close-box">
-          <Link to={`/search?keyword=${keyword}`} className="close-btn">
+          <Link to={home?`/`:`/search?keyword=${keyword}`} onClick={handleNavigate} className="close-btn">
             Go back to Search
           </Link>
         </div>
@@ -112,24 +118,25 @@ const ResourceModal = () => {
                 {resource ? resource.dept_name : ''}
               </p>
             </div>
-            <div className="detail">
+            {resource?resource.type_id==4?'':<div className="detail">
               <h4>Topic</h4>
               <p className="m-0">
                 {resource ? resource.topic_name : ''}
               </p>
-            </div>
+            </div>:''}
             <div className="detail">
               <h4>Shelf No.</h4>
               <p className="m-0">
                 {resource ? resource.dept_shelf_no : ''}
               </p>
             </div>
-            <div className="detail">
+            {resource?resource.type_id==4?'':<div className="detail">
               <h4>Row No.</h4>
               <p className="m-0">
                 {resource ? resource.topic_row_no : ''}
               </p>
-            </div>
+            </div>:''}
+            
           </div>
 
           {/* Resource images */}
@@ -146,15 +153,16 @@ const ResourceModal = () => {
           {/* Related resources */}
           <div className="col-12 related-res" ref={relatedResourcesRef}>
             <h4>Related Resources</h4>
-            <div className="resource">
+            <div className="resource col">
               {Array.isArray(relatedBooks) && relatedBooks.length > 0 ? (
                 relatedBooks.map((item, index) => (
-                  <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`} className="resource" key={index}>
+                  <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`} onClick={handleNavigate} className="resource" key={index}>
                     <Book item={item} isSearch={isSearch} />
                   </Link>
                 ))
               ) : (
-                ''
+                <p className='no-related'>No related resources.</p>
+                
               )}
             </div>
           </div>

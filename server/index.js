@@ -2283,12 +2283,12 @@ app.get('/resources/view', (req, res) => {
                 LEFT JOIN author ON resourceauthors.author_id = author.author_id
                 LEFT JOIN book ON book.resource_id = resources.resource_id
                 LEFT JOIN journalnewsletter ON journalnewsletter.resource_id = resources.resource_id
-                WHERE resources.type_id = ?
+                WHERE resources.type_id = ? AND resources.resource_id != ?
                 GROUP BY resources.resource_id, resources.resource_title, resources.resource_description, resources.type_id
                 ORDER BY RAND()
                 LIMIT 5`;
 
-            db.query(relatedBooksQuery, [results[0].type_id], (err, relatedResults) => {
+            db.query(relatedBooksQuery, [results[0].type_id,results[0].resource_id], (err, relatedResults) => {
                 if (err) {
                     console.error(err);
                     return res.status(500).send({ error: 'Database query failed' });
