@@ -219,7 +219,7 @@ const Search = () => {
         {/* <img src={claLogo} alt="CLA Logo" /> */}
         {/* search */}
         <div className="search">
-          <input type="text" placeholder='Search for resources by title or author' value={keyword} onChange={(e)=>handleChange(e)}/>
+          <input type="text" placeholder='Search by title or author' value={keyword} onChange={(e)=>handleChange(e)}/>
           <button className="search-btn" onClick={getResources}>
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>

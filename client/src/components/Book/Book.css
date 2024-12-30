@@ -66,12 +66,16 @@
 
 
 .search-book-container .search-book{
-    width: 95%;
-    height: 80%;
+    width: 100%;
+    height: 370px;
     object-fit: cover;
     border-radius: 10px;
     box-shadow: 1px 1px 5px var(--shadow);
     
+}
+
+.search-book-container .title-author{
+    height: 20%;
 }
 
 .search-book-container{
@@ -82,7 +86,7 @@
     padding: 20px;
     /* background-color: #54CB58; */
     /* border: 1px solid black; */
-    height: 500px;
+    /* height: 500px; */
     text-align: center;
 }
 
@@ -109,8 +113,8 @@
 }
 
 .thesis-cover{
-    width: 220px;
-    height: 320px;
+    width: 100%;
+    height: 370px;
     background-color: var(--tup-color);
     color: var(--white);
     display: flex;
