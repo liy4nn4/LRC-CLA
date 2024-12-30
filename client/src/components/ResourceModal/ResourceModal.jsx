@@ -6,6 +6,13 @@ import axios from 'axios';
 import { Link, useLocation } from 'react-router-dom';
 import Loading from '../Loading/Loading';
 import Navbar from '../Navbar/Navbar';
+// Import Swiper React components
+import { Swiper, SwiperSlide } from 'swiper/react';
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+// import required modules
+import { Pagination } from 'swiper/modules';
 
 const ResourceModal = () => {
   console.log('resource modal rendered');
@@ -17,7 +24,6 @@ const ResourceModal = () => {
   const queryParams = new URLSearchParams(location.search);
   const [keyword, setKeyword] = useState(queryParams.get('keyword') || '');
   const id = queryParams.get('id');
-  const home = queryParams.get('q')
   const [loading, setLoading] = useState(false);
 
   // Refs for GSAP animations
@@ -83,7 +89,6 @@ const ResourceModal = () => {
     window.scrollTo(0, 0);
   };
 
-  console.log('home', home);
 
   return (
     <div className="res-modal-container">
@@ -93,14 +98,14 @@ const ResourceModal = () => {
       <div className="res-content container">
         {/* Exit */}
         <div className="close-box">
-          <Link to={home?`/`:`/search?keyword=${keyword}`} onClick={handleNavigate} className="close-btn">
-            Go back to Search
+          <Link to={`/search?keyword=${keyword}`} onClick={handleNavigate} className="close-btn">
+            Go to Search
           </Link>
         </div>
 
         <div className="res-info row">
           {/* Resource details */}
-          <div className="res-details col-7" ref={resourceDetailsRef}>
+          <div className="res-details col-md-7 col-12 order-md-7 order-md-1 order-2" ref={resourceDetailsRef}>
             <div className="res-status">Available</div>
             <div className="title-author">
               <h4>{resource ? resource.resource_title : ''}</h4>
@@ -140,7 +145,7 @@ const ResourceModal = () => {
           </div>
 
           {/* Resource images */}
-          <div className="res-img col" ref={resourceImageRef}>
+          <div className="res-img col-md-5 col-12 order-md-7 order-1 order-md-2" ref={resourceImageRef}>
             {resource && resource.type_id !== 4 ? (
               <img src={preview} alt="Book Cover" />
             ) : (
@@ -151,19 +156,52 @@ const ResourceModal = () => {
           </div>
 
           {/* Related resources */}
-          <div className="col-12 related-res" ref={relatedResourcesRef}>
+          <div className="col-12 order-3 related-res" ref={relatedResourcesRef}>
             <h4>Related Resources</h4>
             <div className="resource col">
-              {Array.isArray(relatedBooks) && relatedBooks.length > 0 ? (
+            <Swiper
+              slidesPerView={5}
+              spaceBetween={5}
+              breakpoints={{
+                320: { // Small screens (mobile)
+                  slidesPerView: 1,
+                  spaceBetween: 10,
+                },
+                480: { // Medium screens
+                  slidesPerView: 2,
+                  spaceBetween: 10,
+                },
+                768: { // Tablet screens
+                  slidesPerView: 3,
+                  spaceBetween: 15,
+                },
+                1024: { // Desktop screens
+                  slidesPerView: 3,
+                  spaceBetween: 20,
+                },
+                1200: { // Large screens
+                  slidesPerView: 5,
+                  spaceBetween: 25,
+                },
+              }}
+              // pagination={{
+              //   clickable: true,
+              // }}
+              modules={[Pagination]}
+              className="mySwiper"
+            >
+               
+               {Array.isArray(relatedBooks) && relatedBooks.length > 0 ? (
                 relatedBooks.map((item, index) => (
-                  <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`} onClick={handleNavigate} className="resource" key={index}>
+                  <SwiperSlide><Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`} onClick={handleNavigate} className="resource" key={index}>
                     <Book item={item} isSearch={isSearch} />
-                  </Link>
+                  </Link></SwiperSlide>
                 ))
               ) : (
                 <p className='no-related'>No related resources.</p>
-                
               )}
+             
+            </Swiper>
             </div>
           </div>
         </div>

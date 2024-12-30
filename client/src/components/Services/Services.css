@@ -84,10 +84,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
     text-align: center;
     gap: 50px;
     padding: 50px;
+    /* height: 600px; */
 }
 
 .services-container .service-list .service div h5{
@@ -99,3 +100,21 @@
     font-size: 1.3rem;
     color: var(--black);
 }
+
+ /* Responsive Design */
+@media screen and (max-width: 1024px) {
+    .services-container .service-list{
+        padding: 0;
+    }
+
+    .services-container .services-header h3{
+        font-size: 2.5rem;
+    }
+
+    .services-container .services-header p{
+        font-size: 1.2rem;
+        width: 90%;
+    }
+  }
+  
+ 

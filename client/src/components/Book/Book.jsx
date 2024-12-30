@@ -47,7 +47,7 @@ const Book = ({ isSearch, isView, item }) => {
       )}
 
       {isView ? null : (
-        <div>
+        <div className='title-author'>
           <p className='title'>{item ? item.resource_title : ''}</p>
           <p className='author'>By {Array.isArray(authors) ? authors[0] : ''}</p>
         </div>

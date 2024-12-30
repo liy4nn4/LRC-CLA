@@ -71,7 +71,6 @@
 }
 
 /* PURPOSE 1 */
-
 .aboutus-container .purpose1{
     /* background-color: #5499CB; */
     height: 100vh;
@@ -208,4 +207,96 @@
 .aboutus-container .coor-remarks .remark{
     margin: 0;
     font-size: 1.2rem;
+}
+
+@media screen and (max-width:1024px) {
+    .aboutus-container .aboutus-header h3{
+        font-size: 2.5rem;
+    }
+
+    .aboutus-container .aboutus-header p{
+        font-size: 1.2rem;
+        width: 90%;
+    }
+
+    .aboutus-container .purpose{
+        padding: 50px;
+        height: auto;
+        gap: 150px;
+    }
+
+    .aboutus-container .purpose1,
+    .aboutus-container .purpose2{
+        padding: 0;
+        /* height: 100vh; */
+        /* background-color: #54CB58; */
+    }
+
+    .aboutus-container .purpose .purpose1 h4,
+    .aboutus-container .purpose .purpose2 h4{
+        font-size: 2.5rem;
+    }
+
+    .aboutus-container .purpose1 .title-subtitle1{
+        /* background-color: #5499CB; */
+        justify-content: start;
+        /* height: auto; */
+        /* padding-bottom: 50px; */
+    }
+
+    .aboutus-container .purpose .purpose1 p,
+    .aboutus-container .purpose .purpose2 p{
+        font-size: 1.2rem;
+        padding: 20px;
+        width: 100%;
+        z-index: 0;
+    }
+
+    .aboutus-container .purpose1 .img1,
+    .aboutus-container .purpose2 .img2{
+        /* background-color: #cb8a54; */
+        top:0;
+        align-items: start;
+        justify-content: start;
+        /* height: 50%; */
+    }
+
+    .aboutus-container .purpose1 .img1 img,
+    .aboutus-container .purpose2 .img2 img{
+        height: 100%;
+        object-fit: cover;
+        top: 0;
+        bottom: 0;
+    }
+
+    .aboutus-container .coordinator-box{
+        height: auto;
+    }
+
+    .aboutus-container .coordinator-box{
+        padding:  50px 30px;
+    }
+
+    .aboutus-container .coor-remarks h4{
+        font-size: 1.7rem;
+    }
+
+    .aboutus-container .coor-remarks .position,.aboutus-container .coor-remarks .remark{
+        font-size: 1.2rem;
+    }
+
+    .aboutus-container .coor-img{
+       justify-content: end;
+    }
+
+    .aboutus-container .coor-remarks{
+        margin-top: 50px;
+    }
+
+    .aboutus-container .coordinator-box .coor-img img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        box-shadow: -10px 10px 0 var(--tup-color);
+    }
 }

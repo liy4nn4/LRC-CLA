@@ -176,6 +176,11 @@
     margin-bottom: 100px;
 }
 
+.client-home-container .featured-books .header h4,
+.client-home-container .journals-newsletters .header h4{
+    margin: 0;
+}
+
 .client-home-container .see-all{
     text-decoration: none;
     color: var(--black);
@@ -307,3 +312,176 @@
     text-decoration: none;
     color: var(--black);
   }
+
+
+  /* Responsive Design */
+@media screen and (min-width: 940px) and (max-width: 1024px) {
+    .client-home-container .hero {
+      height: 70vh !important;
+      display: flex;
+    }
+  
+    .client-home-container .hero .images  {
+      display: none;
+    }
+
+    .client-home-container .content{
+        text-align: center;
+        display: flex;
+        align-items: center !important;
+        /* background-color: #54CB58; */
+    }
+  
+    .client-home-container .content h2 {
+      font-size: 3rem;
+    }
+
+    .client-home-container .content span{
+        display: block;
+    }
+  
+    .client-home-container .content p {
+      font-size: 1.2rem;
+    }
+
+    .client-home-container .books-jn{
+        padding:60px 30px;
+        gap: 50px;
+    }
+
+    .client-home-container .books-jn .header h4,
+    .client-home-container .journals-newsletters .header h4{
+        font-size: 1.2rem !important;
+    }
+
+    .client-home-container .books-jn .header .see-all,
+    .client-home-container .journals-newsletters .header .see-all{
+        font-size: 1rem !important;
+    }
+
+    .client-home-container .featured-book{
+        height: auto;
+        padding: 50px 0;
+    }
+
+    .client-home-container .featured-book .content{
+       text-align: start;
+       align-items: start !important;
+       /* justify-content: start; */
+    }
+
+    .client-home-container .featured-book .image{
+        /* background-color: #54CB58; */
+        padding: 40px 0;
+        height: 70% !important;
+        /* padding: 40px; */
+    }
+
+    .client-home-container .featured-book .image img{
+        width: 80%;
+        bottom: 0;
+        height: 100%;
+    }
+
+    .client-home-container .thesis-dissertation{
+        padding: 0 40px;
+    }
+
+    .client-home-container .thesis-dissertation h3{
+        font-size: 2rem;
+        margin-bottom: 0;
+    }
+
+    .client-home-container .thesis-dissertation p{
+        font-size: 1.3rem;
+        /* margin-bottom: 0; */
+    }
+  }
+
+@media screen and (max-width: 940px) {
+    .client-home-container .hero {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+    }
+  
+    .client-home-container .hero .images  {
+      display: none;
+    }
+
+    .client-home-container .content{
+        text-align: center;
+        display: flex;
+        align-items: center !important;
+    }
+  
+    .client-home-container .content h2 {
+      font-size: 1.8rem;
+    }
+
+    .client-home-container .content span{
+        display: block;
+    }
+  
+    .client-home-container .content p {
+      font-size: 1rem;
+    }
+
+    .client-home-container .books-jn{
+        padding: 40px 20px;
+        gap: 40px;
+    }
+
+    .client-home-container .books-jn .header h4,
+    .client-home-container .journals-newsletters .header h4{
+        font-size: 1.2rem !important;
+    }
+
+    .client-home-container .books-jn .header .see-all,
+    .client-home-container .journals-newsletters .header .see-all{
+        font-size: 1rem !important;
+    }
+
+    .client-home-container .featured-book{
+        height: auto;
+    }
+
+    .client-home-container .featured-book .content{
+        padding-bottom: 40px;
+        /* padding: 0 40px; */
+        /* background-color: #5499CB; */
+    }
+
+    .client-home-container .featured-book .image{
+        /* background-color: #54CB58; */
+        padding: 40px 0;
+        height: 70% !important;
+        /* padding: 40px; */
+    }
+
+    .client-home-container .featured-book .image img{
+        width: 80%;
+        bottom: 0;
+        height: 100%;
+    }
+
+    .client-home-container .thesis-dissertation{
+        padding: 0 40px;
+    }
+
+    .client-home-container .thesis-dissertation h3{
+        font-size: 1.5rem;
+        margin-bottom: 0;
+    }
+
+    .client-home-container .thesis-dissertation p{
+        font-size: 1rem;
+        /* margin-bottom: 0; */
+    }
+
+    
+  }
+  
+ 
