@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from "express";
 import mysql from "mysql2";
 import cors from "cors";
@@ -7,6 +8,8 @@ import fs from 'fs';
 import http from 'http';
 import { Server } from 'socket.io';
 
+dotenv.config();
+
 const app = express()
 app.use(express.json())
 app.use(cors({
@@ -15,7 +18,7 @@ app.use(cors({
 }));
 
 // api key for google books
-const apikey = "AIzaSyDq8MNGVWbLp-R-SFFe-SGL7Aa8CuMak0s";
+const apikey = process.env.API_KEY;
 
 // connect server to database
 // const db = mysql.createConnection({
@@ -31,10 +34,10 @@ const apikey = "AIzaSyDq8MNGVWbLp-R-SFFe-SGL7Aa8CuMak0s";
 // });
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'lrc-cla',
+    host: process.env.DB_HOST_LOCAL,
+    user: process.env.DB_USER_LOCAL,
+    password: process.env.DB_PASSWORD_LOCAL,
+    database: process.env.DB_DATABASE_LOCAL,
 });
 
 db.connect((err) => {

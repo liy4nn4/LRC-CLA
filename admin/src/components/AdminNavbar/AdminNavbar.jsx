@@ -2,13 +2,9 @@ import React from 'react'
 import './AdminNavbar.css'
 import tuplogo from '../../assets/tuplogo.png'
 import clalogo from '../../assets/clalogo.png'
-import dashboard from '../../assets/dashboard.svg'
-import logbook from '../../assets/logbook.svg'
-import inventory from '../../assets/inventory.svg'
-import circulation from '../../assets/circulation.svg'
-import patrons from '../../assets/patrons.svg'
-import cataloging from '../../assets/cataloging.svg'
-import reports from '../../assets/reports.svg'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFile, faChartSimple, faFileLines, faCartShopping,faUser,faList,faFileExcel,faUsersGear} from '@fortawesome/free-solid-svg-icons'
+
 import { Link } from 'react-router-dom'
 
 
@@ -37,15 +33,15 @@ const AdminNavbar = () => {
                 {/*dashboard */}
                 <li>
                     <Link to='/dashboard' className='menu'>
-                            <img src={dashboard} alt="" className='menu-icon'/>
-                           <p>Dashboard</p>
+                        <FontAwesomeIcon icon={faChartSimple} className='menu-icon'/>
+                        <p>Dashboard</p>
                     </Link>
                 </li>
 
                 {/* logbook */}
                 <li>
                     <Link to='/logbook' className="menu">
-                        <img src={logbook} alt="" className='menu-icon' />
+                        <FontAwesomeIcon icon={faFileLines} className='menu-icon'/>
                         <p>Logbook</p>
                     </Link>
                 </li>
@@ -54,7 +50,7 @@ const AdminNavbar = () => {
                 {/* circulation */}
                 <li>
                     <Link to='/circulation' className="menu">
-                        <img src={circulation} alt="" className='menu-icon'/>
+                        <FontAwesomeIcon icon={faCartShopping} className='menu-icon'/>
                         <p>Circulation</p>
                     </Link>
                 </li>
@@ -62,7 +58,7 @@ const AdminNavbar = () => {
                 {/* patrons */}
                 <li>
                     <Link to='/patrons' className="menu">
-                        <img src={patrons} alt="" className='menu-icon'/>
+                        <FontAwesomeIcon icon={faUser} className='menu-icon' />
                         <p>Patrons</p>
                     </Link>
                 </li>
@@ -70,7 +66,7 @@ const AdminNavbar = () => {
                 {/* cataloging */}
                 <li>
                     <Link to='/catalog' className='menu'>
-                        <img src={cataloging} alt="" className='menu-icon'/>
+                        <FontAwesomeIcon icon={faList} className='menu-icon'/>
                         <p>Cataloging</p>
 
                     </Link>
@@ -79,8 +75,24 @@ const AdminNavbar = () => {
                 {/* reports */}
                 <li>
                     <Link to='/reports' className="menu">
-                        <img src={reports} alt="" className='menu-icon'/>
+                        <FontAwesomeIcon icon={faFileExcel} className='menu-icon'/>
                         <p>Reports</p>
+                    </Link>
+                </li>
+
+                {/* audit logs */}
+                <li>
+                    <Link to='/audit' className="menu">
+                        <FontAwesomeIcon icon={faFile} className='menu-icon'/>
+                        <p>Audit Logs</p>
+                    </Link>
+                </li>
+
+                {/* accounts */}
+                <li>
+                    <Link to='/reports' className="menu">
+                        <FontAwesomeIcon icon={faUsersGear} className='menu-icon'/>
+                        <p>Accounts</p>
                     </Link>
                 </li>
             </ul>

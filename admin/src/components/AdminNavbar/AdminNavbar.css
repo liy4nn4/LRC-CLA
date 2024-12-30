@@ -94,6 +94,10 @@ li p{
     transition:all 0.2s linear;
 }
 
+.admin-navbar-container .menu-icon{
+    width: 10%;
+}
+
 
 .navbar-menu .menu:hover{
     color: var(--yellow);
@@ -102,8 +106,6 @@ li p{
 .menu:hover .menu-icon{
     filter: var(--yellow-filter);
 }
-
-
 
 
 .navbar-menu li img{
