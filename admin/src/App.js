@@ -20,6 +20,7 @@ import CirculationSelectPatronPage from './pages/CirculationSelectPatronPage/Cir
 import CirculationSelectItemPage from './pages/CirculationSelectItemPage/CirculationSelectItemPage';
 import CirculationCheckoutPage from './pages/CirculationCheckoutPage/CirculationCheckoutPage';
 import AuditPage from './pages/AuditPage/AuditPage';
+import AccountsPage from './pages/AccountsPage/AccountsPage';
   
 const App = () => {
   
@@ -43,6 +44,7 @@ const App = () => {
           <Route path='/view-item/:id' element={<AddItemPage/>}/>
           <Route path='/attendance' element={<AttendancePage/>}/>
           <Route path='/audit' element={<AuditPage/>}/>
+          <Route path='/accounts' element={<AccountsPage/>}/>
         </Routes>
       </BrowserRouter>
     </div>

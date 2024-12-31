@@ -90,7 +90,7 @@ const AdminNavbar = () => {
 
                 {/* accounts */}
                 <li>
-                    <Link to='/reports' className="menu">
+                    <Link to='/accounts' className="menu">
                         <FontAwesomeIcon icon={faUsersGear} className='menu-icon'/>
                         <p>Accounts</p>
                     </Link>

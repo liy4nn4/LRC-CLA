@@ -19,6 +19,17 @@ const Audit = () => {
             {/* filter by activity */}
             <select name="" id="">
                 <option value="" selected disabled>Filter by activity</option>
+                <option value="">Catalog item</option>
+                <option value="">Edit item</option>
+                <option value="">Remove item</option>
+                <option value="">Issue book</option>
+                <option value="">Return book</option>
+                <option value="">Add patron</option>
+                <option value="">Edit patron</option>
+                <option value="">Remove patron</option>
+                <option value="">Generate report</option>
+                <option value="">Login</option>
+                <option value="">Logout</option>
             </select>
         </div>
 

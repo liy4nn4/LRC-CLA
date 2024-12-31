@@ -1,0 +1,139 @@
+@font-face {
+    font-family: 'Inter';
+    font-weight: 400;
+    src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter';
+    text-decoration: none;
+}
+
+
+
+:root{
+    --black:#1F1F1F;
+    --tup-color: #94152B;
+    --white: #fff;
+    --button:  #97170E;
+    --button-hover:  #75110a;
+    --shadow: #0000003b;
+    --yellow: #EDDF13;
+    --yellow-hover: rgb(218, 168, 3);
+    --yellow-filter: brightness(0) saturate(10%) invert(90%) sepia(41%) saturate(1000%) hue-rotate(332deg) brightness(103%) contrast(103%);
+    --white-filter:  brightness(100%) saturate(0) invert(100%) sepia(0) saturate(0) hue-rotate(0) brightness(1000%) contrast(100%);
+    --green: #54CB58;
+    --light-gray: #F7F7F7;
+    --blue: #5499CB;
+    --table-header: #6F6A6A;
+    --table-border-bottom:#D9D9D9;
+    --light-red: rgba(148, 21, 43, 0.1);
+}
+
+.accounts-container{
+    padding: 10px 70px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    overflow-x: hidden;   
+}
+
+.accounts-container h1{
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--black);
+}
+
+.accounts-container .search-add{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.accounts-container .search input{
+    width: 500px;
+    height: 40px;
+    padding-left: 10px;
+    border: 1px solid var(--tup-color);
+    border-radius: 5px;
+}
+
+.accounts-container .search{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.accounts-container .search button{
+    background-color: var(--tup-color);
+    color: var(--white);
+    border-radius: 5px;
+}
+
+.accounts-container .header{
+    background-color: var(--tup-color);
+    color: var(--white);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    width: 100%;
+    margin: auto;
+
+}
+
+.accounts-container .user{
+    background-color: var(--white);
+    border: 1px solid var(--tup-color);
+    color: var(--black);
+    height: 70px;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    text-align: center;
+    justify-content: center;
+    width: 100%;
+    margin: auto;
+}
+
+.accounts-container .user-real-name{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.accounts-container .user .edit-btn,
+.accounts-container .user .deac-btn{
+    background-color: var(--tup-color);
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--white);
+}
+
+.accounts-container .actions{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.accounts-container .create-btn{
+    background-color: var(--tup-color);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+}
+
+.accounts-container .btn:hover,
+.accounts-container .btn:active,
+.accounts-container .btn:focus{
+    background-color: var(--button);
+}
