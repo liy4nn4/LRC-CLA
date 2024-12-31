@@ -918,48 +918,146 @@ db.query(query, [date], (err, result) => {
 });
 
 //get catalog details 
+// app.get('/catalogdetails', (req, res) => {
+//     const { limit, offset } = req.query;
+
+//     // Set default values
+//     const itemsPerPage = parseInt(limit) || 5;
+//     const startIndex = parseInt(offset) || 0;
+
+//     const q = `
+    // SELECT 
+    //     resources.resource_title, 
+    //     resources.resource_id, 
+    //     resourcetype.type_name, 
+    //     resources.resource_quantity, 
+    //     department.dept_shelf_no,
+    //     GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+    // FROM resources 
+    // JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+    // JOIN author ON resourceauthors.author_id = author.author_id 
+    // JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+    // JOIN department ON department.dept_id = resources.dept_id
+    // GROUP BY resources.resource_id
+    // ORDER BY resources.resource_title ASC
+    // LIMIT ? OFFSET ?`;
+
+//     const countQuery = `
+//     SELECT COUNT(DISTINCT resources.resource_id) AS total
+//     FROM resources 
+//     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+//     JOIN author ON resourceauthors.author_id = author.author_id`;
+
+//     // Get records and total count
+//     db.query(q, [itemsPerPage, startIndex], (err, records) => {
+//         if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+
+//         db.query(countQuery, (countErr, countResults) => {
+//             if (countErr) return res.status(500).json({ error: 'Database error', details: countErr.message });
+
+//             const total = countResults[0]?.total || 0;
+//             res.json({ records, total });
+//         });
+//     });
+// });
+
 app.get('/catalogdetails', (req, res) => {
-    const { limit, offset } = req.query;
+    const keyword = req.query.keyword;
+    const offset = parseInt(req.query.offset)
+    console.log('keyword: ', keyword);
 
-    // Set default values
-    const itemsPerPage = parseInt(limit) || 5;
-    const startIndex = parseInt(offset) || 0;
-
+    // SQL query to get all resource_ids that match the keyword
     const q = `
-    SELECT 
-        resources.resource_title, 
-        resources.resource_id, 
-        resourcetype.type_name, 
-        resources.resource_quantity, 
-        department.dept_shelf_no,
-        GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
-    FROM resources 
-    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-    JOIN author ON resourceauthors.author_id = author.author_id 
-    JOIN resourcetype ON resources.type_id = resourcetype.type_id 
-    JOIN department ON department.dept_id = resources.dept_id
-    GROUP BY resources.resource_id
-    ORDER BY resources.resource_title ASC
-    LIMIT ? OFFSET ?`;
+        SELECT DISTINCT resources.resource_id
+        FROM resources
+        JOIN resourceauthors ON resources.resource_id = resourceauthors.resource_id
+        JOIN author ON resourceauthors.author_id = author.author_id
+        WHERE resources.resource_title LIKE ? 
+           OR author.author_fname LIKE ? 
+           OR author.author_lname LIKE ?
+        ORDER BY resources.resource_title ASC
+        LIMIT 5 OFFSET ?;`;
 
-    const countQuery = `
-    SELECT COUNT(DISTINCT resources.resource_id) AS total
-    FROM resources 
-    JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-    JOIN author ON resourceauthors.author_id = author.author_id`;
+    const searchKeyword = `%${keyword}%`;
 
-    // Get records and total count
-    db.query(q, [itemsPerPage, startIndex], (err, records) => {
-        if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+    // Query to get resource information
+    const resourceInfoQ = `
+        SELECT 
+            resources.resource_title, 
+            resources.resource_id, 
+            resourcetype.type_name, 
+            resources.resource_quantity, 
+            department.dept_shelf_no,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources 
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        WHERE resources.resource_id = ?`;
 
-        db.query(countQuery, (countErr, countResults) => {
-            if (countErr) return res.status(500).json({ error: 'Database error', details: countErr.message });
+    //count all resources
+    const countQ = `
+        SELECT COUNT(DISTINCT resources.resource_id) as total
+        FROM resources
+        JOIN resourceauthors ON resources.resource_id = resourceauthors.resource_id
+        JOIN author ON resourceauthors.author_id = author.author_id
+        WHERE resources.resource_title LIKE ? 
+           OR author.author_fname LIKE ?
+           OR author.author_lname LIKE ?
+        ORDER BY resources.resource_title ASC`
+    
+    db.query(countQ, [searchKeyword, searchKeyword, searchKeyword], (err, countResult)=>{
+        if (err) return res.status(500).send(err);
+        let totalResource;
+        
+        if(countResult){
+            totalResource = countResult[0].total
+            console.log(typeof countResult[0].total)
 
-            const total = countResults[0]?.total || 0;
-            res.json({ records, total });
-        });
-    });
+             // Run the first query to get matching resource_ids
+            db.query(q, [searchKeyword, searchKeyword, searchKeyword, offset], (err, result) => {
+                if (err) return res.status(500).send(err);
+
+                if (result.length > 0) {
+                    const resourceIds = result.map(res => res.resource_id);
+
+                    // Create an array of promises for the second query
+                    const resourcePromises = resourceIds.map(id => {
+                        return new Promise((resolve, reject) => {
+                            db.query(resourceInfoQ, [id], (err, resourceResult) => {
+                                if (err) return reject(err);
+                                if (resourceResult.length > 0) {
+                                    resolve(resourceResult[0]);
+                                } else {
+                                    resolve(null); // If no result for this resource
+                                }
+                            });
+                        });
+                    });
+
+                    // Use Promise.all to wait for all resource queries to finish
+                    Promise.all(resourcePromises)
+                        .then(resources => {
+                            // Filter out null values (if any)
+                            const validResources = resources.filter(resource => resource !== null);
+                            console.log(validResources); // Log the resources
+                            return res.send({validResources,totalResource}); // Send the result to the client
+                        })
+                        .catch(err => res.status(500).send(err));
+                } else {
+                    res.json([]); // If no resources are found, send an empty array
+                }
+            });
+
+
+        }
+
+    })
+
+   
 });
+
 
 
 /*--------VIEW RESOURCE FROM CATALOG-------------*/ 

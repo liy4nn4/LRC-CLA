@@ -19,36 +19,19 @@ import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const Catalog = () => {
-  const [openAuthor, setOpenAuthor] = useState(false)
-  const [openPublisher, setOpenPublisher] = useState(false)
   const [catalog, setCatalog] = useState([])
   // Pagination state
   const [pagination, setPagination] = useState(5); // Items per page
   const [currentPage, setCurrentPage] = useState(1); // Current page
   const [totalPages, setTotalPages] = useState(0); // Total pages
-  const filterOptions = ['title','author','book','journal','newsletter','thesis']
   const [loading,setLoading] = useState(false)
-  const [search, setSearch]=useState({
-    searchKeyword: '',
-    searchFilter: ''
-  })
+  const [keyword, setKeyword] = useState('%%')
   const [statusModal, setStatusModal] = useState(false)
   const [statusModalContent, setStatusModalContent] =useState({
     status:'',
     message:''
   })
   const [isOnline, setIsOnline] = useState(true)
-
-  
-  useEffect(() => {
-    const fetchCatalog = async () => {
-      if (search.searchKeyword === '' && navigator.onLine) {
-        await getCatalogOnline();
-      }
-    };
-    fetchCatalog();
-  }, [search.searchKeyword]);
-  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +58,7 @@ const Catalog = () => {
       window.removeEventListener('online', handleConnectionChange);
       window.removeEventListener('offline', handleConnectionChange);
     };
-  }, [currentPage, pagination]);
+  }, [currentPage]);
 
 
 /*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
@@ -85,12 +68,13 @@ const getCatalogOnline = async () => {
       const offset = (currentPage - 1) * pagination;
 
       const response = await axios.get(`http://localhost:3001/catalogdetails`, {
-          params: { limit: pagination, offset }
+          params: { limit: pagination, offset, keyword}
       });
-
-      if (response.data.records) {
-          setCatalog(response.data.records);
-          setTotalPages(Math.ceil(response.data.total / pagination)); // Calculate total pages
+      console.log(response)
+   
+      if (response.data) {
+          setCatalog(response.data.validResources);
+          setTotalPages(Math.ceil(response.data.totalResource / pagination)); // Calculate total pages
       } else {
           setCatalog([]);
           setTotalPages(0);
@@ -110,29 +94,8 @@ const getCatalogOffline = async () => {
 };
 
 /*------------HANDLE CHANGES------------------------------------*/
-  const handleSearch = async ()=>{
-    try{
-      setLoading(true)
-      const response = await axios.get(`http://localhost:3001/catalog/search`, { params: search });
-      console.log(response.data)
-      setLoading(false)
-      setCatalog(response.data)
-    }catch(err){
-      console.log('Cannot search resource. An error occurred: ', err.message)
-    }
-  }
-  const handleSelectedFilter = (filter)=>{
-    setSearch((prevdata)=>({
-      ...prevdata,
-      searchFilter: filter
-    }))
-  }
   const handleChange = (e)=>{
-    const {value} = e.target
-    setSearch((prevdata)=>({
-      ...prevdata,
-      searchKeyword: value
-    }))
+    setKeyword(e.target.value)
   }
 
 /*------------------------SYNC DATA------------------------------ */
@@ -233,7 +196,6 @@ const syncResourcesOnline = async () => {
     console.error('Error during data syncing:', error.message);
   }
 };
-
 
 //sync advisers
 const syncAdviserOnline = async(adviser,resourceId)=>{
@@ -371,19 +333,17 @@ const handleNextButton = () => {
         <div className="search-filter-export">
             {/* search-filter */}
             <div className="search-filter">
-                <form class="d-flex " role="search">
+                <div class="d-flex " role="search">
                   <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange}/>
-                  <button class="btn cat-search-button" onClick={handleSearch}>Search</button>
-                </form>
+                  <button className="btn cat-search-button" onClick={getCatalogOnline}>Search</button>
+                </div>
                 <div class="dropdown">
-                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" >
                     {search.searchFilter==''?'Search by':search.searchFilter}
                   </button>
-                  <ul class="dropdown-menu">
-                    {filterOptions.map(item=>{
-                      return <li><a class="dropdown-item" href="#" onClick={()=>handleSelectedFilter(item)}>{item}</a></li>
-                    })}
-                  </ul>
+                  <button className="btn">
+
+                  </button>
                 </div>
 
             </div>
@@ -402,7 +362,7 @@ const handleNextButton = () => {
                 </tr>
               </thead>
               <tbody>
-              {catalog.length > 0 ? (
+              {catalog?catalog.length > 0 ? (
                 catalog.map((item, key) => (
                   <tr key={key}>
                     <td>{item.resource_title}</td>
@@ -424,7 +384,7 @@ const handleNextButton = () => {
                 <tr>
                   <td colSpan="7">No records available</td>
                 </tr>
-              )}
+              ):''}
             </tbody>
 
             </table> 
@@ -455,10 +415,6 @@ const handleNextButton = () => {
               </div>
             </nav>
         
-        
-
-      <AuthorModal open={openAuthor} close={()=>setOpenAuthor(!openAuthor)}/>
-      <PublisherModal open={openPublisher} close={()=>setOpenPublisher(!openPublisher)}/>
       <Loading loading={loading}/>
       <ResourceStatusModal open={statusModal} close={()=>setStatusModal(false)} content={statusModalContent} isOnline={isOnline}/>
     </div>

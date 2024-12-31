@@ -114,6 +114,7 @@
 
 .search-container .overlay{
     z-index: 1900;
+    position: fixed;
 }
 
 .search-container .close-box{
