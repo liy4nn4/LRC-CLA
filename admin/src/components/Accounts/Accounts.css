@@ -83,6 +83,7 @@
     border-radius: 5px;
     width: 100%;
     margin: auto;
+    font-size: 0.9rem;
 
 }
 
@@ -90,7 +91,7 @@
     background-color: var(--white);
     border: 1px solid var(--tup-color);
     color: var(--black);
-    height: 70px;
+    height: 60px;
     display: flex;
     align-items: center;
     border-radius: 5px;
@@ -98,6 +99,7 @@
     justify-content: center;
     width: 100%;
     margin: auto;
+    font-size: 0.9rem;
 }
 
 .accounts-container .user-real-name{
@@ -107,8 +109,7 @@
     justify-content: center;
 }
 
-.accounts-container .user .edit-btn,
-.accounts-container .user .deac-btn{
+.accounts-container .user .edit-btn{
     background-color: var(--tup-color);
     height: 40px;
     display: flex;
@@ -117,10 +118,19 @@
     color: var(--white);
 }
 
+.accounts-container .user .deac-btn{
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--tup-color);
+    border: 1px solid transparent;
+}
+
 .accounts-container .actions{
     display: flex;
     gap: 10px;
-    justify-content: center;
+    justify-content: start;
 }
 
 .accounts-container .create-btn{
@@ -132,8 +142,15 @@
     height: 40px;
 }
 
-.accounts-container .btn:hover,
-.accounts-container .btn:active,
-.accounts-container .btn:focus{
+.accounts-container .edit-btn:hover,
+.accounts-container .edit-btn:active,
+.accounts-container .edit-btn:focus{
     background-color: var(--button);
+}
+
+.accounts-container .deac-btn:hover,
+.accounts-container .deac-btn:active,
+.accounts-container .deac-btn:focus{
+    
+    outline: 0 !important;
 }
