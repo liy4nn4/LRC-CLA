@@ -37,10 +37,6 @@
 
 .reports-container{
     padding: 10px 70px 50px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    overflow-x: hidden;   
 }
 
 .reports-container h1{
@@ -49,133 +45,78 @@
     color: var(--black);
 }
 
-.reports-filter-box{
-    display: grid;
-    grid-template-columns: 280px auto;
-}
-
-.reports-statistics{
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    border-right: 1px solid var(--tup-color);
-    padding-right: 50px;
-}
-
-.reports-statistics-box,.reports-top-lists-box,.reports-inactive-box{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.reports-dropdown{
-    cursor: pointer;
-    padding: 8px;
-    border: none;
-    font-size: 1rem;
-}
-
-.reports-statistics-box button,.reports-top-lists-box button,.reports-inactive-box button{
-    cursor: pointer;
-    padding: 10px 1PX;
-    border: none;
-    font-size: 1rem;
-    border-radius: 5px;
-    background-color: var(--button);
-    color: var(--white);
-    transition: all 0.2s linear;
-}
-
-.reports-statistics-box button:hover,.reports-top-lists-box button:hover,.reports-inactive-box button:hover{
-    background-color: var(--button-hover);
-}
-
-.reports-summary{
-    padding: 0 50px;
-}
-
-.reports-summary-header{
+.reports-container h4{
+    color: var(--tup-color);
     font-size: 2rem;
-    margin-bottom: 8px;
 }
 
-.reports-summary-filter{
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    padding: 40px 50px;
-}
-
-.reports-date, .reports-college, .reports-program{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.reports-date div{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.reports-filter-date{
-    cursor: pointer;
-    padding: 5px;
-    height: 40px;
-    width: 250px;
-    border-color: var(--tup-color);
-    border-radius: 5px;
-    padding: 8px;
-    font-size: 1rem;
-}
-
-.college-filter,.program-filter{
-    display: flex;
+.reports-container .reports-summary{
+    background-color: var(--white);
     border: 1px solid var(--tup-color);
-    width: 350px;
-    padding: 10px;
-    justify-content: space-between;
-    align-items: center;
+    padding: 50px;
     border-radius: 5px;
-}
-
-.selected-college, .selected-program{
     display: flex;
-    align-items: center;
-    gap: 15px;
-    background-color: var(--lightest-red);
-    border-radius: 20px;
-    padding: 8px 15px;
+    flex-direction: column;
+    gap: 25px;
+    width: 50%;
+    margin: auto;
+    margin-top: 80px;
 }
 
-.selected-college button, .selected-program button{
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-}
-
-.college-dropdown,.program-dropdown{
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    width: 20px;
-}
-
-.generate-report-button{
-    width: 200px;
+.reports-container .report-type{
     display: flex;
-    align-items: center;
+    flex-direction: column;
+}
+
+.reports-container .date-range{
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 25px;
+}
+
+.reports-container .start-date,
+.reports-container .end-date{
+    display: flex;
+    flex-direction: column;
+}
+
+.reports-container .buttons{
+    display: flex;
     justify-content: center;
     gap: 10px;
+    margin-top: 20px;
+}
+
+.reports-container input, .reports-container select{
+    height: 50px;
     padding: 10px;
-    font-size: 1rem;
     border-radius: 5px;
-    border: none;
-    background-color: var(--yellow);
-    transition: all 0.2s linear;
+    border-color: var(--tup-color);
     cursor: pointer;
 }
 
-.generate-report-button:hover{
-    background-color: var(--yellow-hover);
+
+.reports-container .buttons .clear-btn{
+    background-color: var(--white);
+    color: var(--tup-color);
+    border-color: var(--tup-color);
+}
+
+.reports-container .buttons .clear-btn:hover,
+.reports-container .buttons .clear-btn:active
+.reports-container .buttons .clear-btn:focus{
+    background-color: var(--button);
+    color: var(--white);
+}
+
+.reports-container .buttons .generate-report{
+    color: var(--white);
+    background-color: var(--tup-color);
+}
+
+.reports-container .buttons .generate-report:hover,
+.reports-container .buttons .generate-report:active,
+.reports-container .buttons .generate-report:focus{
+    /* color: var(--white); */
+    background-color: var(--button);
 }
