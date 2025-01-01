@@ -166,6 +166,12 @@ const getTopics =async ()=>{
     }))
   }
 
+  const handleEnter = (e)=>{
+    if(e.key=='Enter'){
+      getCatalogOnline(true)
+    }
+  }
+
 /*------------------------SYNC DATA------------------------------ */
 const syncData2DB = async () => {
   setLoading(true)
@@ -402,7 +408,7 @@ console.log(selectedFilters)
             {/* search-filter */}
             <div className="search-filter">
                 <div class="d-flex " role="search">
-                  <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange}/>
+                  <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange} onKeyDown={handleEnter}/>
                   <button 
                     className="btn cat-search-button" 
                     onClick={() => getCatalogOnline(true)}>
