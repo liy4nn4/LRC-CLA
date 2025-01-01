@@ -206,3 +206,39 @@
     background-color: var(--tup-color);
     color: var(--white);
 }
+
+.cat-container .filter-btn{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.cat-container .filter-btn:hover,
+.cat-container .filter-btn:active,
+.cat-container .filter-btn:focus{
+    background-color: var(--button);
+    color: var(--white);
+}
+
+.cat-container .cat-table th{
+    
+}
+
+.cat-container .cat-table .sort{
+    width: 20px;
+    background-color: transparent;
+    border: none;
+    margin-left: 5px;
+    color: var(--white);
+    cursor: pointer;
+}
+
+.cat-container .cat-table .sort option{
+    color: var(--black);
+}
+
+.cat-container .cat-table .sort-title:hover,
+.cat-container .cat-table .sort-title:active,
+.cat-container .cat-table .sort-title:focus
+{
+    border: none;
+}

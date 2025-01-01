@@ -14,7 +14,9 @@ import Loading from '../Loading/Loading'
 import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
 import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilter} from '@fortawesome/free-solid-svg-icons';
+import CatalogFilterModal from '../CatalogFilterModal/CatalogFilterModal'
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -32,6 +34,11 @@ const Catalog = () => {
     message:''
   })
   const [isOnline, setIsOnline] = useState(true)
+  const [openFilter, setOpenFilter] = useState(false)
+  const [type, setType] = useState('');
+  const [department, setDepartment] = useState([])
+  const [topic,setTopic] = useState([])
+  const [selectedFilters, setSelectedFilters] = useState({ title:0, author:0, type: 0, department: 0, topic: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +52,9 @@ const Catalog = () => {
     };
 
     fetchData();
+    getType();
+    getDept()
+    getTopics()
 
     const handleConnectionChange = () => {
       setIsOnline(navigator.onLine);
@@ -58,19 +68,37 @@ const Catalog = () => {
       window.removeEventListener('online', handleConnectionChange);
       window.removeEventListener('offline', handleConnectionChange);
     };
-  }, [currentPage]);
+  }, [currentPage, selectedFilters]);
+
+  // useEffect(()=>{
+  //   setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })
+  // },[keyword])
 
 
 /*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
-const getCatalogOnline = async () => {
+const getCatalogOnline = async (resetPage = false) => {
   try {
+      if (resetPage) {
+          setCurrentPage(1);
+          setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })
+      }
       setLoading(true); // Show loading spinner
+      
       const offset = (currentPage - 1) * pagination;
+      console.log(offset);
 
       const response = await axios.get(`http://localhost:3001/catalogdetails`, {
-          params: { limit: pagination, offset, keyword}
+          params: { 
+            limit: pagination, 
+            offset, 
+            keyword,
+            title:selectedFilters.title,
+            type: selectedFilters.type,
+            department: selectedFilters.department,
+            topic: selectedFilters.topic,
+            author: selectedFilters.author}
       });
-      console.log(response)
+      console.log(response);
    
       if (response.data) {
           setCatalog(response.data.validResources);
@@ -86,6 +114,7 @@ const getCatalogOnline = async () => {
   }
 };
 
+
 //get catalog offline
 const getCatalogOffline = async () => {
   const data = await getCatalogDetailsOffline();
@@ -93,9 +122,48 @@ const getCatalogOffline = async () => {
   setTotalPages(Math.ceil(data.length / pagination));
 };
 
+// fetch resourceType ( book, journal, newsletter, thesis)
+const getType = async()=>{
+  try {
+      const response = await axios.get('http://localhost:3001/type').then(res=>res.data);
+      //console.log(response)
+      setType(response)
+  } catch (err) {
+      console.log(err.message);
+  }
+};
+
+//get existing department online
+const getDept = async()=>{
+  try{
+      const response = await axios.get('http://localhost:3001/departments').then(res=>res.data)
+      setDepartment(response)
+  }catch(err){
+      console.log("Couldn't retrieve department online. An error occurred: ", err.message)
+  }
+}
+
+//get existing topics online
+const getTopics =async ()=>{
+  try{
+      const response = await axios.get('http://localhost:3001/topic').then(res=>res.data)
+      setTopic(response)
+  }catch(err){
+      console.log("Couldn't retrieve topics online. An error occurred: ", err.message)
+  }
+}
+
+
 /*------------HANDLE CHANGES------------------------------------*/
   const handleChange = (e)=>{
     setKeyword(e.target.value)
+  }
+
+  const handleSelectedFilter = (filterCategory, value)=>{
+    setSelectedFilters((prevFilters)=>({
+      ...prevFilters,
+      [filterCategory]:value
+    }))
   }
 
 /*------------------------SYNC DATA------------------------------ */
@@ -297,9 +365,9 @@ const handleNextButton = () => {
   if (currentPage < totalPages) {
     setCurrentPage(currentPage + 1);
   }
-};
-  console.log(catalog)        
+};       
 
+console.log(selectedFilters)
   return (
     <div className='cat-container'>
       <h1>Catalog</h1>
@@ -335,16 +403,17 @@ const handleNextButton = () => {
             <div className="search-filter">
                 <div class="d-flex " role="search">
                   <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange}/>
-                  <button className="btn cat-search-button" onClick={getCatalogOnline}>Search</button>
-                </div>
-                <div class="dropdown">
-                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" >
-                    {search.searchFilter==''?'Search by':search.searchFilter}
-                  </button>
-                  <button className="btn">
-
+                  <button 
+                    className="btn cat-search-button" 
+                    onClick={() => getCatalogOnline(true)}>
+                    Search
                   </button>
                 </div>
+                {/* <div class="dropdown">
+                 <button className="btn filter-btn" onClick={()=>setOpenFilter(true)}>
+                  <FontAwesomeIcon icon={faFilter} />
+                 </button>
+                </div> */}
 
             </div>
 
@@ -353,10 +422,42 @@ const handleNextButton = () => {
               <thead>
                 <tr>
                   {/* <th >ID</th> */}
-                  <th >Title</th>
-                  <th >Type</th>
-                  <th >Authors</th>
-                  <th >Shelf No.</th>
+                  <th>
+                    Title
+                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('title', e.target.value)}>
+                      <option value="1">Sort by Title (A-z)</option>
+                      <option value="2">Sort by Title (Z-A)</option>
+                    </select>
+                  </th>
+                  <th>Type
+                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('type', e.target.value)}>
+                      {type.length>0?type.map(item=>{
+                        return <option value={item.type_id}>{item.type_name}</option>
+                      }):''}
+                    </select>
+                  </th>
+                  <th>
+                    Authors
+                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('author', e.target.value)}>
+                      <option value="1">Sort by Author Name (A-z)</option>
+                      <option value="2">Sort by Author Name (Z-A)</option>
+                    </select>
+                  </th>
+                  <th>
+                    Department
+                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('department', e.target.value)}>
+                      {department.length>0?department.map(item=>{
+                        return <option value={item.dept_id}>{item.dept_name}</option>
+                      }):''}
+                    </select>
+                  </th>
+                  <th>Topic
+                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('topic', e.target.value)}>
+                      {topic.length>0?topic.map(item=>{
+                        return <option value={item.topic_id}>{item.topic_name}</option>
+                      }):''}
+                    </select>
+                  </th>
                   <th >Copies</th>
                   <th ></th>
                 </tr>
@@ -368,7 +469,8 @@ const handleNextButton = () => {
                     <td>{item.resource_title}</td>
                     <td>{item.type_name}</td>
                     <td>{item.author_names}</td>
-                    <td>{item.dept_shelf_no}</td>
+                    <td>{item.dept_name}</td>
+                    <td>{item.topic_name}</td>
                     <td>{item.resource_quantity}</td>
                     <td>
                       <Link to={`/view-item/${item.resource_id}`}>
@@ -417,6 +519,7 @@ const handleNextButton = () => {
         
       <Loading loading={loading}/>
       <ResourceStatusModal open={statusModal} close={()=>setStatusModal(false)} content={statusModalContent} isOnline={isOnline}/>
+      {/* <CatalogFilterModal open={openFilter} close={()=>setOpenFilter(false)}/> */}
     </div>
   )
 }
