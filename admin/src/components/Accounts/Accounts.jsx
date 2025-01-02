@@ -39,6 +39,7 @@ const Accounts = () => {
   const [currentPage, setCurrentPage] = useState(1); // Current page
   const [totalPages, setTotalPages] = useState(0); // Total pages
   const [keyword, setKeyword] = useState('');
+  const [selectedFilters, setSelectedFilters] = useState({ fname:0, lname:0, uname: 0, role: 0, status:''});
 
   useEffect(() => {
     userAccounts();
@@ -52,7 +53,7 @@ const Accounts = () => {
     return () => {
       socket.off('userUpdated'); // Cleanup on component unmount
     };
-  }, [currentPage]);
+  }, [currentPage, selectedFilters]);
 
   useEffect(()=>{
     if(keyword==''){
@@ -64,18 +65,25 @@ const Accounts = () => {
   const userAccounts = async (resetPage = false) => {
     if (resetPage) {
       setCurrentPage(1);
+      setSelectedFilters({ fname:0, lname:0, uname: 0, role: 0, status:''})
     }
 
     setLoading(true);
 
     const offset = (currentPage - 1) * pagination;
 
+
     try {
       const response = await axios.get('http://localhost:3001/accounts', {
         params: {
           limit: pagination,
           offset,
-          keyword
+          keyword,
+          fname: selectedFilters.fname,
+          lname: selectedFilters.lname,
+          uname: selectedFilters.uname,
+          role: selectedFilters.role,
+          status: selectedFilters.status,
         }
       });
 
@@ -244,6 +252,33 @@ const Accounts = () => {
 
   };
 
+  const handleSelectedFilter = (filterCategory, value)=>{
+    setSelectedFilters((prevFilters)=>({
+      ...prevFilters,
+      [filterCategory]:value
+    }))
+
+    if(filterCategory=='fname'){
+      setSelectedFilters((prevFilters)=>({
+        ...prevFilters,
+          lname:0,
+          uname:0
+      }))
+    }else if(filterCategory=='lname'){
+      setSelectedFilters((prevFilters)=>({
+        ...prevFilters,
+          fname:0,
+          uname:0
+      }))
+    }else if(filterCategory=='uname'){
+      setSelectedFilters((prevFilters)=>({
+        ...prevFilters,
+          lname:0,
+          fname:0
+      }))
+    }
+  }
+
   // Form validation for creating user account
   const formValidation = () => {
     const err = {};
@@ -280,6 +315,8 @@ const Accounts = () => {
     setErrorEdit(err);
   };
 
+  console.log(selectedFilters)
+
   return (
     <div className="accounts-container">
       <h1>User accounts</h1>
@@ -297,6 +334,9 @@ const Accounts = () => {
           <button className="btn" onClick={()=>userAccounts(true)}>
             Search
           </button>
+          <button className="btn" onClick={()=>setSelectedFilters({ fname:0, lname:0, uname: 0, role: 0, status:''})}>
+            Reset Filter
+          </button>
         </div>
         {/* Add */}
         <button className="btn create-btn" onClick={() => setOpenCreateUser(true)}>
@@ -309,10 +349,46 @@ const Accounts = () => {
       <table>
         <thead>
           <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Username</th>
-            <th>Role</th>
+            <th>
+              First Name
+              <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('fname', e.target.value)}>
+                  <option value="" disabled selected></option>
+                  <option value="1" >Sort by First Name (A-Z)</option>
+                  <option value="2">Sort by First Name (Z-A)</option>
+              </select>
+            </th>
+            <th>
+              Last Name
+              <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('lname', e.target.value)}>
+                <option value="" disabled selected></option>
+                  <option value="1">Sort by Last Name (A-Z)</option>
+                  <option value="2">Sort by Last Name (Z-A)</option>
+              </select>
+            </th>
+            <th>
+              Username
+              <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('uname', e.target.value)}>
+                  <option value="" disabled selected></option>
+                  <option value="1">Sort by Username (A-Z)</option>
+                  <option value="2">Sort by Username (Z-A)</option>
+              </select>
+            </th>
+            <th>
+              Role
+              <select name="role" id="" className='sort' onChange={(e)=>handleSelectedFilter('role', e.target.value)}>
+                  <option value="" disabled selected></option>
+                  <option value="1">Admin</option>
+                  <option value="2">Staff</option>
+              </select>
+            </th>
+            <th>
+              Status
+              <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('status', e.target.value)}>
+                  <option value="" disabled selected></option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+              </select>
+            </th>
             <th>Action</th>
           </tr>
         </thead>
@@ -324,6 +400,7 @@ const Accounts = () => {
                   <td>{item.staff_lname}</td>
                   <td>{item.staff_uname}</td>
                   <td>{item.role_name}</td>
+                  <td>{item.staff_status}</td>
                   <td className="action">
                     {/* Edit user */}
                     <button className="btn edit-btn" onClick={() => handleEdit(item.staff_id)}>

@@ -403,27 +403,22 @@ console.log(selectedFilters)
            </div>
         </div>
         
-        {/* search,filter,export */}
-        <div className="search-filter-export">
             {/* search-filter */}
             <div className="search-filter">
-                <div class="d-flex " role="search">
-                  <input class="form-control me-2 cat-search-bar" type="search" placeholder="Search" aria-label="Search" onChange={handleChange} onKeyDown={handleEnter}/>
+                  <input type="search" placeholder="Search by title or author" onChange={handleChange} onKeyDown={handleEnter}/>
                   <button 
-                    className="btn cat-search-button" 
+                    className="btn" 
                     onClick={() => getCatalogOnline(true)}>
                     Search
                   </button>
-                </div>
-                {/* <div class="dropdown">
-                 <button className="btn filter-btn" onClick={()=>setOpenFilter(true)}>
-                  <FontAwesomeIcon icon={faFilter} />
-                 </button>
-                </div> */}
+                  <button 
+                    className="btn " 
+                    onClick={() => setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })}>
+                    Reset filter
+                  </button>
+          </div>
+     
 
-            </div>
-
-        </div>
             <table className="cat-table">
               <thead>
                 <tr>
@@ -431,12 +426,14 @@ console.log(selectedFilters)
                   <th>
                     Title
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('title', e.target.value)}>
+                      <option value="" disabled selected></option>
                       <option value="1">Sort by Title (A-z)</option>
                       <option value="2">Sort by Title (Z-A)</option>
                     </select>
                   </th>
                   <th>Type
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('type', e.target.value)}>
+                    <option value="" disabled selected></option>
                       {type.length>0?type.map(item=>{
                         return <option value={item.type_id}>{item.type_name}</option>
                       }):''}
@@ -445,6 +442,7 @@ console.log(selectedFilters)
                   <th>
                     Authors
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('author', e.target.value)}>
+                      <option value="" disabled selected></option>
                       <option value="1">Sort by Author Name (A-z)</option>
                       <option value="2">Sort by Author Name (Z-A)</option>
                     </select>
@@ -452,6 +450,7 @@ console.log(selectedFilters)
                   <th>
                     Department
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('department', e.target.value)}>
+                      <option value="" disabled selected></option>
                       {department.length>0?department.map(item=>{
                         return <option value={item.dept_id}>{item.dept_name}</option>
                       }):''}
@@ -459,6 +458,7 @@ console.log(selectedFilters)
                   </th>
                   <th>Topic
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('topic', e.target.value)}>
+                      <option value="" disabled selected></option>
                       {topic.length>0?topic.map(item=>{
                         return <option value={item.topic_id}>{item.topic_name}</option>
                       }):''}

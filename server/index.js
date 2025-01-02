@@ -4,7 +4,7 @@ import mysql from "mysql2";
 import cors from "cors";
 import axios from 'axios';
 import multer from 'multer'; // This is a tool that helps us upload files (like images or documents) from a form to our server.
-import fs from 'fs';
+import fs, { stat } from 'fs';
 import http from 'http';
 import { Server } from 'socket.io';
 import bcrypt from 'bcrypt';
@@ -2374,8 +2374,55 @@ app.get('/accounts', (req,res)=>{
     const searchKeyword = `%${keyword}%`;
     const offset = parseInt(req.query.offset, 10)
     const params = [searchKeyword, searchKeyword, searchKeyword]
+    const fname = parseInt(req.query.fname)
+    const lname = parseInt(req.query.lname)
+    const uname = parseInt(req.query.uname)
+    const role = parseInt(req.query.role)
+    const status = req.query.status
 
-    console.log(params)
+    console.log('status', status)
+    console.log('role', role)
+
+    let orderClauses = "";
+    
+    // Handle sorting by fname
+    if (fname) {
+        if (fname == '1') {
+            orderClauses='ORDER BY staffaccount.staff_fname ASC';
+        } else if (fname == '2') {
+            orderClauses='ORDER BY staffaccount.staff_fname DESC';
+        }
+    }
+    
+    // Handle sorting by lname
+    if (lname) {
+        if (lname == '1') {
+            orderClauses='ORDER BY staffaccount.staff_lname ASC';
+        } else if (lname == '2') {
+            orderClauses='ORDER BY staffaccount.staff_lname DESC';
+        }
+    }
+
+    // Handle sorting by lname
+    if (uname) {
+        if (uname == '1') {
+            orderClauses='ORDER BY staffaccount.staff_uname ASC';
+        } else if (uname == '2') {
+            orderClauses='ORDER BY staffaccount.staff_uname DESC';
+        }
+    }
+
+
+    const whereClauses = [`(staff_fname LIKE ? OR staff_uname LIKE ? OR staff_lname LIKE ?)`]
+
+    if(role){
+        whereClauses.push(`staffaccount.role_id = '${role}'`)
+    }
+    if(status){
+        whereClauses.push(`staffaccount.staff_status = '${status}'`)
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
     const q = `
         SELECT 
             staffaccount.staff_id, 
@@ -2386,13 +2433,16 @@ app.get('/accounts', (req,res)=>{
             roles.role_name
         FROM staffaccount
         JOIN roles ON staffaccount.role_id = roles.role_id
-        WHERE staff_fname LIKE ? OR staff_uname LIKE ? OR staff_lname LIKE ?
+        ${whereClause}
+        ${orderClauses}
         LIMIT 5 OFFSET ?`
     
     const countQ = `
         SELECT COUNT(DISTINCT staff_id) as total
         FROM staffaccount
-        WHERE staff_fname LIKE ? OR staff_uname LIKE ? OR staff_lname LIKE ?`
+        ${whereClause}`
+
+    console.log(q)
     
     db.query(countQ, params, (err,countResult)=>{
         if (err) {

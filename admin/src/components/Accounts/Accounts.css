@@ -177,3 +177,17 @@
     background-color: var(--tup-color);
     color: var(--white);
 }
+
+.accounts-container table .sort{
+    width: 20px;
+    background-color: transparent;
+    border: none;
+    margin-left: 5px;
+    color: var(--white);
+    cursor: pointer;
+}
+
+.accounts-container table .sort option{
+    color: var(--black);
+}
+
