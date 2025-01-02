@@ -4,6 +4,10 @@
     src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
 }
 
+::-webkit-scrollbar-corner { background: rgba(0,0,0,0.5); }
+
+    
+
 *{
     margin: 0;
     padding: 0;
@@ -40,6 +44,7 @@
     flex-direction: column;
     gap: 30px;
     overflow-x: hidden;   
+    overflow-y: hidden;
 }
 
 .circ-select-item-container h1{
@@ -82,15 +87,21 @@
     column-gap: 20px;
 }
 
-
+.inner{
+    height: 60vh;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+    padding-bottom: 10px;
+}
 .circ-select-item-container .add-items .scan-manual, .circ-select-item-container .add-items .summary{
     background-color: var(--light-gray);
     width: 100%;
+    height: 80vh;
     border-radius: 10px;
     padding: 50px;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 15px;
 }
 
 .circ-select-item-container .add-items .scan-manual .barcode{
@@ -105,22 +116,25 @@
 }
 
 
+
+
 .circ-select-item-container .add-items .scan-manual div:nth-child(1) .icon{
     font-size: 5rem;
 }
 
-.circ-select-item-container .add-items .scan-manual div:nth-child(1) p{
-    font-size: 1.2rem;
-    margin: 0;
-}
+/* .circ-select-item-container .add-items .scan-manual div:nth-child(1) p{
+    font-size: .7rem;
+    margin: auto;
+} */
 
 .circ-select-item-container .add-items .scan-manual .circ-info{
     padding: 0 !important;
     display: flex;
     flex-direction: column;
     gap: 5px;
-    width: 60%;
-    margin: auto;
+    
+    text-align: center;
+    justify-content: center;
 }
 
 .circ-select-item-container .add-items .scan-manual .circ-info input{
@@ -135,7 +149,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 5px;
     width: 120px;
     margin: auto;
 }
@@ -151,7 +165,9 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    
 }
+
 
 .circ-select-item-container .add-items .summary .header{
     display: flex;
@@ -178,10 +194,11 @@
 
 .circ-select-item-container .summary .item{
   background-color: var(--white) !important;
-  padding: 20px;
+  padding: 10px;
   border-radius: 10px;
   border: 1px solid var(--tup-color);
-  margin-top: 15px;
+  margin: auto;
+  width: 100%;
 }
 
 .circ-select-item-container .item .cover{
@@ -219,6 +236,7 @@
     align-items: center;
     cursor: pointer;
     color: var(--black);
+    margin: auto;
 }
 
 .circ-select-item-container .summary .remove:hover,
@@ -244,3 +262,30 @@
     background-color: var(--tup-color-hover);
     color: var(--white);
 }
+
+.suggestions {
+    
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 5px;
+    
+    max-height: 27vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+  }
+  
+  .suggestion-item {
+    font-size: .9rem !important;
+    padding: 5px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: flex;
+
+    align-items: center;
+  }
+  
+  .suggestion-item:hover {
+    background: #f0f0f0;
+  }

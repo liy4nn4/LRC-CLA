@@ -34,7 +34,7 @@ const App = () => {
           <Route path='/logbook' element={<LogbookPage/>}/>
           <Route path='/circulation' element={<CirculationPage/>}/>
           <Route path='/circulation/patron' element={<CirculationSelectPatronPage/>}/>
-          <Route path='/circulation/patron/item' element={<CirculationSelectItemPage/>}/>
+          <Route path='/circulation/patron/item/:id' element={<CirculationSelectItemPage/>}/>
           <Route path='/circulation/patron/item/checkout' element={<CirculationCheckoutPage/>}/>
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>

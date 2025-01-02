@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { Link, useNavigate, useLocation  } from 'react-router-dom'
 import './CirculationCheckout.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faX, faPen} from '@fortawesome/free-solid-svg-icons';
@@ -7,6 +8,61 @@ import CirculationSuccessful from '../CirculationSuccessful/CirculationSuccessfu
 
 const CirculationCheckout = () => {
   const [open,setOpen] = useState(false)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
+  const id = localStorage.getItem('id');
+  console.log({selectedItems, id});
+  const [patron, setPatron] = useState([]);
+  const length = selectedItems.length;
+  const date = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });  // e.g., "2024-12-16"
+  const time = new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Manila" });  // e.g., "14:30:00"
+  const currentDate = new Date(date); // Convert to Date object
+  currentDate.setDate(currentDate.getDate() + 7); // Add 7 days
+  const dueDate = currentDate.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" }); // Format the future date
+  
+  const getPatron = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/checkoutPatron`, {
+        params: { id },
+      });
+      setPatron(response.data); // Update patron state with response data
+      console.log('Fetched Patron:', response.data); // Log for debugging
+    } catch (error) {
+      console.error('Error fetching patron:', error.message);
+    }
+  };
+   
+  useEffect(() => {
+    getPatron();
+    console.log(patron)
+}, []);
+
+
+const handleCheckout = async () => {
+  try {
+    // Create an array of promises to insert all items
+    const checkoutPromises = selectedItems.map((item) => {
+      return axios.post(`http://localhost:3001/checkout`, {
+        checkout_date: date,
+        checkout_due: dueDate,
+        resource_id: item.resource_id,
+        patron_id: id,
+      });
+    });
+
+    // Await all promises to complete
+    await Promise.all(checkoutPromises);
+
+    console.log('All items checked out successfully!');
+    setOpen(true); // Open success modal
+    localStorage.clear(); // Clear selected items from localStorage
+    setSelectedItems([]); // Update state
+  } catch (error) {
+    console.error('Error during checkout:', error.message);
+  }
+};
+  const patronName = patron.length > 0 ? `${patron[0].patron_fname} ${patron[0].patron_lname}` : '';
 
   return (
     <div className='circ-checkout-container'>
@@ -14,11 +70,10 @@ const CirculationCheckout = () => {
       
       {/* path and back */}
       <div className="back-path">
-        <Link to='/circulation/patron/item'>
-          <button className="btn">Back</button>
-        </Link>
+        <button onClick={() => navigate(-1)} className="btn">Back</button>
         <p>Circulation / Select patron / Select items / <span>Check out</span></p>
       </div>
+      
 
       {/* info */}
       <div className="checkout-details row">
@@ -26,27 +81,30 @@ const CirculationCheckout = () => {
         <div className="items col-5">
           <div>
             <h5>Items to be issued (<span>1</span>)</h5>
-            {/* item */}
-            <div className="item row">
-              {/* cover */}
-              <div className="col-3 cover">
-                <img src="https://i.pinimg.com/originals/a1/f8/87/a1f88733921c820db477d054fe96afbb.jpg" alt="" />
+            {/* Selected items */}
+              <div className='inner overflow-y-auto overflow-x-hidden '>
+                {selectedItems.map((item) => (
+                  <div className="item row mt-2 w-100 m-auto" key={item.resource_id}>
+                    {/* Cover */}
+                    <div className="col-3 cover">
+                      <img src={`data:image/jpeg;base64,${item.cover}` || 'https://via.placeholder.com/100'} alt={item.title} />
+                      
+                    </div>
+                    {/* Item info */}
+                    <div className="col-9 info">
+                      <p className='title'>{item.resource_title}</p>
+                      <p className='qnty'>Quantity: <span>1{/* {item.resource_quantity} */}</span></p>
+                    </div>
+                    {/* Remove item button */}
+                    
+                  </div>
+                ))}
               </div>
-              {/* item info */}
-              <div className="col-8 info">
-                <p className='title'>Book Title</p>
-                <p className='qnty'>Quantity: <span>1</span></p>
-              </div>
-              {/* remove item button */}
-              <div className="col-1 remove">
-                <FontAwesomeIcon icon={faX} />
-              </div>
-            </div>
           </div>
 
           {/* edit */}
           <div>
-            <Link to='/circulation/patron/item'>
+            <Link to={`/circulation/patron/item/${id}` }state={{selectedItems}}>
               <button className="btn edit-btn">
                 <FontAwesomeIcon icon={faPen} />
                 Edit button
@@ -69,19 +127,28 @@ const CirculationCheckout = () => {
             </div>
             {/* patron details */}
             <div className="col patron-info">
-              {/* patron */}
-              <div>
-                <p className="patron-name">Bernal, Lance R.</p>
-                <p className='id'>tupm-21-2222</p>
-              </div>
-              {/* college */}
-              <div>
-                <p className="college">college of science</p>
-                <p className="course">bachelor of science in information technology</p>
-              </div>
-              {/* email */}
-              <p className='email'>lance.bernal@tup.edu.ph</p>
+            <div>
+                
+              {patron.map((item, index) => (
+                  <div key={index}>
+                    <div>
+                      <p className="patron-name">{item.patron_lname}, {item.patron_fname}</p>
+                      <p className='id'>{item.tup_id}</p>
+                    </div>
+                    {/* college */}
+                    <div>
+                      <p className="college">{item.college}</p>
+                      <p className="course">{item.course}</p>
+                    </div>
+                    {/* email */}
+                    <p className='email'>{item.patron_email}</p>
+                          
+                  </div>
+              ))}
+                
             </div>
+
+          </div>
 
             {/* break */}
             <hr />
@@ -96,21 +163,21 @@ const CirculationCheckout = () => {
               </div>
               {/* book info content */}
               <div className="col contents">
-                <p>1</p>
-                <p>07/20/2024 7:1201 AM</p>
-                <p className='due'>07/27/2024</p>
+                <p>{length}</p>
+                <p>{date} {time}</p>
+                <p className='due'>{dueDate}</p>
               </div>
             </div>
 
             {/*checkout button  */}
             <div className="checkout-btn-box">
-              <button className="btn" onClick={()=>setOpen(true)}>Check out item</button>
+            <button className="btn" onClick={handleCheckout}>Check out item</button>
             </div>
           </div>
         </div>
       </div>
 
-      <CirculationSuccessful open={open} close={()=>setOpen(false)}/>
+      <CirculationSuccessful open={open} close={()=>setOpen(false)} patronName={patronName}/>
     </div>
   )
 }

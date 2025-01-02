@@ -1,84 +1,161 @@
-import React from 'react'
-import './CirculationSelectItem.css'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import './CirculationSelectItem.css';
+import { Link, useNavigate, useParams} from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBarcode,faPlus,faTrashCan,faX,faArrowRight } from '@fortawesome/free-solid-svg-icons';
-
+import { faBarcode, faPlus, faTrashCan, faX, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
 
 const CirculationSelectItem = () => {
   const navigate = useNavigate();
+  const {id} = useParams();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
+  
+    //const selectedItems = location.state?.selectedItems || [];
+
+  // Fetch suggestions from the database
+  const fetchSuggestions = async (query) => {
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      console.log(query)
+      const response = await axios.get(`http://localhost:3001/api/books/search`, {
+        params: { query },
+      });
+      setSuggestions(response.data);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+    }
+  };
+
+  // Handle typing in the input fields
+  const handleInputChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    fetchSuggestions(query);
+    if(query === ""){
+      setSuggestions("")
+    }
+  };
+
+  // Add item to the selected list
+  const handleAddItem = (item) => {
+    // Check if the item is already added
+    const exists = selectedItems.find((i) => i.resource_id === item.resource_id);
+    if (!exists) {
+      setSelectedItems([...selectedItems, item]);
+      
+    }
+    
+    setSearchQuery(''); // Clear input field
+    setSuggestions([]); // Clear suggestions
+  };
+
+  useEffect(() => {
+    console.log(selectedItems);
+    console.log(id)
+  }, [selectedItems]);
+
+  // Remove item from the selected list
+  const handleRemoveItem = (id) => {
+    setSelectedItems(selectedItems.filter((item) => item.resource_id !== id));
+  };
+
+  // Clear all selected items
+  const handleClearItems = () => {
+    setSelectedItems([]);
+  };
+
   return (
     <div className='circ-select-item-container'>
       <h1>Circulation</h1>
 
-      {/* path and back */}
+      {/* Path and back */}
       <div className="back-path">
-        <button onClick={() => navigate(-1)}className="btn">Back</button>
+        <button onClick={() => navigate(-1)} className="btn">Back</button>
         <p>Circulation / Select patron / <span>Select item</span></p>
       </div>
 
-      {/*  */}
       <div className="row add-items">
-        {/* scan or manual */}
+        {/* Scan or manual */}
         <div className="col scan-manual">
-          {/* scan barcode */}
+          {/* Scan barcode */}
           <div className="barcode">
-            <FontAwesomeIcon icon={faBarcode} className='icon'/>
-            <p>Scan items in the scanner <br/>to be checked out</p>
+            <FontAwesomeIcon icon={faBarcode} className='icon' />
+            <p>Scan items in the scanner <br />to be checked out</p>
           </div>
           <p>No barcode available? Input manually instead</p>
-          {/* isbn */}
+
+          {/* Manual input for ISBN */}
           <div className='circ-info'>
-            <label htmlFor="">ISBN</label>
-            <input type="text" name="" id="" placeholder='Enter ISBN'/>
+            <label htmlFor="">ISBN / Title</label>
+            <input
+              type="text"
+              placeholder='Enter ISBN or Title'
+              value={searchQuery}
+              onChange={handleInputChange}
+            />
           </div>
-          {/* title */}
-          <div className='circ-info'>
-            <label htmlFor="">Title</label>
-            <input type="text" name="" id="" placeholder='Enter Title'/>
-          </div>
-          {/* button */}
-          <button className="btn add-btn">
-            <FontAwesomeIcon icon={faPlus} />
-            Add item
-          </button>
+
+          {/* Suggestions Dropdown */}
+          {suggestions.length > 0 && (
+            <div className="suggestions">
+              {suggestions.map((item) => (
+                <div
+                  key={item.resource_id}
+                  className="suggestion-item"
+                  onClick={() => handleAddItem(item)}
+                >
+                  <span>{item.resource_title} (ISBN: {item.book_isbn})</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* items added */}
+        {/* Items added */}
         <div className="col summary">
           <div>
-            {/* header */}
+            {/* Header */}
             <div className="header">
-              <h5>Items added (<span>0</span>)</h5>
-              {/* clear items */}
-              <button className="btn">
+              <h5>Items added (<span>{selectedItems.length}</span>)</h5>
+              <button className="btn" onClick={handleClearItems}>
                 <FontAwesomeIcon icon={faTrashCan} />
                 Clear items
               </button>
             </div>
 
-            {/* items */}
-            <div className="item row">
-              {/* cover */}
-              <div className="col-3 cover">
-                <img src="https://i.pinimg.com/originals/a1/f8/87/a1f88733921c820db477d054fe96afbb.jpg" alt="" />
-              </div>
-              {/* item info */}
-              <div className="col-8 info">
-                <p className='title'>Book Title</p>
-                <p className='qnty'>Quantity: <span>1</span></p>
-              </div>
-              {/* remove item button */}
-              <div className="col remove">
-                <FontAwesomeIcon icon={faX} />
-              </div>
+            {/* Selected items */}
+            <div className='inner overflow-y-auto'>
+              {selectedItems.map((item) => (
+                <div className="item row mt-2 " key={item.resource_id}>
+                  {/* Cover */}
+                  <div className="col-3 cover">
+                    <img src={`data:image/jpeg;base64,${item.cover}` || 'https://via.placeholder.com/100'} alt={item.title} />
+                    
+                  </div>
+                  {/* Item info */}
+                  <div className="col-8 info">
+                    <p className='ttle'>{item.resource_title}</p>
+                    <p className='qnty'>Quantity: <span>1{/* {item.resource_quantity} */}</span></p>
+                  </div>
+                  {/* Remove item button */}
+                  <div className="col-1 remove" onClick={() => handleRemoveItem(item.resource_id)}>
+                    <FontAwesomeIcon icon={faX} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          
-          {/* proceed to checkout */}
+
+          {/* Proceed to checkout */}
           <div className='checkout'>
             <Link to='/circulation/patron/item/checkout'>
-              <button className="btn checkout-btn">
+              <button className="btn checkout-btn" onClick = { () => {localStorage.setItem('selectedItems', JSON.stringify(selectedItems)); localStorage.setItem('id', id)}}>
                 Proceed to checkout
                 <FontAwesomeIcon icon={faArrowRight} />
               </button>
@@ -86,9 +163,8 @@ const CirculationSelectItem = () => {
           </div>
         </div>
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default CirculationSelectItem
+export default CirculationSelectItem;

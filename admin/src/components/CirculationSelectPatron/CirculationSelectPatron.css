@@ -135,12 +135,16 @@
 .circ-select-patron-container .patron-list .patron{
     background-color: var(--white);
     border: 1px solid var(--tup-color);
-    padding: 15px;
+    padding: 5px;
     text-align: center;
     border-radius: 5px;
     font-size: 0.9rem;
     color: var(--black);
+    margin-bottom: 5px;
+
 }
+
+
 
 .circ-select-patron-container .patron-list .patron div:nth-child(1){
     display: flex;
