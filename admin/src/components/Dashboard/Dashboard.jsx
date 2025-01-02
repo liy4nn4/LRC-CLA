@@ -296,7 +296,8 @@ const Dashboard = () => {
                   
                 </table>
           </div>
-          {/* pagination */}
+          <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+          {/* pagination 
           <div className='table-pages'>
             <img src={left} alt="" />
             <div className='page-numbers'>
@@ -305,7 +306,7 @@ const Dashboard = () => {
               <div className='page-number'>1</div>
             </div>
             <img src={right} alt="" />
-          </div>
+          </div>*/}
         </div>
 
         {/* books issued and statistics */}

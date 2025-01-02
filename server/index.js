@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from "express";
-import mysql from "mysql2";
+import mysql from "mysql2";    
+import mysqlPromise from 'mysql2/promise';
 import cors from "cors";
 import axios from 'axios';
 import multer from 'multer'; // This is a tool that helps us upload files (like images or documents) from a form to our server.
@@ -11,6 +12,11 @@ import bcrypt from 'bcrypt';
 const saltRounds = 10;
 
 dotenv.config();
+
+const dbPromise = mysqlPromise.createConnection({ host: process.env.DB_HOST_LOCAL,
+    user: process.env.DB_USER_LOCAL,
+    password: process.env.DB_PASSWORD_LOCAL,
+    database: process.env.DB_DATABASE_LOCAL, });
 
 const app = express()
 app.use(express.json())
@@ -35,12 +41,12 @@ const apikey = process.env.API_KEY;
 //     }
 // });
 
-const db = mysql.createConnection({
+ const db = mysql.createConnection({
     host: process.env.DB_HOST_LOCAL,
     user: process.env.DB_USER_LOCAL,
     password: process.env.DB_PASSWORD_LOCAL,
     database: process.env.DB_DATABASE_LOCAL,
-});
+}); 
 
 db.connect((err) => {
     if (err) {
@@ -49,6 +55,16 @@ db.connect((err) => {
     }
     console.log('Connected to the database');
 });
+
+/* (async () => {
+    try {
+        const connection = await db.getConnection();
+        console.log("Connected to the database!");
+        connection.release(); // Release the connection back to the pool
+    } catch (error) {
+        console.error("Error connecting to the database:", error);
+    }
+})() */
 
 // How we create an HTTP server with React
 const server = http.createServer(app);
@@ -1292,24 +1308,33 @@ app.get('/resource/:id', (req,res)=>{
 
 app.get('/patron', (req, res) => {
 
-//const q = 'SELECT * FROM patron';
 
-//const q = "SELECT patron.patron_id, patron.tup_id, patron.patron_fname, patron.patron_lname, patron.patron_sex, patron.patron_mobile, course.course_name AS course, college.college_name AS college, DATE(attendance.att_date) AS att_date, attendance.att_log_in_time FROM patron JOIN course ON patron.course_id = course.course_id JOIN college ON patron.college_id = college.college_id JOIN attendance ON patron.patron_id = attendance.patron_id ORDER BY att_date DESC, att_log_in_time DESC";
 const q = `SELECT 
-    p.tup_id,
-    p.patron_fname,
-    p.patron_lname,
-    p.patron_email,
-    p.category,
-    COUNT(c.checkout_id) AS total_checkouts
-FROM 
-    patron p
-LEFT JOIN 
-    checkout c 
-ON 
-    p.patron_id = c.patron_id
-GROUP BY 
-    p.tup_id, p.patron_fname, p.patron_lname, p.patron_email;
+        p.patron_id,
+        p.tup_id,
+        p.patron_fname,
+        p.patron_lname,
+        p.patron_email,
+        p.category,
+        cr.course_name,
+        COUNT(c.checkout_id) AS total_checkouts
+    FROM 
+        patron p
+    LEFT JOIN 
+        checkout c 
+    ON 
+        p.patron_id = c.patron_id
+    LEFT JOIN 
+        course cr
+    ON 
+        p.course_id = cr.course_id
+    GROUP BY 
+        p.tup_id, 
+        p.patron_fname, 
+        p.patron_lname, 
+        p.patron_email, 
+        p.category, 
+        cr.course_name;
 `;
 
 db.query(q, (err, results) => {
@@ -1364,6 +1389,105 @@ app.get('/getBorrowers', (req, res) => {
         }
     });
 });
+
+app.get('/api/books/search', async (req, res) => {
+    const { query } = req.query;
+    if (!query) {
+        return res.status(400).json({ error: 'Query parameter is required' });
+      }
+      console.log('Incoming query:', req.query);
+    try {
+      const [results] = await (await dbPromise).execute(
+        `
+        SELECT 
+            b.book_isbn, 
+            b.book_cover,
+            r.resource_title AS title, 
+            r.resource_quantity AS quantity, 
+            r.resource_id
+        FROM 
+            book b
+        INNER JOIN 
+            resources r 
+        ON 
+            b.resource_id = r.resource_id
+        WHERE 
+            b.book_isbn LIKE ? OR r.resource_title LIKE ?
+        LIMIT 10;
+        `,
+        [`%${query}%`, `%${query}%`]
+      );
+      
+      const covers = results.map(book => ({
+        cover: Buffer.from(book.book_cover).toString('base64'),
+        resource_id: (book.resource_id),
+        resource_title: (book.title),
+        resource_quantity: (book.quantity),
+        book_isbn: (book.book_isbn)
+
+    }));
+
+      res.json(covers);
+    } catch (error) {
+      console.error('Error fetching book suggestions:', error);
+      res.status(500).send("Error fetching book suggestions");
+    }
+  });
+
+app.get('/checkoutPatron', async (req, res) => {
+const { id } = req.query;
+
+if (!id) {
+    return res.status(400).json({ message: 'Missing id parameter' });
+}
+
+const query = `
+    SELECT 
+        patron.patron_id, 
+        patron.tup_id, 
+        patron.patron_fname, 
+        patron.patron_lname, 
+        patron.patron_sex, 
+        patron.patron_mobile,
+        patron.patron_email, 
+        course.course_name AS course, 
+        college.college_name AS college 
+    FROM patron 
+    JOIN course ON patron.course_id = course.course_id 
+    JOIN college ON patron.college_id = college.college_id 
+    WHERE patron.patron_id = ?;
+`;
+
+try {
+    const [results] = await (await dbPromise).execute(query, [id]);
+    if (results.length === 0) {
+    return res.status(404).json({ message: 'Patron not found' });
+    }
+    res.status(200).json([results[0]]);
+} catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+}
+});
+
+app.post('/checkout', async (req, res) => {
+    const { checkout_date, checkout_due, resource_id, patron_id } = req.body;
+    if (!checkout_date || !checkout_due || !resource_id || !patron_id) {
+        return res.status(400).json({
+          error: 'Invalid input. All fields (checkout_date, checkout_due, resource_id, patron_id) are required.',
+        });
+      }
+    try {
+      const result = await (await dbPromise).query(
+        'INSERT INTO checkout (checkout_date, checkout_due, resource_id, patron_id) VALUES (?, ?, ?, ?)',
+        [checkout_date, checkout_due, resource_id, patron_id]
+      );
+      res.status(200).json({ message: 'Checkout successful!', checkout_id: result.insertId });
+    } catch (error) {
+      console.error('Error inserting checkout:', error.message);
+      res.status(500).json({ error: 'Failed to process checkout' });
+    }
+  });
+  
 
 app.get('/getCirculation', (req, res) => {
     const q = `SELECT 
@@ -1674,7 +1798,7 @@ app.get('/getCover', (req, res) => {
 
 app.get('/api/overdue-books', (req, res) => {
     const query = `
-        SELECT p.tup_id, p.patron_fname, p.patron_lname, c.checkout_due, r.resource_id, r.resource_title, DATEDIFF(CURDATE(), c.checkout_due) AS overdue_days FROM checkout c JOIN patron p ON c.patron_id = p.patron_id JOIN resources r ON c.resource_id = r.resource_id JOIN book b ON r.resource_id = b.resource_id WHERE c.checkout_due < CURDATE() ORDER BY c.checkout_due DESC;
+        SELECT p.tup_id, p.patron_fname, p.patron_lname, c.checkout_due, r.resource_id, r.resource_title, DATEDIFF(CURDATE(), c.checkout_due) AS overdue_days FROM checkout c JOIN patron p ON c.patron_id = p.patron_id JOIN resources r ON c.resource_id = r.resource_id JOIN book b ON r.resource_id = b.resource_id WHERE c.checkout_due < CURDATE() ORDER BY c.checkout_due DESC LIMIT 5;
     `;
     
     db.query(query, (error, results) => {
