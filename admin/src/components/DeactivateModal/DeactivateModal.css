@@ -45,7 +45,7 @@
     left: 50%;
     transform: translate(-50%,-50%);
     width: 400px;   
-    padding-bottom: 20px;
+    padding: 50px 30px 30px;
     /* height: 500px; */
     background-color: var(--white);
     border-radius: 15px;
@@ -53,17 +53,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
-
-.deactivate-modal-container .close-box{
-    text-align: end;
-    padding: 20px 20px 0;
-    color: var(--tup-color);
-    font-size: 1.3rem;
-}
-
-.deactivate-modal-container .close-btn{
-    cursor: pointer;
+    text-align: center;
 }
 
 .deactivate-modal-container .content{

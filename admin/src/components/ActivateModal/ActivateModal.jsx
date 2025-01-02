@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faX} from '@fortawesome/free-solid-svg-icons'
 
 
-const ActivateModal = ({open, close}) => {
+const ActivateModal = ({open, close,uname, activateUser}) => {
 
     if(!open){
         return null
@@ -18,19 +18,14 @@ const ActivateModal = ({open, close}) => {
 
         {/* modal box */}
         <div className="activate-modal-box">
-           {/* close */}
-           <div className="close-box">
-            <FontAwesomeIcon icon={faX} onClick={close} className='close-btn'/>
-           </div>
            {/* content */}
            <div className="content">
-            <p className='label'>Activate 'insert role here'</p>
-            <p className='uname'>Username</p>
+            <p className='label'>Are you sure you want to activate <span className='uname'>{uname}</span>?</p>
            </div>
             {/* buttons */}
             <div className="buttons">
-                <div className="btn cancel-btn">Cancel</div>
-                <div className="btn acc-btn">Activate</div>
+                <div className="btn cancel-btn" onClick={close}>Cancel</div>
+                <div className="btn acc-btn" onClick={activateUser}>Activate</div>
             </div>
         </div>      
     </div>,

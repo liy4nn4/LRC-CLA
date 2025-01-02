@@ -7,6 +7,8 @@ import multer from 'multer'; // This is a tool that helps us upload files (like 
 import fs from 'fs';
 import http from 'http';
 import { Server } from 'socket.io';
+import bcrypt from 'bcrypt';
+const saltRounds = 10;
 
 dotenv.config();
 
@@ -69,6 +71,7 @@ io.on('connection', (socket) => {
     });
 });
 
+/*--------------MULTER------------------------- */
 
 const storage = multer.diskStorage({
     destination: function(req,file,cb){
@@ -877,6 +880,15 @@ app.get('/status',(req,res)=>{
     })
 })
 
+app.get('/roles', (req,res)=>{
+    const q = 'SELECT * FROM roles'
+
+    db.query(q,(err,results)=>{
+        if(err) return res.send(err)
+            return res.json(results)
+    })
+})
+
 app.get("/getTotalVisitors", (req, res) => {
     const { date } = req.query;
   
@@ -898,69 +910,28 @@ app.get("/getTotalVisitors", (req, res) => {
   });
 
 app.get("/getBorrowedBooks", (req, res) => {
-const { date } = req.query;
+    const { date } = req.query;
 
-if (!date) {
-    return res.status(400).json({ message: "Date is required" });
-}
-
-const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ?`;
-
-db.query(query, [date], (err, result) => {
-    if (err) {
-    console.error("Database error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    if (!date) {
+        return res.status(400).json({ message: "Date is required" });
     }
 
-    const total_borrowed = result[0]?.total_borrowed || 0;
-    res.json({ total_borrowed });
+    const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ?`;
+
+    db.query(query, [date], (err, result) => {
+        if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+        }
+
+        const total_borrowed = result[0]?.total_borrowed || 0;
+        res.json({ total_borrowed });
+    });
 });
-});
 
-//get catalog details 
-// app.get('/catalogdetails', (req, res) => {
-//     const { limit, offset } = req.query;
 
-//     // Set default values
-//     const itemsPerPage = parseInt(limit) || 5;
-//     const startIndex = parseInt(offset) || 0;
 
-//     const q = `
-    // SELECT 
-    //     resources.resource_title, 
-    //     resources.resource_id, 
-    //     resourcetype.type_name, 
-    //     resources.resource_quantity, 
-    //     department.dept_shelf_no,
-    //     GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
-    // FROM resources 
-    // JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-    // JOIN author ON resourceauthors.author_id = author.author_id 
-    // JOIN resourcetype ON resources.type_id = resourcetype.type_id 
-    // JOIN department ON department.dept_id = resources.dept_id
-    // GROUP BY resources.resource_id
-    // ORDER BY resources.resource_title ASC
-    // LIMIT ? OFFSET ?`;
-
-//     const countQuery = `
-//     SELECT COUNT(DISTINCT resources.resource_id) AS total
-//     FROM resources 
-//     JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-//     JOIN author ON resourceauthors.author_id = author.author_id`;
-
-//     // Get records and total count
-//     db.query(q, [itemsPerPage, startIndex], (err, records) => {
-//         if (err) return res.status(500).json({ error: 'Database error', details: err.message });
-
-//         db.query(countQuery, (countErr, countResults) => {
-//             if (countErr) return res.status(500).json({ error: 'Database error', details: countErr.message });
-
-//             const total = countResults[0]?.total || 0;
-//             res.json({ records, total });
-//         });
-//     });
-// });
-
+/*-------DISPLAY DATA FOR CATALOG PAGE & DYNAMIC SEARCH----- */
 app.get('/catalogdetails', (req, res) => {
     const keyword = req.query.keyword || '';
     const offset = parseInt(req.query.offset, 10);
@@ -1113,8 +1084,6 @@ app.get('/catalogdetails', (req, res) => {
 });
 
 
-
-
 /*--------VIEW RESOURCE FROM CATALOG-------------*/ 
 app.get('/view/:id',(req,res)=>{
     const id = req.params.id;
@@ -1243,7 +1212,7 @@ const getThesisResource = (id,res)=>{
     })
 }
 
-/*--------------SEARCH IN OPAC-------------------*/
+/*--------------SEARCH IN ONLINE CATALOG-------------------*/
 app.get('/resource/search', async (req, res) => {
     const searchQuery = req.query.q;
     const searchFilter = req.query.filter;
@@ -1736,121 +1705,6 @@ app.get('/checkout-info', async (req, res) => {
 });
 
 
-/*-----------DYNAMIC SEARCH IN CATALOG----------- */
-app.get('/catalog/search', (req, res) => {
-    const searchKeyword = req.query.searchKeyword || '';
-    const searchFilter = req.query.searchFilter || '';
-    console.log(searchFilter);
-    console.log(searchKeyword);
-    
-    // Validate the input parameters
-    if (!searchKeyword || !searchFilter) {
-        return res.status(400).send('Missing search parameters');
-    }
-
-    switch (searchFilter) {
-        case 'title':
-            return searchByTitle(searchKeyword, res);
-        case 'author':
-            return searchByAuthor(searchKeyword, res);
-        case 'book':
-            return searchByType(searchKeyword, res, '1');
-        case 'journal':
-            return searchByType(searchKeyword, res, '2');
-        case 'newsletter':
-            return searchByType(searchKeyword, res, '3');
-        case 'thesis':
-            return searchByType(searchKeyword, res, '4');
-        default:
-            return res.status(400).send('Invalid search filter');
-    }
-});
-
-const searchByType = (searchKeyword, res, type) => {
-    const q = `
-        SELECT 
-            resources.resource_title, 
-            resources.resource_id, 
-            resourcetype.type_name, 
-            resources.resource_quantity, 
-            department.dept_shelf_no,
-            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
-        FROM resources 
-        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-        JOIN author ON resourceauthors.author_id = author.author_id 
-        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
-        JOIN department ON department.dept_id = resources.dept_id
-        WHERE resources.resource_title LIKE ? AND resources.type_id = ?
-        GROUP BY resources.resource_id
-        ORDER BY resources.resource_title ASC`;
-
-    db.query(q, [`%${searchKeyword}%`, type], (err, results) => {
-        if (err) return res.status(500).send('Error fetching data');
-        if (results.length > 0) {
-            return res.send(results);
-        } else {
-            return res.send([]);
-        }
-    });
-};
-
-const searchByTitle = (searchKeyword, res) => {
-    const q = `
-        SELECT 
-            resources.resource_title, 
-            resources.resource_id, 
-            resourcetype.type_name, 
-            resources.resource_quantity, 
-            department.dept_shelf_no,
-            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
-        FROM resources 
-        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-        JOIN author ON resourceauthors.author_id = author.author_id 
-        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
-        JOIN department ON department.dept_id = resources.dept_id
-        WHERE resources.resource_title LIKE ?
-        GROUP BY resources.resource_id
-        ORDER BY resources.resource_title ASC`;
-
-    db.query(q, [`%${searchKeyword}%`], (err, results) => {
-        if (err) return res.status(500).send('Error fetching data');
-        if (results.length > 0) {
-            return res.send(results);
-        } else {
-            return res.send([]);
-        }
-    });
-};
-
-const searchByAuthor = (searchKeyword, res) => {
-    const q = `
-        SELECT 
-            resources.resource_title, 
-            resources.resource_id, 
-            resourcetype.type_name, 
-            resources.resource_quantity, 
-            department.dept_shelf_no,
-            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
-        FROM resources 
-        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
-        JOIN author ON resourceauthors.author_id = author.author_id 
-        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
-        JOIN department ON department.dept_id = resources.dept_id
-        WHERE author.author_fname LIKE ? OR author.author_lname LIKE ?
-        GROUP BY resources.resource_id
-        ORDER BY resources.resource_title ASC`;
-
-    db.query(q, [`%${searchKeyword}%`, `%${searchKeyword}%`], (err, results) => {
-        if (err) return res.status(500).send('Error fetching data');
-        if (results.length > 0) {
-            return res.send(results);
-        } else {
-            return res.send([]);
-        }
-    });
-};
-
-
 /*------------SYNC DATA------------------*/
 // Sync resources table
 app.post("/sync/resources", async (req, res) => {
@@ -2182,7 +2036,7 @@ app.post("/attendance", (req, res) => {
 
 
 
-/*----------------------OPAC-------------------------- */
+/*--------------------ONLINE CATALOG-------------------------- */
 app.get('/featured-books', (req, res) => {
     const q = `
     SELECT 
@@ -2198,7 +2052,7 @@ app.get('/featured-books', (req, res) => {
     GROUP BY resources.resource_id, resources.resource_title, book.book_cover
     ORDER BY RAND()
     LIMIT 10
-`;
+    `;
 
     db.query(q, (err, results) => {
         if (err) {
@@ -2307,8 +2161,6 @@ app.get('/resources', (req, res) => {
     } else if (sort === 'oldest') {
         sortBy = 'ORDER BY resources.resource_published_date ASC';
     }
-
-    
 
     console.log(sort)
     const q = `
@@ -2458,6 +2310,194 @@ app.get('/resources/view', (req, res) => {
         }
     });
 });
+
+/*------------------USER ACCOUNT-------------*/
+app.post('/accounts/create',(req,res)=>{
+    console.log(req.body)
+    const password = req.body.password;
+
+    //check if user exist 
+    const checkQ = `
+    SELECT * FROM staffaccount WHERE staff_uname = ? AND staff_fname = ? AND staff_lname = ?`
+
+    const checkValues = [
+        req.body.uname,
+        req.body.fname,
+        req.body.lname
+    ]
+
+    db.query(checkQ, checkValues, (err, checkResults)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        if(checkResults.length>0){
+            return res.send({status: 409, message: 'This user already exist. Please create a new one.'})
+        }else{
+            const q = `
+            INSERT INTO staffaccount (staff_uname, staff_fname, staff_lname, staff_password, staff_status, role_id ) 
+            VALUES (?, ?, ?, ?, ?, ?)`
+            
+            bcrypt.hash(password,saltRounds,(err,hash)=>{
+                if(err){
+                    console.log(err)
+                }
+
+                const values = [
+                    req.body.uname,
+                    req.body.fname,
+                    req.body.lname,
+                    hash,
+                    'active',
+                    req.body.role
+                ]
+
+                db.query(q, values, (err,results)=>{
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send({ error: 'Database query failed' });
+                    }
+
+                    io.emit('userUpdated')
+                    res.send({status: 201, message:'User Created Successfully'});
+                
+                })
+
+            })
+        }
+    })
+})
+
+app.get('/accounts', (req,res)=>{
+    const q = `
+        SELECT 
+            staffaccount.staff_id, 
+            staffaccount.staff_uname, 
+            staffaccount.staff_lname, 
+            staffaccount.staff_fname,
+            staffaccount.staff_status,
+            roles.role_name
+        FROM staffaccount
+        JOIN roles ON staffaccount.role_id = roles.role_id`
+
+        db.query(q, (err,results)=>{
+            if (err) {
+                console.error(err);
+                return res.status(500).send({ error: 'Database query failed' });
+            }
+
+            res.send(results);
+        
+        })
+})
+
+app.get('/account/:id', (req,res)=>{
+    const id = req.params.id;
+
+    const q = `
+    SELECT staff_id, staff_fname, staff_lname, staff_uname, role_id FROM staffaccount WHERE staff_id = ?`
+
+
+    db.query(q,[id], (err,results)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        res.send(results);
+    
+    })
+})
+
+app.put('/account', (req,res)=>{
+    console.log(req.body)
+    const password = req.body.password;
+
+
+    const q = `
+    UPDATE  
+        staffaccount 
+    SET 
+        staff_uname = ?,
+        staff_fname = ?,
+        staff_lname = ?,
+        role_id = ?,
+        staff_password = ?
+    WHERE 
+        staff_id = ?`
+
+        bcrypt.hash(password,saltRounds,(err,hash)=>{
+            if(err){
+                console.log(err)
+            }
+
+            const values = [
+                req.body.uname,
+                req.body.fname,
+                req.body.lname,
+                req.body.role,
+                hash,
+                req.body.id
+            ]
+
+            db.query(q, values, (err,results)=>{
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send({ error: 'Database query failed' });
+                }
+
+                io.emit('userUpdated');
+                res.send({status: 201, message:'User Edited Successfully'});
+            
+            })
+
+        })
+})
+
+app.put('/account/deactivate/:id',(req,res)=>{
+    const id = req.params.id;
+
+    const q = `
+    UPDATE 
+        staffaccount
+    SET 
+        staff_status = ?
+    WHERE 
+        staff_id = ?`
+
+    db.query(q, ['inactive', id],(err,results)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        io.emit('userUpdated');
+        res.send({status: 201, message:'User Deactivated'});
+    })
+})
+
+app.put('/account/activate/:id',(req,res)=>{
+    const id = req.params.id;
+
+    const q = `
+    UPDATE 
+        staffaccount
+    SET 
+        staff_status = ?
+    WHERE 
+        staff_id = ?`
+
+    db.query(q, ['active', id],(err,results)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+        
+        io.emit('userUpdated');
+        res.send({status: 201, message:'User Activated'});
+    })
+})
 
 
 server.listen(3001,()=>{

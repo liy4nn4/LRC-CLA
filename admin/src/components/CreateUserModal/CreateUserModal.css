@@ -69,15 +69,17 @@
 
 .create-u-modal-container .content{
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 50% 50%;
     padding: 30px;
-    column-gap: 20px;
+    /* column-gap: 15px; */
     row-gap: 20px;
 }
 
 .create-u-modal-container .input-box{
     display: flex;
     flex-direction: column;
+    height: 70px;
+    padding: 0 10px;
 }
 
 .create-u-modal-container .input-box input,
@@ -93,6 +95,7 @@
     display: flex;
     justify-content: center;
     gap: 10px;
+    margin-top: 30px;
 }
 
 .create-u-modal-container .cancel-btn{
@@ -125,4 +128,11 @@
 .create-u-modal-container .close-btn{
     font-size: 1.3rem;
     cursor: pointer;
+}
+
+.create-u-modal-container .content .error{
+    color: var(--tup-color);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 5px;
 }

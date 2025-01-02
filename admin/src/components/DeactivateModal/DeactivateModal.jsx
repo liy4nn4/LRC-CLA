@@ -5,12 +5,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faX} from '@fortawesome/free-solid-svg-icons'
 
 
-const DeactivateModal = ({open, close}) => {
+const DeactivateModal = ({open, close,uname,deactivateUser}) => {
 
     if(!open){
         return null
     }
 
+    console.log(uname)
   return ReactDom.createPortal(
     <div className='deactivate-modal-container'>
         {/* overlay */}
@@ -18,19 +19,16 @@ const DeactivateModal = ({open, close}) => {
 
         {/* modal box */}
         <div className="deactivate-modal-box">
-           {/* close */}
-           <div className="close-box">
-            <FontAwesomeIcon icon={faX} onClick={close} className='close-btn'/>
-           </div>
+  
            {/* content */}
            <div className="content">
-            <p className='label'>Deactivate 'insert role here'</p>
-            <p className='uname'>Username</p>
+            <p className='label'>Are you sure you want to deactivate <span className='uname'>{uname}</span>?</p>
+            
            </div>
             {/* buttons */}
             <div className="buttons">
-                <div className="btn cancel-btn">Cancel</div>
-                <div className="btn deac-btn">Deactivate</div>
+                <div className="btn cancel-btn" onClick={close}>Cancel</div>
+                <div className="btn deac-btn" onClick={deactivateUser}>Deactivate</div>
             </div>
         </div>      
     </div>,

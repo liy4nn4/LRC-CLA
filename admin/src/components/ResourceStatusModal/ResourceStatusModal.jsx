@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faTriangleExclamation,faFaceSadTear } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 
-const ResourceStatusModal = ({ open, content, close, isOnline, resetData }) => {
+const ResourceStatusModal = ({ open, content, close, path }) => {
     const navigate = useNavigate();
     const [icon, setIcon] = useState(null);
 
@@ -44,7 +44,7 @@ const ResourceStatusModal = ({ open, content, close, isOnline, resetData }) => {
                     className="btn"
                     onClick={() => {
                         close();
-                        navigate('/catalog')
+                        !path?navigate('/catalog'):navigate(path)
                       
                     }}
                 >

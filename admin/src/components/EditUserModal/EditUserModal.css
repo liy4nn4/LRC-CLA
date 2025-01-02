@@ -126,3 +126,10 @@
     font-size: 1.3rem;
     cursor: pointer;
 }
+
+.edit-u-modal-container  .error{
+    color: var(--tup-color);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 5px;
+}

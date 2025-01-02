@@ -118,7 +118,7 @@
     color: var(--white);
 }
 
-.accounts-container .user .deac-btn{
+.accounts-container .user .deac-acc-btn{
     height: 40px;
     display: flex;
     align-items: center;
@@ -148,9 +148,9 @@
     background-color: var(--button);
 }
 
-.accounts-container .deac-btn:hover,
-.accounts-container .deac-btn:active,
-.accounts-container .deac-btn:focus{
+.accounts-container .deac-acc-btn:hover,
+.accounts-container .deac-acc-btn:active,
+.accounts-container .deac-acc-btn:focus{
     
     outline: 0 !important;
 }
