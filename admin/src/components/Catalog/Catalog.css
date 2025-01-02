@@ -196,3 +196,28 @@
 {
     border: none;
 }
+
+.cat-container .search-filter {
+    display: flex;
+    gap: 5px;
+}
+
+.cat-container .search-filter input{
+    width: 400px;
+    padding: 0 10px;
+    border-color: var(--shadow);
+    border-radius: 5px;
+    height: 40px;
+}
+
+.cat-container .search-filter button{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.cat-container .search-filter button:hover,
+.cat-container .search-filter button:active,
+.cat-container .search-filter button:focus{
+    background-color: var(--button);
+    color: var(--white);
+}

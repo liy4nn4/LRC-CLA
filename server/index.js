@@ -962,29 +962,26 @@ app.get('/catalogdetails', (req, res) => {
         return;
     }
     const searchKeyword = `%${keyword}%`;
-    let orderClauses = [];
+    let orderClauses = '';
     
     // Handle sorting by title
     if (title) {
         if (title == '1') {
-            orderClauses.push('resources.resource_title ASC');
+            orderClauses='ORDER BY resources.resource_title ASC';
         } else if (title == '2') {
-            orderClauses.push('resources.resource_title DESC');
+            orderClauses='ORDER BY resources.resource_title DESC';
         }
     }
     
     // Handle sorting by author
     if (author) {
         if (author == '1') {
-            orderClauses.push('author.author_fname ASC');
+            orderClauses='ORDER BY author.author_fname ASC';
         } else if (author == '2') {
-            orderClauses.push('author.author_fname DESC');
+            orderClauses='ORDER BY author.author_fname DESC';
         }
     }
-    
-    // Construct the final ORDER BY clause
-    const orderClause = orderClauses.length > 0 ? `ORDER BY ${orderClauses.join(', ')}` : '';
-    
+   
     const params1 = [searchKeyword, searchKeyword, searchKeyword];
 
     const q = `
@@ -995,7 +992,7 @@ app.get('/catalogdetails', (req, res) => {
         WHERE resources.resource_title LIKE ?
            OR author.author_fname LIKE ?
            OR author.author_lname LIKE ?
-        ${orderClause}
+        ${orderClauses}
         LIMIT 5 OFFSET ?;`;
 
     let whereClauses = [`resources.resource_id = ?`]

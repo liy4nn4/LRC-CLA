@@ -70,10 +70,11 @@ const Catalog = () => {
     };
   }, [currentPage, selectedFilters]);
 
-  // useEffect(()=>{
-  //   setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })
-  // },[keyword])
-
+  useEffect(()=>{
+      if(keyword==''){
+        getCatalogOnline(true)
+      }
+    },[keyword])
 
 /*-------------------DISPLAY RESOURCES IN CATALOG PAGE------------------- */
 const getCatalogOnline = async (resetPage = false) => {
@@ -164,6 +165,18 @@ const getTopics =async ()=>{
       ...prevFilters,
       [filterCategory]:value
     }))
+
+    if(filterCategory=='title'){
+      setSelectedFilters((prevFilters)=>({
+        ...prevFilters,
+        author:0
+      }))
+    }else if(filterCategory=='author'){
+      setSelectedFilters((prevFilters)=>({
+        ...prevFilters,
+        title:0
+      }))
+    }
   }
 
   const handleEnter = (e)=>{
