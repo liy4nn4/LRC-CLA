@@ -2370,6 +2370,12 @@ app.post('/accounts/create',(req,res)=>{
 })
 
 app.get('/accounts', (req,res)=>{
+    const keyword = req.query.keyword || '';
+    const searchKeyword = `%${keyword}%`;
+    const offset = parseInt(req.query.offset, 10)
+    const params = [searchKeyword, searchKeyword, searchKeyword]
+
+    console.log(params)
     const q = `
         SELECT 
             staffaccount.staff_id, 
@@ -2379,21 +2385,40 @@ app.get('/accounts', (req,res)=>{
             staffaccount.staff_status,
             roles.role_name
         FROM staffaccount
-        JOIN roles ON staffaccount.role_id = roles.role_id`
+        JOIN roles ON staffaccount.role_id = roles.role_id
+        WHERE staff_fname LIKE ? OR staff_uname LIKE ? OR staff_lname LIKE ?
+        LIMIT 5 OFFSET ?`
+    
+    const countQ = `
+        SELECT COUNT(DISTINCT staff_id) as total
+        FROM staffaccount
+        WHERE staff_fname LIKE ? OR staff_uname LIKE ? OR staff_lname LIKE ?`
+    
+    db.query(countQ, params, (err,countResult)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
 
-        db.query(q, (err,results)=>{
+        const totalUsers = countResult[0]?.total || 0;
+
+        db.query(q, [...params, offset], (err,results)=>{
             if (err) {
                 console.error(err);
                 return res.status(500).send({ error: 'Database query failed' });
             }
 
-            res.send(results);
+            res.send({results,totalUsers});
         
         })
+    })
+
+        
 })
 
 app.get('/account/:id', (req,res)=>{
     const id = req.params.id;
+    const keyword = req.query.keyword || '';
 
     const q = `
     SELECT staff_id, staff_fname, staff_lname, staff_uname, role_id FROM staffaccount WHERE staff_id = ?`

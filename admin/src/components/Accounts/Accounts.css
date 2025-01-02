@@ -151,3 +151,29 @@
 .accounts-container .deac-acc-btn:active{
     color: var(--black);
 }
+
+.accounts-container .pagination{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.accounts-container .buttons{
+    display: flex;
+    gap: 5px;
+}
+
+.accounts-container .pagination button{
+    background-color: var(--tup-color);
+}
+
+
+.accounts-container .pagination .btn:disabled{
+    border: none !important;
+    background-color: var(--disabled);
+}
+
+.accounts-container .pagination .btn:enabled{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
