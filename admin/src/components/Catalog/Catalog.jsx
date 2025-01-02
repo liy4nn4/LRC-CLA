@@ -1,22 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import './Catalog.css'
-import addItem from '../../assets/Management System/inventory/add-item.svg'
-import scanItem from '../../assets/Management System/inventory/scan-item.svg'
-import search from '../../assets/Management System/logbook/search.svg'
-import exportIcon from '../../assets/Management System/logbook/export.svg'
-import dropdown from '../../assets/Management System/inventory/arrow-dropdown.svg'
-import { Link } from 'react-router-dom'
-import AuthorModal from '../AuthorModal/AuthorModal'
-import PublisherModal from '../PublisherModal/PublisherModal'
+
 import axios from 'axios'
 import io from 'socket.io-client';
 import Loading from '../Loading/Loading'
 import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
 import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilter} from '@fortawesome/free-solid-svg-icons';
-import CatalogFilterModal from '../CatalogFilterModal/CatalogFilterModal'
+import { Link } from 'react-router-dom';
+
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
@@ -416,19 +408,19 @@ console.log(selectedFilters)
            </div>
         </div>
         
-            {/* search-filter */}
-            <div className="search-filter">
-                  <input type="search" placeholder="Search by title or author" onChange={handleChange} onKeyDown={handleEnter}/>
-                  <button 
-                    className="btn" 
-                    onClick={() => getCatalogOnline(true)}>
-                    Search
-                  </button>
-                  <button 
-                    className="btn " 
-                    onClick={() => setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })}>
-                    Reset filter
-                  </button>
+        {/* search-filter */}
+          <div className="search-filter">
+            <input type="search" placeholder="Search by title or author" onChange={handleChange} onKeyDown={handleEnter}/>
+            <button 
+              className="btn" 
+              onClick={() => getCatalogOnline(true)}>
+              Search
+            </button>
+            <button 
+              className="btn " 
+              onClick={() => setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })}>
+              Reset filter
+              </button>
           </div>
      
 
