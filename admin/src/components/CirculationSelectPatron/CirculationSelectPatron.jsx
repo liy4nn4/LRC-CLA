@@ -69,7 +69,7 @@ const CirculationSelectPatron = () => {
 
         {/* search */}
         <div className="search-container">
-            <p className='m-0'>Check in item for</p>
+            <p className='m-0'>Check out item for</p>
             <input type="text" 
                     value={searchQuery} 
                     onChange={(e) => {setSearchQuery(e.target.value); handleSearch(e.target.value)}} 

@@ -32,7 +32,7 @@ const Circulation = () => {
       <Link to='/circulation/patron'>
         <button className='btn checkin-btn'>
           <FontAwesomeIcon icon={faCartPlus} className='icon'/>
-          <span>Check in</span>
+          <span>Check out</span>
         </button>
       </Link>
 

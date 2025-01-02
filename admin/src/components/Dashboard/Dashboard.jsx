@@ -230,7 +230,7 @@ const Dashboard = () => {
                       <tr key={key}>
                           <td>{item.resource_id}</td>
                           <td>{item.resource_title}</td>
-                          <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.authors}</span></pre></td>
+                          <td><pre style={{whiteSpace: "pre-wrap"}}><span className='d-flex justify-content-center align-middle m-auto'>{item.authors}</span></pre></td>
                           <td>{item.resource_quantity}</td>
                           
                       </tr> )):
