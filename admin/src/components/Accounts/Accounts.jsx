@@ -298,44 +298,52 @@ const formValidationEdit = async () => {
       </div>
 
       {/* header */}
-      <div className="header row">
+      {/* <div className="header row">
         <div className="col-3">User</div>
         <div className="col-3">Username</div>
         <div className="col-3">Role</div>
         <div className="col-3">Action</div>
-      </div>
-
-      {/* user */}
-      {accounts.length>0?accounts.map(item=>(
-        <div className="user row">
-        <div className="col-3 user-real-name">
-            <FontAwesomeIcon icon={faUser} />
-            {`${item.staff_fname} ${item.staff_lname}`}
-        </div>
-        <div className="col-3">{item.staff_uname}</div>
-        <div className="col-3">{item.role_name}</div>
-        <div className="col-3 actions">
-            {/*  edit user */}
-            <button className="btn edit-btn" onClick={()=>handleEdit(item.staff_id)}>
-                <FontAwesomeIcon icon={faPen} />
-                Edit user
-            </button>
-            {/* deactivate */}
-            {item.staff_status=='active'?
-            <button className="btn deac-acc-btn" onClick={()=>handleDeac(item.staff_uname, item.staff_id)}>
-              <FontAwesomeIcon icon={faUserSlash}/>
-              Deactivate user
-            </button>
-            :<button className="btn deac-acc-btn" onClick={()=>handleAct(item.staff_uname, item.staff_id)}>
-              <FontAwesomeIcon icon={faUser}/>
-              Activate user
+      </div> */}
+      <table>
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {accounts.length>0?accounts.map(item=>(
+          <tr>
+            <td>{item.staff_fname}</td>
+            <td>{item.staff_lname}</td>
+            <td>{item.staff_uname}</td>
+            <td>{item.role_name}</td>
+            <td className='action'>
+              {/*  edit user */}
+              <button className="btn edit-btn" onClick={()=>handleEdit(item.staff_id)}>
+                  <FontAwesomeIcon icon={faPen} />
+                  <span>Edit user</span>
               </button>
-            }
-            
-        </div>
-      </div>
-      ))
-      :''}
+              {/* deactivate */}
+              {item.staff_status=='active'?
+              <button className="btn deac-acc-btn" onClick={()=>handleDeac(item.staff_uname, item.staff_id)}>
+                <FontAwesomeIcon icon={faUserSlash}/>
+                Deactivate user
+              </button>
+              :<button className="btn deac-acc-btn" onClick={()=>handleAct(item.staff_uname, item.staff_id)}>
+                <FontAwesomeIcon icon={faUser}/>
+                Activate user
+                </button>
+              }
+            </td>
+          </tr>
+        )):''}
+        </tbody>
+      </table>
+
       <CreateUserModal open={openCreateUser} close={()=>{
         setOpenCreateUser(false);
         setAccount({

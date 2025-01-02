@@ -58,7 +58,7 @@
     width: 500px;
     height: 40px;
     padding-left: 10px;
-    border: 1px solid var(--tup-color);
+    border: 1px solid var(--shadow);
     border-radius: 5px;
 }
 
@@ -74,65 +74,6 @@
     border-radius: 5px;
 }
 
-.accounts-container .header{
-    background-color: var(--tup-color);
-    color: var(--white);
-    height: 60px;
-    display: flex;
-    align-items: center;
-    border-radius: 5px;
-    width: 100%;
-    margin: auto;
-    font-size: 0.9rem;
-
-}
-
-.accounts-container .user{
-    background-color: var(--white);
-    border: 1px solid var(--tup-color);
-    color: var(--black);
-    height: 60px;
-    display: flex;
-    align-items: center;
-    border-radius: 5px;
-    text-align: center;
-    justify-content: center;
-    width: 100%;
-    margin: auto;
-    font-size: 0.9rem;
-}
-
-.accounts-container .user-real-name{
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-}
-
-.accounts-container .user .edit-btn{
-    background-color: var(--tup-color);
-    height: 40px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--white);
-}
-
-.accounts-container .user .deac-acc-btn{
-    height: 40px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--tup-color);
-    border: 1px solid transparent;
-}
-
-.accounts-container .actions{
-    display: flex;
-    gap: 10px;
-    justify-content: start;
-}
-
 .accounts-container .create-btn{
     background-color: var(--tup-color);
     color: var(--white);
@@ -142,15 +83,71 @@
     height: 40px;
 }
 
-.accounts-container .edit-btn:hover,
-.accounts-container .edit-btn:active,
-.accounts-container .edit-btn:focus{
+
+.accounts-container table{
+    text-align: center;
+    border-radius: 8px;
+    overflow: hidden;
+    border-collapse: collapse;
+    width: 100%;
+    outline: 1px solid var(--tup-color);
+    
+}
+
+.accounts-container table thead tr th{
+    background-color: var(--tup-color) !important;
+    color: var(--white);
+    width: 70px;
+    /* font-size: 1rem !important; */
+}
+
+.accounts-container table tbody tr td{
+    vertical-align: middle;
+    /* font-size: 1rem !important; */
+    border-bottom: none;
+}
+
+.accounts-container table tbody tr:nth-child(odd){
+    background-color: var(--white) !important;
+}
+
+.accounts-container table tbody tr:nth-child(even){
+    background-color: var(--light-red) !important;
+}
+
+.accounts-container table .action{
+    display: flex;
+    position: relative;
+    gap: 20px;
+    left: 100px;
+}
+
+.accounts-container .action .edit-btn{
+    background-color: var(--tup-color);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.accounts-container .action .edit-btn:hover,
+.accounts-container .action .edit-btn:hover,
+.accounts-container .action .edit-btn:hover{
     background-color: var(--button);
+    color: var(--white);
+}
+
+.accounts-container .deac-acc-btn{
+    color: var(--tup-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
 }
 
 .accounts-container .deac-acc-btn:hover,
-.accounts-container .deac-acc-btn:active,
-.accounts-container .deac-acc-btn:focus{
-    
-    outline: 0 !important;
+.accounts-container .deac-acc-btn:focus,
+.accounts-container .deac-acc-btn:active{
+    color: var(--black);
 }
