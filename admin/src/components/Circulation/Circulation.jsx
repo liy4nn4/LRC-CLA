@@ -110,7 +110,7 @@ const Circulation = () => {
             ) : (
               <tr>
                 <td colSpan="7" style={{ textAlign: 'center', padding: '10px' }}>
-                  No information found...
+                  No records found...
                 </td>
               </tr>
             )}
