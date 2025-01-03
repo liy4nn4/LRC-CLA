@@ -1664,7 +1664,7 @@ app.post('/checkout', async (req, res) => {
   // Check In (insert records into the checkin table)
 // Check In (insert records into the checkin table and delete from checkout)
 app.post('/checkin', (req, res) => {
-    const { checkout_id, returned_date, resource_id, patron_id } = req.body;
+    const { checkout_id, returned_date } = req.body;
   
     // Start a transaction to ensure atomicity
     db.beginTransaction((err) => {
@@ -1673,8 +1673,8 @@ app.post('/checkin', (req, res) => {
       }
   
       // First, insert into the checkin table
-      const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date, resource_id, patron_id) VALUES (?, ?, ?, ?)';
-      db.query(checkinQuery, [checkout_id, returned_date, resource_id, patron_id], (err, results) => {
+      const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
+      db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
         if (err) {
           return db.rollback(() => {
             res.status(500).json({ error: err.message });
