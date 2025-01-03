@@ -37,6 +37,7 @@ const App = () => {
           <Route path='/circulation/patron' element={<ProtectedRoute allowedRoles={['staff', 'admin']}><CirculationSelectPatronPage /></ProtectedRoute>} />
           <Route path='/circulation/patron/item/:id' element={<ProtectedRoute allowedRoles={['staff', 'admin']}><CirculationSelectItemPage /></ProtectedRoute>} />
           <Route path='/circulation/patron/item/checkout' element={<ProtectedRoute allowedRoles={['staff', 'admin']}><CirculationCheckoutPage /></ProtectedRoute>} />
+          <Route path='/circulation/patron/item/checkin' element={<ProtectedRoute allowedRoles={['staff', 'admin']}><CirculationCheckoutPage /></ProtectedRoute>} />
           <Route path='/patrons' element={<ProtectedRoute allowedRoles={['staff', 'admin']}><PatronsPage /></ProtectedRoute>} />
           <Route path='/catalog' element={<ProtectedRoute allowedRoles={['staff', 'admin']}><CatalogPage /></ProtectedRoute>} />
           <Route path='/add-item' element={<ProtectedRoute allowedRoles={['admin']}><AddItemPage /></ProtectedRoute>} />
