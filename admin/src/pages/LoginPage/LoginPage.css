@@ -1,13 +1,13 @@
-/* Import Inter Font */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 body {
     margin: 0;
-    font-family: 'Inter', Arial, sans-serif; /* Apply Inter font globally */
+    font-family: 'Inter', Arial, sans-serif; 
     height: 100vh;
     display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    justify-content: center; 
+    align-items: center; 
     background: url("../../assets/cla-hall.png");
     background-repeat: no-repeat;
     background-size: cover;
@@ -20,7 +20,7 @@ body {
     width: 100%;
     max-width: 400px;
     padding: 30px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for a clean look */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
     border-radius: 15px;
 
     background: white;
@@ -44,15 +44,15 @@ body {
 h1 {
     margin: 0;
     font-size: 24px;
-    font-weight: 700; /* Bold title */
+    font-weight: 700; 
     color: #94152B;
 }
 
 h2 {
-    margin: 5px 0 20px 0; /* Small spacing between h1 and h2 */
+    margin: 5px 0 20px 0; 
     font-size: 18px;
-    font-weight: 500; /* Slightly lighter than h1 */
-    color: #555; /* Softer text color */
+    font-weight: 500; 
+    color: #555; 
     padding-bottom: 20px;
 }
 
@@ -71,14 +71,14 @@ h2 {
 }
 
 .input-container:hover {
-    border-color: #94152B; /* Highlight border on hover */
+    border-color: #94152B; 
 }
 
 .input-container .icon {
     margin-right: 10px;
     color: #666;
     font-size: 20px;
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0; 
 
 }
 
@@ -101,7 +101,7 @@ h2 {
 }
 
 .password-toggle:hover {
-    color: #94152B; /* Change color on hover */
+    color: #94152B; 
 }
 
 
@@ -120,9 +120,9 @@ button {
 
 button:hover {
     background-color: #5d0d1a;
-    transform: translateY(-2px); /* Slight lift effect on hover */
+    transform: translateY(-2px); 
 }
 
 button:active {
-    transform: translateY(0); /* Reset the lift effect on click */
+    transform: translateY(0); 
 }

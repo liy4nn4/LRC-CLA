@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
-import { FaRegUserCircle } from "react-icons/fa";
-import { FaLock } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginPage = () => {
