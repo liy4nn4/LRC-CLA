@@ -57,7 +57,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    width: 15%;
+   
     gap: 10px;
     background-color: var(--tup-color);
     color: var(--white);
@@ -185,4 +185,10 @@
 .circulation-container .pagination button:enabled{
     background-color: var(--tup-color);
     color: var(--white);
+}
+
+.circulation-container .buttons{
+    display: flex;
+    /* background-color: var(--black); */
+    gap: 10px;
 }
