@@ -148,30 +148,6 @@ const Dashboard = () => {
       <div className="dashboard-heading">
         {/* Goodmorning,admin */}
         <p className='dashboard-heading-text'>{dateTime.getHours()>=1 && dateTime.getHours()<12?'Good morning, ':dateTime.getHours()>=12&&dateTime.getHours()<17?'Good afternoon, ':'Good evening,'} <span>admin</span></p>
-        
-        {/* filter button */}
-        {/* <div>
-          <button className='dashboard-dropdown' onClick={toggleDropdown}>
-            Today <img src={dropdown_black} alt="" className='dashboard-dropdown-icon'/>
-          </button>
-          <div className={`dashboard-dropdown-list ${dropdown?'show-dash-dropdown':''}`}>
-            <p>List 1</p>
-            <p>List 2</p>
-          </div>
-        </div> */}
-        <div>
-        <div class="dropdown">
-                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Today
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Action</a></li>
-                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                  </ul>
-                </div>
-        </div>
-        
       </div>
 
       {/* dashboard boxes */}
@@ -254,7 +230,7 @@ const Dashboard = () => {
                       <tr key={key}>
                           <td>{item.resource_id}</td>
                           <td>{item.resource_title}</td>
-                          <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.authors}</span></pre></td>
+                          <td><pre style={{whiteSpace: "pre-wrap"}}><span className='d-flex justify-content-center align-middle m-auto'>{item.authors}</span></pre></td>
                           <td>{item.resource_quantity}</td>
                           
                       </tr> )):
@@ -320,7 +296,8 @@ const Dashboard = () => {
                   
                 </table>
           </div>
-          {/* pagination */}
+          <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+          {/* pagination 
           <div className='table-pages'>
             <img src={left} alt="" />
             <div className='page-numbers'>
@@ -329,7 +306,7 @@ const Dashboard = () => {
               <div className='page-number'>1</div>
             </div>
             <img src={right} alt="" />
-          </div>
+          </div>*/}
         </div>
 
         {/* books issued and statistics */}

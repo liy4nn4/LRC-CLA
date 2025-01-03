@@ -12,8 +12,6 @@
     text-decoration: none;
 }
 
-
-
 :root{
     --black:#1F1F1F;
     --tup-color: #94152B;
@@ -37,10 +35,6 @@
 
 .reports-container{
     padding: 10px 70px 50px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    overflow-x: hidden;   
 }
 
 .reports-container h1{
@@ -49,133 +43,113 @@
     color: var(--black);
 }
 
-.reports-filter-box{
-    display: grid;
-    grid-template-columns: 280px auto;
+.reports-container h4{
+    color: var(--tup-color);
+    font-size: 2rem;
 }
 
-.reports-statistics{
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    border-right: 1px solid var(--tup-color);
-    padding-right: 50px;
-}
-
-.reports-statistics-box,.reports-top-lists-box,.reports-inactive-box{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.reports-dropdown{
-    cursor: pointer;
-    padding: 8px;
-    border: none;
-    font-size: 1rem;
-}
-
-.reports-statistics-box button,.reports-top-lists-box button,.reports-inactive-box button{
-    cursor: pointer;
-    padding: 10px 1PX;
-    border: none;
-    font-size: 1rem;
+.reports-container .reports-summary{
+    background-color: var(--white);
+    border: 1px solid var(--tup-color);
+    padding: 50px;
     border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    /* width: 50%; */
+    margin: auto;
+    margin-top: 50px;
+}
+
+.reports-container .custom{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.reports-container .report-type{
+    display: flex;
+    flex-direction: column;
+}
+
+.reports-container .sub-options{
+    display: flex;
+    flex-direction: column;
+}
+
+.reports-container .buttons{
+    display: flex;
+    justify-content: start;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.reports-container input, .reports-container select{
+    height: 50px;
+    padding: 10px;
+    border-radius: 5px;
+    border-color: var(--tup-color);
+    cursor: pointer;
+}
+
+
+
+
+.reports-container .buttons .clear-btn{
+    background-color: var(--white);
+    color: var(--tup-color);
+    border-color: var(--tup-color);
+}
+
+.reports-container .buttons .clear-btn:hover,
+.reports-container .buttons .clear-btn:active
+.reports-container .buttons .clear-btn:focus{
     background-color: var(--button);
     color: var(--white);
-    transition: all 0.2s linear;
 }
 
-.reports-statistics-box button:hover,.reports-top-lists-box button:hover,.reports-inactive-box button:hover{
-    background-color: var(--button-hover);
+.reports-container .buttons .generate-report, .reports-container .export-report{
+    color: var(--white);
+    background-color: var(--tup-color);
 }
 
-.reports-summary{
-    padding: 0 50px;
+.reports-container .buttons .generate-report:hover,
+.reports-container .buttons .generate-report:active,
+.reports-container .buttons .generate-report:focus,
+.reports-container .export-report:hover,
+.reports-container .export-report:active,
+.reports-container .export-report:focus{
+    /* color: var(--white); */
+    background-color: var(--button);
 }
 
-.reports-summary-header{
-    font-size: 2rem;
-    margin-bottom: 8px;
+.reports-container .report{
+    text-align: center;
+    border-radius: 8px;
+    overflow: hidden;
+    border-collapse: collapse;
+    width: 100%;
+    outline: 1px solid var(--tup-color);
+    height: 500px;
+    overflow-y: scroll;
 }
 
-.reports-summary-filter{
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    padding: 40px 50px;
+.reports-container .report thead tr th{
+    background-color: var(--tup-color) !important;
+    color: var(--white);
+    /* font-size: 1rem !important; */
 }
 
-.reports-date, .reports-college, .reports-program{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.reports-container .report tbody tr td{
+    vertical-align: middle;
+    /* font-size: 1rem !important; */
+    border-bottom: none;
 }
 
-.reports-date div{
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.reports-container .report tbody tr:nth-child(odd){
+    background-color: var(--white) !important;
 }
 
-.reports-filter-date{
-    cursor: pointer;
-    padding: 5px;
-    height: 40px;
-    width: 250px;
-    border-color: var(--tup-color);
-    border-radius: 5px;
-    padding: 8px;
-    font-size: 1rem;
-}
-
-.college-filter,.program-filter{
-    display: flex;
-    border: 1px solid var(--tup-color);
-    width: 350px;
-    padding: 10px;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 5px;
-}
-
-.selected-college, .selected-program{
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background-color: var(--lightest-red);
-    border-radius: 20px;
-    padding: 8px 15px;
-}
-
-.selected-college button, .selected-program button{
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-}
-
-.college-dropdown,.program-dropdown{
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    width: 20px;
-}
-
-.generate-report-button{
-    width: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px;
-    font-size: 1rem;
-    border-radius: 5px;
-    border: none;
-    background-color: var(--yellow);
-    transition: all 0.2s linear;
-    cursor: pointer;
-}
-
-.generate-report-button:hover{
-    background-color: var(--yellow-hover);
+.reports-container .report tbody tr:nth-child(even){
+    background-color: var(--light-red) !important;
 }

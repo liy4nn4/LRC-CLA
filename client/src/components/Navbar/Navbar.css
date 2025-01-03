@@ -52,7 +52,22 @@
     align-items: center; /* Center items vertically */
     padding: 10px 20px; /* Add some padding for spacing */
   }
+
+  .navbar-container .navbar-toggler{
+   border: none;
+  }
+
+  .navbar-container .navbar-toggler:hover,
+  .navbar-container .navbar-toggler:focus,
+  .navbar-container .navbar-toggler:active{
+    border: none !important;
+    outline: none !important;
+  }
   
+  .navbar-container .navbar-collapse{
+    /* background-color: #5499CB; */
+    text-align: end;
+  }
 
 .navbar-container .container img{
     width: 50px;

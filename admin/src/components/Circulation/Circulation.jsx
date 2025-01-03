@@ -32,7 +32,7 @@ const Circulation = () => {
       <Link to='/circulation/patron'>
         <button className='btn checkin-btn'>
           <FontAwesomeIcon icon={faCartPlus} className='icon'/>
-          <span>Check in</span>
+          <span>Check out</span>
         </button>
       </Link>
 
@@ -40,7 +40,7 @@ const Circulation = () => {
       <div className="search-container">
         <input type="text" className='search-bar' placeholder='Search'/>
         <button className='btn search-btn'>Search</button>
-        <div class="dropdown">
+        {/* <div class="dropdown">
           <button class="btn dropdown-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             Dropdown button
           </button>
@@ -49,7 +49,7 @@ const Circulation = () => {
             <li><a class="dropdown-item" href="#">Another action</a></li>
             <li><a class="dropdown-item" href="#">Something else here</a></li>
           </ul>
-        </div>
+        </div> */}
       </div>
 
       <div>
@@ -69,22 +69,31 @@ const Circulation = () => {
           </thead>
 
           <tbody>
-              {borrowers.map((borrower, index) => (
+              {borrowers.length > 0 ? (
+                borrowers.map((borrower, index) => (
                   <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
-                  <td style={{ padding: "10px" }}>{borrower.tup_id}</td>
-                  <td style={{ padding: "10px" }}>
+                    <td style={{ padding: "10px" }}>{borrower.tup_id}</td>
+                    <td style={{ padding: "10px" }}>
                       {borrower.patron_fname} {borrower.patron_lname}
-                  </td>
-                  <td style={{ padding: "10px" }}>{borrower.total_checkouts}</td>
-                  <td style={{ padding: "10px" }}>{borrower.borrowed_books}</td>
-                  <td style={{ padding: "10px" }}>{borrower.course}</td>
-                  <td style={{ padding: "10px" }}>{new Date(borrower.checkout_date).toLocaleDateString('en-CA')}</td>
-                  <td style={{ padding: "10px" }}>{new Date(borrower.checkout_due).toLocaleDateString('en-CA')}</td>
-                  
-                  
-                  
+                    </td>
+                    <td style={{ padding: "10px" }}>{borrower.total_checkouts}</td>
+                    <td style={{ padding: "10px" }}>{borrower.borrowed_books}</td>
+                    <td style={{ padding: "10px" }}>{borrower.course}</td>
+                    <td style={{ padding: "10px" }}>
+                      {new Date(borrower.checkout_date).toLocaleDateString("en-CA")}
+                    </td>
+                    <td style={{ padding: "10px" }}>
+                      {new Date(borrower.checkout_due).toLocaleDateString("en-CA")}
+                    </td>
                   </tr>
-              ))}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "10px" }}>
+                    No borrowers found.
+                  </td>
+                </tr>
+              )}
             </tbody>
 
           

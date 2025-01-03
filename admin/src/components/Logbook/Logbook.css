@@ -107,6 +107,8 @@
     display: flex;
     align-items: center;
     gap: 15px;
+    width: 300px;
+
 }
 
 .logbook-date-filter{
@@ -158,7 +160,7 @@
     border-radius: 10px;
     border: 1px solid var(--tup-color);
     overflow: auto;
-    height: 50vh;
+    /* height: 50vh; */
     scrollbar-width: thin;
 }
 

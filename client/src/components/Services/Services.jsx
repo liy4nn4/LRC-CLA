@@ -46,35 +46,35 @@ const Services = () => {
 
       <div className="row service-list">
         {/* service */}
-        <div className="col-4 service">
+        <div className="col-md-4 col-12 service">
           <img src={resourcecollection} alt="" />
           <div>
             <h5>Extensive Resource Collection</h5>
             <span>Access a diverse collection of books, magazines, newsletter, and theses related to the liberal arts.</span>
           </div>
         </div>
-        <div className="col-4 service">
+        <div className="col-md-4 col-12 service">
           <img src={studyspace} alt="" />
           <div>
             <h5>Study and Collaboration Spaces</h5>
             <span>Find quiet study areas and group study spaces to enhance your learning experience.</span>
           </div>
         </div>
-        <div className="col-4 service">
+        <div className="col-md-4 col-12 service">
           <img src={faculty} alt="" />
           <div>
             <h5>Faculty Consultation</h5>
             <span>Connect with CLA faculty for academic guidance, research assistance, and thesis support.</span>
           </div>
         </div>
-        <div className="col-6 service">
+        <div className="col-md-6 col-12 service">
           <img src={eventspace} alt="" />
           <div>
             <h5>Event and Meeting Spaces</h5>
             <span>Utilize our facilities for student organization meetings, workshops, and other academic events.</span>
           </div>
         </div>
-        <div className="col-6 service">
+        <div className="col-md-6 col-12 service">
           <img src={research} alt="" />
           <div>
             <h5>OBE and Research Support</h5>

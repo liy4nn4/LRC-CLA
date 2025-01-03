@@ -7,6 +7,7 @@ import { Link, useLocation } from 'react-router-dom'
 import ResourceModal from '../ResourceModal/ResourceModal'
 import axios from 'axios'
 import Navbar from '../Navbar/Navbar'
+import { gsap } from "gsap";
 
 const Search = () => {
   const [isSearch, setIsSearch] = useState(true)
@@ -27,6 +28,7 @@ const Search = () => {
   const [selectedResource, setSelectedResource] = useState(null);
   
   const abortControllerRef = useRef(null); // Use a ref for AbortController
+  const filterRef = useRef(null); // Ref for the filter element
 
   useEffect(() => {
     getType();
@@ -37,6 +39,25 @@ const Search = () => {
   useEffect(()=>{
     getResources()
   },[selectedFilters, sort])
+
+  useEffect(() => {
+    if (open) {
+      // Animate filter opening
+      gsap.to(filterRef.current, {
+        x: 0,
+        duration: 0.5,
+        ease: "power3.out",
+      });
+    } else {
+      // Animate filter closing
+      gsap.to(filterRef.current, {
+        x: "100%",
+        duration: 0.5,
+        ease: "power3.in",
+      });
+    }
+    
+  }, [open]);
 
   const getResources = async () => {
     // Set loading to true immediately when the request starts
@@ -176,6 +197,11 @@ const Search = () => {
     }
   }
 
+  //display page from the top
+  const handleNavigate = () => {
+    window.scrollTo(0, 0);
+  };
+
   console.log('resources length:' ,resources.length)
   console.log('total count:', totalCount)
   console.log('offset: ', offset)
@@ -184,20 +210,16 @@ const Search = () => {
   console.log('loading: ', loading)
   console.log('abortController: ', abortControllerRef)
 
-  const handleResourceClick = (resource) => {
-    setSelectedResource(resource); // Store the selected book
-    setOpen(true); // Open the modal
-  };
-
   return (
     <div className='search-container'>
+      {open?<div className="overlay"></div>:''}
       <Navbar/>
       {/* logo-search */}
       <div className="logo-search container">
         {/* <img src={claLogo} alt="CLA Logo" /> */}
         {/* search */}
         <div className="search">
-          <input type="text" placeholder='Search for resources by title or author' value={keyword} onChange={(e)=>handleChange(e)}/>
+          <input type="text" placeholder='Search by title or author' value={keyword} onChange={(e)=>handleChange(e)}/>
           <button className="search-btn" onClick={getResources}>
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
@@ -207,13 +229,18 @@ const Search = () => {
 
       {/* path */}
       <div className=" path">
-        <Link to='/' className='home'><span>Go back</span></Link>
+        <Link to='/' onClick={handleNavigate} className='home'><span>Go back</span></Link>
       </div>
 
       {/* search-results */}
       <div className="filter-results ">
         <div className="row filter-box">
-          <div className="filter col-2">
+          <div  ref={filterRef} className={open?"filter":"filter-close"}>
+              <div className="close-box">
+                <button onClick={()=>setOpen(false)}>
+                  <i class="fa-solid fa-x"></i>
+                </button>
+              </div>
               {/* resource type */}
               <div className="filter-cat">
                 <p>Resource Type</p>
@@ -276,18 +303,20 @@ const Search = () => {
           </div>
 
           {/* results */}
-          <div className="results col">
+          <div className={`results`}>
             {/* header */}
             <div className="header">
               <div className="title-subtitle">
                 <p className='title'>{renderKeyword||"Results"}</p>
-                <p className='subtitle'>{renderKeyword?`Showing all results for ${renderKeyword}`:'Showing all resources'}</p>
+                <p className='subtitle'>{renderKeyword && totalCount!=0?`A total of ${totalCount} resource/s found for ${renderKeyword}`:'Showing all resources'}</p>
               </div>
               
 
               {/* sort */}
               <div className="sort">
-                <p>Sort by:</p>
+                <button className='btn search-filter' onClick={()=>setOpen(true)}>
+                  <i class="fa-solid fa-filter"></i>
+                </button>
                 <select name="" id="" onChange={handleSortChange}>
                   <option value="a-z" selected>Sort by Title (A-Z)</option>
                   <option value="z-a">Sort by Title (Z-A)</option>
@@ -302,9 +331,9 @@ const Search = () => {
             <div className="resources">
             {Array.isArray(resources) && resources.length > 0 ? (
               resources.map((item, index) => (
-                <button key={index} className="resource" onClick={() => handleResourceClick(item)}>
+                <Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`}className="resource" onClick={handleNavigate} >
                   <Book item={item} isSearch={isSearch} />
-                </button>
+                </Link>
               ))
             ) :  ''}
             </div>
@@ -342,8 +371,6 @@ const Search = () => {
         </div>
 
         <Footer/>
-        <ResourceModal open={open} close={() => setOpen(false)} resource={selectedResource} />
-
     </div>
   )
 }

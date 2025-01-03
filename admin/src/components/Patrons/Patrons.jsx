@@ -68,7 +68,7 @@ const Patrons = () => {
                 </thead>
 
                 <tbody>
-                    {patrons.map((patron, index) => (
+                    {patrons.length>0?patrons.map((patron, index) => (
                         <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
                         <td style={{ padding: "10px" }}>{patron.tup_id}</td>
                         <td style={{ padding: "10px" }}>
@@ -86,7 +86,7 @@ const Patrons = () => {
                             
                         </td>
                         </tr>
-                    ))}
+                    )):''}
                     </tbody>
 
                 

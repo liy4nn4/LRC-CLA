@@ -1,75 +1,71 @@
-import React, { useEffect, useState } from 'react'
-import './AdminTopNavbar.css'
-import user from '../../assets/Management System/dashboard/user-profile.svg'
-import dropdown_yellow from '../../assets/Management System/dashboard/dropdown-yellow.svg'
+import React, { useEffect, useState } from 'react';
+import './AdminTopNavbar.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 
 const AdminTopNavbar = () => {
-    const [dateTime,setDateTime] = useState(new Date());
-    const [userDropdown, setUserDropdown] = useState(false)
+    const [dateTime, setDateTime] = useState(new Date());
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = new Date()
-    const currentDay = days[today.getDay()]
-    
-    
+    const today = new Date();
+    const currentDay = days[today.getDay()];
 
     useEffect(() => {
-        //setInterval throws an id na pwede natin gamitin to stop the interval
-        const intervalId = setInterval(()=>setDateTime(new Date()), 1000 )
+        const updateOnlineStatus = () => {
+            setIsOnline(navigator.onLine);
+        };
 
-        
+        // Add event listeners for online/offline events
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
 
-        // iccall lang ng react ung cleanup kapag lumipat kana ng component
-         return function cleanup() {
-            //stops the interval
-             clearInterval(intervalId)
-        }
-    },[]);
+        // Update date and time every second
+        const intervalId = setInterval(() => setDateTime(new Date()), 1000);
 
+        // Cleanup on component unmount
+        return () => {
+            window.removeEventListener('online', updateOnlineStatus);
+            window.removeEventListener('offline', updateOnlineStatus);
+            clearInterval(intervalId);
+        };
+    }, []);
 
-    const toggleDropdown=()=>{
-        setUserDropdown(!userDropdown)
-    }
-
-    
-    
-
-  return (
-    <div className='top-navbar'>
-        {/* date and time */}
-        <div className="top-navbar-datetime">
-            <span>{dateTime.toLocaleTimeString()}</span>
-            <span>|</span>
-            <span>{currentDay}</span>
-            <span>|</span>
-            <span>{dateTime.toLocaleDateString()}</span>
-        </div>
-
-        {/* admin account */}
-        <div className='user-box'>
-            <div class="dropdown">
-                  <button class="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src={user} alt="" />
-                    <span>Hello, 
-                    <span className='user-welcome-uname'> @admin</span></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Action</a></li>
-                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                  </ul>
+    return (
+        <div className="top-navbar">
+            {/* Online/Offline Indicator */}
+            <div className="indicator">
+                {isOnline ? 'Online' : 'Offline'}
             </div>
-            {/* <div className="user-dropdown">
-                <button className='user-button' onClick={toggleDropdown}><img src={dropdown_yellow} alt="" /></button>
-                <div className={`user-dropdown-list ${userDropdown?'show-user-list':''}`}>
-                    <p>List 1</p>
-                    <p>List 2</p>
+            <div className="info">
+                {/* Date and Time */}
+                <div className="top-navbar-datetime">
+                    <span>{dateTime.toLocaleTimeString()}</span>
+                    <span>|</span>
+                    <span>{currentDay}</span>
+                    <span>|</span>
+                    <span>{dateTime.toLocaleDateString()}</span>
                 </div>
-            </div> */}
-            
-        </div>
-      
-    </div>
-  )
-}
 
-export default AdminTopNavbar
+                {/* Admin Account Dropdown */}
+                <div className="user-box">
+                    <div className="dropdown">
+                        <button className="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <FontAwesomeIcon icon={faCircleUser} className="icon" />
+                            <span>
+                                Hello, <span className="user-welcome-uname">@admin</span>
+                            </span>
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li><a className="dropdown-item" href="#">Action</a></li>
+                            <li><a className="dropdown-item" href="#">Another action</a></li>
+                            <li><a className="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AdminTopNavbar;

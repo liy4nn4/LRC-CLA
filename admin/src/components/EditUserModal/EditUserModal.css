@@ -1,0 +1,135 @@
+@font-face {
+    font-family: 'Inter';
+    font-weight: 400;
+    src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter';
+    text-decoration: none;
+}
+
+:root{
+    --black:#1F1F1F;
+    --tup-color: #94152B;
+    --white: #fff;
+    --button:  #97170E;
+    --button-hover:  #75110a;
+    --shadow: #0000003b;
+    --light-red: rgba(148, 21, 43, 0.1);
+    --catalog-info-bg: #EEEEEE;
+    --overlay: #3838388a;
+}
+
+.edit-u-modal-container{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.edit-u-modal-container .edit-u-modal-overlay{
+    background-color: var(--overlay);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.edit-u-modal-container .edit-u-modal-box{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 700px;   
+    padding-bottom: 30px;
+    /* height: 500px; */
+    background-color: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.edit-u-modal-container .header{
+    background-color: var(--tup-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    color: var(--white);
+    width: 100%;
+    margin: 0;
+}
+
+.edit-u-modal-container .header h4{
+    margin: 0;
+}
+
+.edit-u-modal-container .content{
+    display: grid;
+    grid-template-columns: auto auto;
+    padding: 30px;
+    column-gap: 20px;
+    row-gap: 20px;
+}
+
+.edit-u-modal-container .input-box{
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-u-modal-container .input-box input,
+.edit-u-modal-container .input-box select{
+    height: 40px;
+    /* border-color: var(--black); */
+    outline: none;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.edit-u-modal-container .buttons{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.edit-u-modal-container .cancel-btn{
+    border: 1px solid var(--tup-color);
+    color: var(--tup-color);
+    background-color: var(--white);
+}
+
+.edit-u-modal-container .cancel-btn:hover,
+.edit-u-modal-container .cancel-btn:active,
+.edit-u-modal-container .cancel-btn:focus{
+    border: 1px solid transparent;
+    color: var(--white);
+    background-color: var(--button);
+}
+
+
+.edit-u-modal-container .create-btn{
+    color: var(--white);
+    background-color: var(--tup-color);
+}
+
+.edit-u-modal-container .create-btn:hover,
+.edit-u-modal-container .create-btn:active,
+.edit-u-modal-container .create-btn:focus{
+    color: var(--white);
+    background-color: var(--button);
+}
+
+.edit-u-modal-container .close-btn{
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.edit-u-modal-container  .error{
+    color: var(--tup-color);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 5px;
+}

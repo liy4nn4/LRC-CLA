@@ -3,7 +3,7 @@ import book1 from '../../assets/OPAC/photos/book1.jpg';
 import './Book.css';
 
 const Book = ({ isSearch, isView, item }) => {
-  // console.log(item);
+  console.log(item);
   
   const authors = item && item.author_name
     ? item.author_name.includes(',')
@@ -47,7 +47,7 @@ const Book = ({ isSearch, isView, item }) => {
       )}
 
       {isView ? null : (
-        <div>
+        <div className='title-author'>
           <p className='title'>{item ? item.resource_title : ''}</p>
           <p className='author'>By {Array.isArray(authors) ? authors[0] : ''}</p>
         </div>

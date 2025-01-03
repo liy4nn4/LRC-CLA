@@ -64,7 +64,7 @@
 .services-container .services-header p{
     width: 50%;
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
 }
 
 .services-container .service img{
@@ -84,18 +84,37 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
     text-align: center;
     gap: 50px;
     padding: 50px;
+    /* height: 600px; */
 }
 
 .services-container .service-list .service div h5{
     color: var(--tup-color);
-    font-size: 1.3rem;
+    font-size: 1.5rem;
 }
 
 .services-container .service-list .service div span{
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: var(--black);
 }
+
+ /* Responsive Design */
+@media screen and (max-width: 1024px) {
+    .services-container .service-list{
+        padding: 0;
+    }
+
+    .services-container .services-header h3{
+        font-size: 2.5rem;
+    }
+
+    .services-container .services-header p{
+        font-size: 1.2rem;
+        width: 90%;
+    }
+  }
+  
+ 

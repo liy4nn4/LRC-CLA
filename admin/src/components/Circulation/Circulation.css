@@ -88,8 +88,8 @@
 .circulation-container .search-bar{
     margin: 0;
     height: 40px;
-    border: 1px solid  var(--tup-color);
-    width: 300px;
+    border: 1px solid  var(--shadow);
+    width: 400px;
     border-radius: 5px;
     padding-left: 10px;
 }

@@ -92,11 +92,6 @@
     color: var(--white) !important;
 }
 
-.cat-container .search-filter-export{
-    display: flex;
-    justify-content: space-between;
-}
-
 .cat-container .cat-search-bar:active,
 .cat-container .cat-search-bar:focus{
     border: 1px solid var(--tup-color);
@@ -104,47 +99,6 @@
     
 }
 
-.cat-container .search-filter{
-    display: flex;
-    align-items: center;
-    gap: 13px;
-}
-
-.cat-container .search-filter .dropdown-menu{
-    text-transform: capitalize;
-}
-
-.cat-container .cat-search-button{
-    height: 40px;
-    border: none;
-    background-color: var(--tup-color);
-    color: var(--white);
-    padding: 8px;
-    width: 110px;
-    font-size: 1rem;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.1s linear;
-}
-
-.cat-container .cat-search-button:hover{
-    background-color: var(--button-hover);
-}
-
-.cat-container .cat-dropdown{
-    border: 1px solid var(--tup-color);
-    text-transform: capitalize;
-}
-
-.cat-container .cat-dropdown:hover{
-    background-color: var(--tup-color) !important;
-    border-color: var(--tup-color) !important;
-    color: var(--white) !important;
-}
 
 
 .cat-container .cat-table{
@@ -204,5 +158,66 @@
 }
 .cat-container .sync-2-db, .cat-container .sync-from-db{
     background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.cat-container .filter-btn{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.cat-container .filter-btn:hover,
+.cat-container .filter-btn:active,
+.cat-container .filter-btn:focus{
+    background-color: var(--button);
+    color: var(--white);
+}
+
+.cat-container .cat-table th{
+    
+}
+
+.cat-container .cat-table .sort{
+    width: 20px;
+    background-color: transparent;
+    border: none;
+    margin-left: 5px;
+    color: var(--white);
+    cursor: pointer;
+}
+
+.cat-container .cat-table .sort option{
+    color: var(--black);
+}
+
+.cat-container .cat-table .sort-title:hover,
+.cat-container .cat-table .sort-title:active,
+.cat-container .cat-table .sort-title:focus
+{
+    border: none;
+}
+
+.cat-container .search-filter {
+    display: flex;
+    gap: 5px;
+}
+
+.cat-container .search-filter input{
+    width: 400px;
+    padding: 0 10px;
+    border-color: var(--shadow);
+    border-radius: 5px;
+    height: 40px;
+}
+
+.cat-container .search-filter button{
+    background-color: var(--tup-color);
+    color: var(--white);
+}
+
+.cat-container .search-filter button:hover,
+.cat-container .search-filter button:active,
+.cat-container .search-filter button:focus{
+    background-color: var(--button);
     color: var(--white);
 }

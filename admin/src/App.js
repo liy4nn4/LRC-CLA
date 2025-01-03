@@ -19,6 +19,8 @@ import CirculationPage from './pages/CirculationPage/CirculationPage';
 import CirculationSelectPatronPage from './pages/CirculationSelectPatronPage/CirculationSelectPatronPage';
 import CirculationSelectItemPage from './pages/CirculationSelectItemPage/CirculationSelectItemPage';
 import CirculationCheckoutPage from './pages/CirculationCheckoutPage/CirculationCheckoutPage';
+import AuditPage from './pages/AuditPage/AuditPage';
+import AccountsPage from './pages/AccountsPage/AccountsPage';
   
 const App = () => {
   
@@ -32,7 +34,7 @@ const App = () => {
           <Route path='/logbook' element={<LogbookPage/>}/>
           <Route path='/circulation' element={<CirculationPage/>}/>
           <Route path='/circulation/patron' element={<CirculationSelectPatronPage/>}/>
-          <Route path='/circulation/patron/item' element={<CirculationSelectItemPage/>}/>
+          <Route path='/circulation/patron/item/:id' element={<CirculationSelectItemPage/>}/>
           <Route path='/circulation/patron/item/checkout' element={<CirculationCheckoutPage/>}/>
           <Route path='/patrons' element={<PatronsPage/>}/>
           <Route path='/reports' element={<ReportsPage/>}/>
@@ -41,6 +43,8 @@ const App = () => {
           <Route path='/add-item' element={<AddItemPage/>}/>
           <Route path='/view-item/:id' element={<AddItemPage/>}/>
           <Route path='/attendance' element={<AttendancePage/>}/>
+          <Route path='/audit' element={<AuditPage/>}/>
+          <Route path='/accounts' element={<AccountsPage/>}/>
         </Routes>
       </BrowserRouter>
     </div>

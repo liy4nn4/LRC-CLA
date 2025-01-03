@@ -1,161 +1,212 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ResourceModal.css';
-import book1 from '../../assets/OPAC/photos/book1.jpg';
 import Book from '../Book/Book';
 import { gsap } from 'gsap';
+import axios from 'axios';
+import { Link, useLocation } from 'react-router-dom';
+import Loading from '../Loading/Loading';
+import Navbar from '../Navbar/Navbar';
+// Import Swiper React components
+import { Swiper, SwiperSlide } from 'swiper/react';
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+// import required modules
+import { Pagination } from 'swiper/modules';
 
-const ResourceModal = ({ open, close, resource }) => {
-  const [isView, setIsView] = useState(true);
-  const [preview,setPreview] =useState()
-  const modalRef = useRef(null);
-  const overlayRef = useRef(null);
- 
-  
-    useEffect(()=>{
-      if(!resource) return;
-  
-      if(resource.type_id!=4){
-        let objectUrl;
-        try{
-    
-              objectUrl = URL.createObjectURL(resource.resource_cover);
-              setPreview(objectUrl);
-        }catch{
-            const blob = new Blob([new Uint8Array(resource.resource_cover.data)], { type: 'image/jpeg' });
-            objectUrl = URL.createObjectURL(blob);
-            setPreview(objectUrl)
-        }
-    
-        // Cleanup function to revoke the Object URL
-        return () => {
-            if (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
-            }
-          };
-      }
-      
-    },[resource])
+const ResourceModal = () => {
+  console.log('resource modal rendered');
+  const [isSearch, setIsSearch] = useState(true);
+  const [resource, setResource] = useState();
+  const [preview, setPreview] = useState();
+  const [relatedBooks, setRelatedBooks] = useState([]);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const [keyword, setKeyword] = useState(queryParams.get('keyword') || '');
+  const id = queryParams.get('id');
+  const [loading, setLoading] = useState(false);
 
-  // console.log(resource)
+  // Refs for GSAP animations
+  const resourceDetailsRef = useRef(null);
+  const resourceImageRef = useRef(null);
+  const relatedResourcesRef = useRef(null);
 
- 
   useEffect(() => {
-    if (open) {
-      // Fade in upwards
-      gsap.fromTo(
-        modalRef.current,
-        { opacity: 0, y: 50 },
-        { opacity: 1, y: 0, duration: 0.2, ease: 'power3.out' }
-      );
-      gsap.fromTo(
-        overlayRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.2, ease: 'power3.out' }
-      );
-    }
-  }, [open]);
+    viewResource();
+  }, [id]);
 
-  const handleClose = () => {
-    // Fade out downwards
-    gsap.to(modalRef.current, {
-      opacity: 0,
-      y: 50,
-      duration: 0.2,
-      ease: 'power3.in',
-      onComplete: close,
-    });
-    gsap.to(overlayRef.current, {
-      opacity: 0,
-      duration: 0.2,
-      ease: 'power3.in',
-    });
+  useEffect(() => {
+    if (resource) {
+      // GSAP animation for resource details and image
+      gsap.fromTo(resourceDetailsRef.current, { opacity: 0, x: -100 }, { opacity: 1, x: 0, duration: 1 });
+      gsap.fromTo(resourceImageRef.current, { opacity: 0, y: 100 }, { opacity: 1, y: 0, duration: 1, delay: 0.5 });
+      gsap.fromTo(relatedResourcesRef.current, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1, delay: 1 });
+    }
+  }, [resource]);
+
+  useEffect(() => {
+    let objectUrl;
+    if (resource && resource.type_id !== 4) {
+      try {
+        if (resource.resource_cover instanceof Blob) {
+          objectUrl = URL.createObjectURL(resource.resource_cover);
+        } else if (resource.resource_cover?.data) {
+          const blob = new Blob([new Uint8Array(resource.resource_cover.data)], { type: 'image/jpeg' });
+          objectUrl = URL.createObjectURL(blob);
+        }
+        setPreview(objectUrl);
+      } catch (error) {
+        console.error('Error creating object URL:', error);
+      }
+    }
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [resource]);
+
+  const viewResource = async () => {
+    console.log('viewing resource');
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:3001/resources/view', {
+        params: { id },
+      });
+
+      setResource(response.data.results[0]);
+      setRelatedBooks(response.data.relatedBooks);
+      console.log('Resource viewed:', response.data);
+    } catch (error) {
+      console.error('Error retrieving resource:', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!open) {
-    return null;
-  }
+  //display page from the top
+  const handleNavigate = () => {
+    window.scrollTo(0, 0);
+  };
+
 
   return (
     <div className="res-modal-container">
-      {/* Overlay */}
-      <div className="res-modal-overlay" ref={overlayRef}></div>
+      <Navbar />
 
       {/* Content */}
-      <div className="res-content container" ref={modalRef}>
+      <div className="res-content container">
         {/* Exit */}
         <div className="close-box">
-          <button className="close-btn" onClick={handleClose}>
-            <i className="fa-solid fa-x"></i>
-          </button>
+          <Link to={`/search?keyword=${keyword}`} onClick={handleNavigate} className="close-btn">
+            Go to Search
+          </Link>
         </div>
 
         <div className="res-info row">
           {/* Resource details */}
-          <div className="res-details col-7">
-            {/* Resource status */}
+          <div className="res-details col-md-7 col-12 order-md-7 order-md-1 order-2" ref={resourceDetailsRef}>
             <div className="res-status">Available</div>
-            {/* Title and author */}
             <div className="title-author">
-              <h4>{resource.resource_title}</h4>
-              <p className="m-0">by {resource.author_name}</p>
+              <h4>{resource ? resource.resource_title : ''}</h4>
+              <p className="m-0">by {resource ? resource.author_name : ''}</p>
             </div>
-            {/* Published Date */}
             <div className="detail">
               <h4>Published Date</h4>
               <p className="m-0">
-                2024
+                {resource ? resource.resource_published_date : ''}
               </p>
             </div>
-            {/* Department */}
             <div className="detail">
               <h4>Department</h4>
               <p className="m-0">
-                Hospitality and Restaurant Management
+                {resource ? resource.dept_name : ''}
               </p>
             </div>
-            {/* Topic */}
-            <div className="detail">
+            {resource?resource.type_id==4?'':<div className="detail">
               <h4>Topic</h4>
               <p className="m-0">
-                Food Preparation and Service
+                {resource ? resource.topic_name : ''}
               </p>
-            </div>
-            {/* Shelf no */}
+            </div>:''}
             <div className="detail">
               <h4>Shelf No.</h4>
               <p className="m-0">
-                1
+                {resource ? resource.dept_shelf_no : ''}
               </p>
             </div>
-            {/* Row no */}
-            <div className="detail">
+            {resource?resource.type_id==4?'':<div className="detail">
               <h4>Row No.</h4>
               <p className="m-0">
-                1
+                {resource ? resource.topic_row_no : ''}
               </p>
-            </div>
+            </div>:''}
+            
           </div>
 
           {/* Resource images */}
-          <div className="res-img col">
-            {resource.type_id!=4?
-            (<img src={preview} alt="Book Cover" />):(
-              <div className='thesis-cover'>
-                <p className="title">{resource?resource.resource_title:''}</p>
+          <div className="res-img col-md-5 col-12 order-md-7 order-1 order-md-2" ref={resourceImageRef}>
+            {resource && resource.type_id !== 4 ? (
+              <img src={preview} alt="Book Cover" />
+            ) : (
+              <div className="thesis-cover">
+                <p className="title">{resource ? resource.resource_title : ''}</p>
               </div>
             )}
           </div>
 
           {/* Related resources */}
-          <div className="col-12 related-res">
+          <div className="col-12 order-3 related-res" ref={relatedResourcesRef}>
             <h4>Related Resources</h4>
-            {/* Resources */}
-            <div className="resource">
-              <Book isView={isView} open={open} />
+            <div className="resource col">
+            <Swiper
+              slidesPerView={5}
+              spaceBetween={5}
+              breakpoints={{
+                320: { // Small screens (mobile)
+                  slidesPerView: 1,
+                  spaceBetween: 10,
+                },
+                480: { // Medium screens
+                  slidesPerView: 2,
+                  spaceBetween: 10,
+                },
+                768: { // Tablet screens
+                  slidesPerView: 3,
+                  spaceBetween: 15,
+                },
+                1024: { // Desktop screens
+                  slidesPerView: 3,
+                  spaceBetween: 20,
+                },
+                1200: { // Large screens
+                  slidesPerView: 5,
+                  spaceBetween: 25,
+                },
+              }}
+              // pagination={{
+              //   clickable: true,
+              // }}
+              modules={[Pagination]}
+              className="mySwiper"
+            >
+               
+               {Array.isArray(relatedBooks) && relatedBooks.length > 0 ? (
+                relatedBooks.map((item, index) => (
+                  <SwiperSlide><Link to={`/resource?keyword=${keyword}&id=${item.resource_id}`} onClick={handleNavigate} className="resource" key={index}>
+                    <Book item={item} isSearch={isSearch} />
+                  </Link></SwiperSlide>
+                ))
+              ) : (
+                <p className='no-related'>No related resources.</p>
+              )}
+             
+            </Swiper>
             </div>
           </div>
         </div>
       </div>
+      <Loading loading={loading} isView={true}></Loading>
     </div>
   );
 };

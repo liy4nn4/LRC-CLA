@@ -199,10 +199,20 @@ const handleSearch = async()=>{
   if(searchKeyword!=''){
     navigate(`/search?keyword=${searchKeyword}`)
   }
-  
 }
-  
-  console.log(searchKeyword)
+
+//display page from the top
+const handleNavigate = () => {
+  window.scrollTo(0, 0);
+};
+
+// handles enter
+const handleEnter = (e)=>{
+  if(e.key==='Enter'){
+    handleSearch()
+  }
+}
+  console.log(journalNewsletter)
 
 
   return (
@@ -227,7 +237,7 @@ const handleSearch = async()=>{
             <h2>Learning Resources Center</h2>
             <p>Want to find academic resources for your next project? Our online catalog has been designed to make your search simple and intuitive.</p>
             <div className="search-bar">
-              <input type="text" placeholder='Search for resources' name='term' onChange={(e)=>handleChange(e)}/>
+              <input type="text" placeholder='Search for resources' name='term' onKeyDown={handleEnter} onChange={(e)=>handleChange(e)}/>
               <button className='btn' onClick={handleSearch}>
                 <i class="fa-solid fa-magnifying-glass"></i>
               </button>
@@ -242,11 +252,33 @@ const handleSearch = async()=>{
         <div className="featured-books ">
           <div className="header mb-3">
             <h4>Featured Books</h4>
-            <button className="btn">See all</button>
+            <Link to={`/search?keyword=`} onClick={handleNavigate} className='see-all'>See all</Link>
           </div>
           <Swiper
               slidesPerView={5}
               spaceBetween={5}
+              breakpoints={{
+                320: { // Small screens (mobile)
+                  slidesPerView: 1,
+                  spaceBetween: 10,
+                },
+                480: { // Medium screens
+                  slidesPerView: 2,
+                  spaceBetween: 10,
+                },
+                768: { // Tablet screens
+                  slidesPerView: 3,
+                  spaceBetween: 15,
+                },
+                1024: { // Desktop screens
+                  slidesPerView: 3,
+                  spaceBetween: 20,
+                },
+                1200: { // Large screens
+                  slidesPerView: 5,
+                  spaceBetween: 25,
+                },
+              }}
               // pagination={{
               //   clickable: true,
               // }}
@@ -256,7 +288,7 @@ const handleSearch = async()=>{
                <div className="books">
                {Array.isArray(featuredBooks) && featuredBooks.length > 0 ? (
                   featuredBooks.map(item => (
-                    <SwiperSlide><Book item={item} /></SwiperSlide>
+                    <SwiperSlide><Link to={`/resource/?id=${item.resource_id}`} onClick={handleNavigate} className='home-resource'><Book item={item} /></Link></SwiperSlide>
                   ))
                 ) : (
                   <p>No featured books available.</p>
@@ -269,12 +301,34 @@ const handleSearch = async()=>{
         <div className="journals-newsletters">
           <div className="header mb-3">
             <h4>Journals and Newsletters</h4>
-            <button className="btn">See all</button>
+            <Link to={`/search?keyword=`} onClick={handleNavigate} className='see-all'>See all</Link>
           </div>
           <div className="journal-newsletter">
           <Swiper
               slidesPerView={5}
               spaceBetween={5}
+              breakpoints={{
+                320: { // Small screens (mobile)
+                  slidesPerView: 1,
+                  spaceBetween: 10,
+                },
+                480: { // Medium screens
+                  slidesPerView: 2,
+                  spaceBetween: 10,
+                },
+                768: { // Tablet screens
+                  slidesPerView: 3,
+                  spaceBetween: 15,
+                },
+                1024: { // Desktop screens
+                  slidesPerView: 3,
+                  spaceBetween: 20,
+                },
+                1200: { // Large screens
+                  slidesPerView: 5,
+                  spaceBetween: 25,
+                },
+              }}
               // pagination={{
               //   clickable: true,
               // }}
@@ -284,7 +338,7 @@ const handleSearch = async()=>{
                <div className="books">
                {Array.isArray(journalNewsletter) && journalNewsletter.length > 0 ? (
                   journalNewsletter.map(item => (
-                    <SwiperSlide><Book item={item} /></SwiperSlide>
+                    <SwiperSlide><Link to={`/resource/?id=${item.resource_id}`} onClick={handleNavigate} className='home-resource'><Book item={item} /></Link></SwiperSlide>
                   ))
                 ) : (
                   <p>No journals or newsletters available.</p>
@@ -299,15 +353,15 @@ const handleSearch = async()=>{
       <section className="featured-book">
         <div className="row">
           {/* image */}
-          <div className="col image">
+          <div className="col-12 col-md-6 image">
             <img src={preview} alt="" />
           </div>
           {/* content */}
-          <div className="col content">
+          <div className="col-12 col-md-6 content">
             <h3 className='m-0'>{featuredBook.resource_title}</h3>
             <p className="author mb-4">by {featuredBook.author_name}</p>
             <p className="description">{featuredBook.resource_description}</p>
-            <button className="btn search-btn">search more like this</button>
+            <Link to={`/resource/?id=${featuredBook.resource_id}`} onClick={handleNavigate} className="view-resource">View resource</Link>
           </div>
         </div>
       </section>
@@ -317,7 +371,9 @@ const handleSearch = async()=>{
         <h3>The Learning Resources Center also houses<br/> 
         Theses and Dissertations</h3>
         <p>Look for inspiration or ideas for your upcoming projects here</p>
-        <button className='btn search-btn'>search more</button>
+        <Link to={`/search?keyword=`} onClick={handleNavigate} ><button className='btn search-btn'>search more</button>
+        </Link>
+        
       </section>
 
       <Footer />
