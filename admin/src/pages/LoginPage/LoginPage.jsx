@@ -10,6 +10,7 @@ const LoginPage = () => {
     };
 
     return (
+        <div className='login-container'>
         <div className='wrapper'>
             <div className="logo-container">
                 <img src="/tuplogo.png" alt="Logo 1" className="logo" />
@@ -40,6 +41,7 @@ const LoginPage = () => {
                 </div>
                 <button type='submit'>Login</button>
             </form>
+        </div>
         </div>
     );
 }
