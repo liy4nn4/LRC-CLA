@@ -12,8 +12,6 @@
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
-
-
 }
 
 
@@ -43,14 +41,14 @@
 }
 
 
-h1 {
+.login-form h1 {
     margin: 0;
     font-size: 24px;
     font-weight: 700; 
     color: #94152B;
 }
 
-h2 {
+.login-form h2 {
     margin: 5px 0 20px 0; 
     font-size: 18px;
     font-weight: 500; 
@@ -107,7 +105,7 @@ h2 {
 }
 
 
-button {
+.login-button button {
     width: 100%;
     padding: 12px;
     font-size: 16px;
@@ -120,11 +118,11 @@ button {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-button:hover {
+.login-button button:hover {
     background-color: #5d0d1a;
     transform: translateY(-2px); 
 }
 
-button:active {
+.login-button button:active {
     transform: translateY(0); 
 }

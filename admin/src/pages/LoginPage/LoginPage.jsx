@@ -16,7 +16,7 @@ const LoginPage = () => {
                 <img src="/tuplogo.png" alt="Logo 1" className="logo" />
                 <img src="/clalogo.png" alt="Logo 2" className="logo" />
             </div>
-            <form action="">
+            <form action="" className='login-form'>
                 <h1>College of Liberal Arts</h1>
                 <h2>Learning Resource Center</h2>
                 <div className='input-box'>
@@ -39,7 +39,10 @@ const LoginPage = () => {
                         </span>
                     </div>
                 </div>
-                <button type='submit'>Login</button>
+                <div className='login-button'>
+                    <button type='submit'>Login</button>
+                </div>
+                
             </form>
         </div>
         </div>
