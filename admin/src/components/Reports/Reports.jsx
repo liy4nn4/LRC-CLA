@@ -15,17 +15,9 @@ const Reports = () => {
 
   const subOptions = {
     'Attendance Report': ['Daily Report', 'Monthly Report', 'Custom Date'],
-    'Circulation Report': [
-      'Daily Report',
-      'Monthly Report',
-      'Borrowed Resources',
-      'Overdue Resources',
-      'Most Borrowed Resource',
+    'Circulation Report': ['Daily Report','Monthly Report','Borrowed Resources','Overdue Resources','Most Borrowed Resource',
     ],
-    'Patron Report': ['Active Patrons', 'Inactive Patrons', 'Patron History'],
-    'Cataloging Report': ['All Resources', 'Book', 'Journals', 'Thesis & Dissertations', 'Newsletters'],
-    'Audit Logs Report': ['User Activities', 'System Changes'],
-    'Accounts Report': ['Active Accounts', 'Inactive Accounts', 'Admin Accounts', 'Staff Accounts'],
+    'Inventory Report': ['All Resources', 'Book', 'Journals', 'Thesis & Dissertations', 'Newsletters', 'Available Resources', 'Lost Resources', 'Damaged Resources'],
   };
 
   const [selectedType, setSelectedType] = useState({

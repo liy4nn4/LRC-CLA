@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+    import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import './Logbook.css'
 import search from '../../assets/Management System/logbook/search.svg'
@@ -61,31 +61,6 @@ const Logbook = () => {
             'Date',
             'Time in',
         ];
-
-        // Format data for Excel
-        const data = patron.map((item, index) => ({
-            'Number': entriesPerPage === "All"
-            ? index + 1 // Sequential numbering when "All" is selected
-            : index + 1 + (currentPage - 1) * entriesPerPage,
-            'TUP ID': item.tup_id,
-            'First Name': item.patron_fname,
-            'Last Name': item.patron_lname,
-            'Gender': item.patron_sex,
-            'Phone No.': item.patron_mobile,
-            'Email': item.patron_email,
-            'Course': item.course,
-            'College': item.college,
-            'Date': new Date(item.att_date).toLocaleDateString('en-CA'),
-            'Time in': item.att_log_in_time,
-        }));
-
-        // Create a worksheet and a workbook
-        const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Logbook');
-
-        // Export to Excel file
-        XLSX.writeFile(workbook, 'Logbook.xlsx');
     };
 
     const totalPages = Math.ceil(totalEntries / entriesPerPage);
@@ -115,10 +90,6 @@ const Logbook = () => {
                         <img src={search} alt="" /> Search
                     </button>
                 </div>
-                <button className='btn logbook-export-button' onClick={exportToExcel}>
-                    <img src={exportIcon} alt="" />
-                    Export
-                </button>
             </div>
 
             {/* filters */}
@@ -135,29 +106,6 @@ const Logbook = () => {
                         <option value={20}>20</option>
                         <option value="All">All</option>
                     </select>
-                </div>
-
-                <div className="logbook-date-filter">
-                    <label>Date Filter</label>
-                    <input
-                        type="date"
-                        className="logbook-filter-date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
-                    <p>to</p>
-                    <input
-                        type="date"
-                        className="logbook-filter-date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                    />
-                    <button className="btn logbook-go-button" onClick={getPatron}>
-                        Go
-                    </button>
-                    <button className="btn logbook-clear-button" onClick={handleClear}>
-                        Clear
-                    </button>
                 </div>
             </div>
 
@@ -208,9 +156,9 @@ const Logbook = () => {
 
             {/* pagination */}
             <div className="logbook-table-pagination">
-                <div className="logbook-table-entries">
+                <p className="logbook-table-entries m-0">
                     Showing {patron.length} of {totalEntries} Entries
-                </div>
+                </p>
                 {entriesPerPage !== "All" && (
                     <div className="logbook-table-button-pagination">
                         <button onClick={() => handlePageChange(currentPage - 1)} className="btn btn-outline-danger">
