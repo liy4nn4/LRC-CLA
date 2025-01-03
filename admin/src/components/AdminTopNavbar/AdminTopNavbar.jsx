@@ -3,30 +3,29 @@ import './AdminTopNavbar.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook for navigation
 
 const AdminTopNavbar = () => {
     const [dateTime, setDateTime] = useState(new Date());
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [uname, setUname] = useState();
-    const navigate = useNavigate();
+    const [uname, setUname] = useState(null);
+    const navigate = useNavigate(); // Hook to navigate programmatically
 
     useEffect(() => {
-        fetchUserDetails();
-    }, []);
+        // Fetch session or user data from the server to get the username
+        const getUsername = async () => {
+            try {
+                const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
+                if (response.data.user) {
+                    setUname(response.data.user.username); // Assuming the role is returned from session
+                }
+            } catch (err) {
+                console.log('Error fetching session data', err);
+            }
+        };
 
-    const fetchUserDetails = async () => {
-        try {
-            const response = await axios.get('http://localhost:3001/user-details', {
-                withCredentials: true,
-            });
-            console.log('User Details:', response.data.uname);
-            setUname(response.data.uname);  // Set username to state
-        } catch (error) {
-            console.error('Error fetching user details:', error.message);
-        }
-    };
+        getUsername();
+    }, []);
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = new Date();
@@ -52,22 +51,15 @@ const AdminTopNavbar = () => {
         };
     }, []);
 
-    const handleLogout = () => {
-        // Remove cookies from the client-side
-        Cookies.remove('role', { path: '/' });
-        Cookies.remove('uname', { path: '/' });
-    
-        // Optionally, clear cookies directly via document.cookie (if needed)
-        document.cookie = 'role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-        document.cookie = 'uname=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-    
-        // Optionally, log the user out on the server as well
-        axios.post('http://localhost:3001/logout', {}, { withCredentials: true }).then(() => {
-            // Redirect to login page after logout
-            navigate('/');
-        }).catch(err => console.error("Logout failed:", err));
+    // Logout function
+    const logout = async () => {
+        try {
+            await axios.post('http://localhost:3001/logout', {}, { withCredentials: true });
+            navigate('/'); // Redirect to login page after logout
+        } catch (err) {
+            console.log('Logout error:', err);
+        }
     };
-    
 
     return (
         <div className="top-navbar">
@@ -96,13 +88,7 @@ const AdminTopNavbar = () => {
                         </button>
                         <ul className="dropdown-menu">
                             <li>
-                                <a
-                                    className="dropdown-item"
-                                    href="#"
-                                    onClick={handleLogout} // Handle logout on click
-                                >
-                                    Logout
-                                </a>
+                                <button className="dropdown-item" onClick={logout}>Logout</button>
                             </li>
                         </ul>
                     </div>

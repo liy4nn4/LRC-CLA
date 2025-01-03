@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './LoginPage.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+
 
 const LoginPage = () => {
     const [username, setUsername] = useState("");
@@ -10,45 +11,52 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Check if the user is already logged in
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
-                const response = await axios.get('http://localhost:3001/user-details', {
-                    withCredentials: true
-                });
-                if (response.status === 200) {
-                    navigate('/dashboard'); // Redirect to dashboard if logged in
+                const response = await axios.get('http://localhost:3001/login', { withCredentials: true });
+                if (response.data.loggedIn) {
+                    navigate('/dashboard');
                 }
             } catch (err) {
-                console.log("User is not logged in.");
+                // No session, continue with login
+                console.log('User not logged in');
             }
         };
-
+    
         checkLoginStatus();
     }, [navigate]);
+    
 
     const login = async () => {
         if (!username || !password) {
             setError("Both fields are required.");
             return;
         }
-
+    
         try {
             setLoading(true);
             const response = await axios.post(
                 'http://localhost:3001/login',
                 { username, password },
-                { withCredentials: true } // Important for cookies
+                { withCredentials: true }
             );
-
-            if (response.status === 201) {
+    
+            if (response.status === 200) {
+                console.log("Logged in user:", response.data.user);
                 navigate('/dashboard');
             }
         } catch (err) {
             setError(err.response?.data?.message || "An error occurred.");
         } finally {
             setLoading(false);
+        }
+    };
+    
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            login();
         }
     };
 
@@ -66,13 +74,15 @@ const LoginPage = () => {
                 <div className='input-box'>
                     <input
                         type="text"
-                        placeholder='Enter Username'
+                        placeholder="Enter Username"
                         onChange={(e) => setUsername(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
                     <input
-                        type='password'
-                        placeholder='Enter Password'
+                        type="password"
+                        placeholder="Enter Password"
                         onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
                 </div>
                 {error && <div className="error-message">{error}</div>}
@@ -82,7 +92,9 @@ const LoginPage = () => {
                             <span className="visually-hidden">Loading...</span>
                         </div>
                     ) : (
-                        <button className='btn login-btn' onClick={login}>Login</button>
+                        <button className="btn login-btn" onClick={login}>
+                            Login
+                        </button>
                     )}
                 </div>
             </div>
