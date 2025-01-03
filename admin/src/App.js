@@ -21,7 +21,6 @@ import CirculationSelectItemPage from './pages/CirculationSelectItemPage/Circula
 import CirculationCheckoutPage from './pages/CirculationCheckoutPage/CirculationCheckoutPage';
 import AuditPage from './pages/AuditPage/AuditPage';
 import AccountsPage from './pages/AccountsPage/AccountsPage';
-import LoginPage from './pages/LoginPage/LoginPage';
   
 const App = () => {
   
@@ -46,7 +45,6 @@ const App = () => {
           <Route path='/attendance' element={<AttendancePage/>}/>
           <Route path='/audit' element={<AuditPage/>}/>
           <Route path='/accounts' element={<AccountsPage/>}/>
-          <Route path='/login' element={<LoginPage/>}/>
         </Routes>
       </BrowserRouter>
     </div>
