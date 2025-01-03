@@ -1,0 +1,49 @@
+import React, { useState } from 'react';
+import './LoginPage.css';
+import { FaRegUserCircle } from "react-icons/fa";
+import { FaLock } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+const LoginPage = () => {
+    const [passwordVisible, setPasswordVisible] = useState(false);
+
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+
+    return (
+        <div className='wrapper'>
+            <div className="logo-container">
+                <img src="/tuplogo.png" alt="Logo 1" className="logo" />
+                <img src="/clalogo.png" alt="Logo 2" className="logo" />
+            </div>
+            <form action="">
+                <h1>College of Liberal Arts</h1>
+                <h2>Learning Resource Center</h2>
+                <div className='input-box'>
+                    <div className='input-container'>
+                        <input type="text" placeholder='Username' name="" id="" />
+                    </div>
+                </div>
+                <div className='input-box'>
+                    <div className='input-container'>
+                        <input 
+                            type={passwordVisible ? "text" : "password"} 
+                            placeholder='Password' 
+                            name="" 
+                            id="password" 
+                        />
+                        <span className="password-toggle" 
+                            onClick={togglePasswordVisibility}
+                        >
+                            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                </div>
+                <button type='submit'>Login</button>
+            </form>
+        </div>
+    );
+}
+
+export default LoginPage;
