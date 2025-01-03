@@ -2366,6 +2366,7 @@ app.post("/attendance", (req, res) => {
         return res.status(500).json({ success: false, message: "Failed to log attendance." });
         }
 
+        io.emit('attendanceUpdated');
         return res.status(200).json({
         success: true,
         studentName: studentName,
