@@ -212,7 +212,7 @@ const Reports = () => {
             <thead>
               <tr>
                 {Object.keys(generatedReport[0]).map((key, index) => (
-                  <th key={index}>{key.replace(/_/g, ' ').toUpperCase()}</th>
+                  <td key={index}>{key.replace(/_/g, ' ').toUpperCase()}</td>
                 ))}
               </tr>
             </thead>

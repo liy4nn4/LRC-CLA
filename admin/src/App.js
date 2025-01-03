@@ -77,7 +77,7 @@ const App = () => {
           }/>
           <Route path='/view-item/:id' element={
             <ProtectedRoute allowedRoles={['admin','staff']}>
-              <ViewItemPage/>
+              <AddItemPage/>
             </ProtectedRoute>
           } />
           <Route path='/attendance' element={

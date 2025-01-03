@@ -108,7 +108,6 @@ const Logbook = () => {
 
             {/* filters */}
             <div className="logbook-filters">
-                <div className="logbook-entries-page">
                     <label htmlFor="entries">Entries per page</label>
                     <select
                         className="form-select"
@@ -120,24 +119,24 @@ const Logbook = () => {
                         <option value={20}>20</option>
                         <option value="All">All</option>
                     </select>
-                </div>
+                
             </div>
 
             {/* table */}
-            <div className='logbook-table-box'>
+      
                 <table className='logbook-table'>
                     <thead>
                         <tr>
-                            <th>Number</th>
-                            <th>TUP ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Gender</th>
-                            <th>Phone No.</th>
-                            <th>Course</th>
-                            <th>College</th>
-                            <th>Date</th>
-                            <th>Time in</th>
+                            <td>No.</td>
+                            <td>TUP ID</td>
+                            <td>First Name</td>
+                            <td>Last Name</td>
+                            <td>Gender</td>
+                            <td>Phone No.</td>
+                            <td>Course</td>
+                            <td>College</td>
+                            <td>Date</td>
+                            <td>Time in</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -166,12 +165,12 @@ const Logbook = () => {
                     </tbody>
                     
                 </table>
-            </div>
+          
 
             {/* pagination */}
             <div className="logbook-table-pagination">
                 <p className="logbook-table-entries m-0">
-                    Showing {patron.length} of {totalEntries} Entries
+                    Showing {patron.length} of {totalEntries}   Entries
                 </p>
                 {entriesPerPage !== "All" && (
                     <div className="logbook-table-button-pagination">

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import './Patrons.css'
-import search from '../../assets/Management System/logbook/search.svg'
-import checkout from '../../assets/Management System/patrons/checkout.svg'
-import edit from '../../assets/Management System/patrons/edit-patron.svg'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 const Patrons = () => {
     const [patrons, setPatrons] = useState([]);
@@ -46,23 +45,23 @@ const Patrons = () => {
         <div className="search-bar-box">
             <input type="text" className='patrons-search-bar'placeholder='Search'/>
             <button className="patrons-search-button">
-                <img src={search} alt="" />
+                <FontAwesomeIcon icon={faSearch} className='icon'/>
                 Search
             </button>
         </div>
 
         {/* logbook table */}
-        <div className='patrons-table-box'>
+        
             <table className='patrons-table'>
                 <thead>
                     <tr>
-                        <th>TUP ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Category</th>
-                        <th>Checkouts</th>
-                        <th>Fines</th>
-                        <th></th>
+                        <td>TUP ID</td>
+                        <td>Name</td>
+                        <td>Email</td>
+                        <td>Category</td>
+                        <td>Checkouts</td>
+                        <td>Fines</td>
+                        <td></td>
                         
                     </tr>
                 </thead>
@@ -80,7 +79,7 @@ const Patrons = () => {
                         <td>₱<span>0.00</span></td>
                         <td className='patron-edit-checkout'>
                             <button className='patron-edit-button'>
-                                <img src={edit} alt="" />
+                                <FontAwesomeIcon icon={faPen} className='icon'/>
                                 Edit
                             </button>
                             
@@ -91,7 +90,7 @@ const Patrons = () => {
 
                 
             </table>
-        </div>
+        
       
     </div>
   )

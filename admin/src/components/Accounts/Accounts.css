@@ -94,17 +94,19 @@
     
 }
 
-.accounts-container table thead tr th{
+.accounts-container table thead tr td{
     background-color: var(--tup-color) !important;
     color: var(--white);
     width: 70px;
     /* font-size: 1rem !important; */
+    padding: 10px;
 }
 
 .accounts-container table tbody tr td{
     vertical-align: middle;
     /* font-size: 1rem !important; */
     border-bottom: none;
+    padding: 10px;
 }
 
 .accounts-container table tbody tr:nth-child(odd){

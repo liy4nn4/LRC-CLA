@@ -40,7 +40,7 @@
     height: auto;
 }
 
-.cataloging-info-header{
+.cataloging-box .cataloging-info-header{
     background-color: var(--tup-color);
     padding: 20px;
     text-align: center;
@@ -48,27 +48,27 @@
     font-size: 1.2rem;
 }
 
-.cataloging-inputs{
+.cataloging-box .cataloging-inputs{
     padding: 50px 80px;
 }
 
-.cataloging-inputs .info-input-box{
+.cataloging-box .cataloging-inputs .info-input-box{
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-.cataloging-inputs .info-input-box select{
+.cataloging-box .cataloging-inputs .info-input-box select{
     cursor:pointer !important;
 }
 
-.cataloging-inputs .info-input-box .form-select:focus{
+.cataloging-box .cataloging-inputs .info-input-box .form-select:focus{
     border: 3px solid var(--black);
     box-shadow: none;
     outline: none;
 }
 
-.cataloging-inputs .info-input-box input, .cataloging-inputs .info-input-box select{
+.cataloging-box .cataloging-inputs .info-input-box input, .cataloging-inputs .info-input-box select{
     height: 45px;
     width: 100%;
     padding: 0 10px;
@@ -77,52 +77,52 @@
     background-color: var(--white);
 }
 
-.form-switch{
+.cataloging-box .form-switch{
     margin-top: 50px;
 }
 
-.form-check{
+.cataloging-box .form-check{
     margin-left: 0px;
     display: flex;
     align-items: start;
     gap: 20px;
 }
 
-.form-check-label{
+.cataloging-box .form-check-label{
     cursor: pointer;
 }
 
 
-.form-check-input{
+.cataloging-box .form-check-input{
     height: 30px;
     padding: 0 30px;
     border: none;
     cursor: pointer;
 }
 
-.form-check-input:focus{
+.cataloging-box .form-check-input:focus{
     box-shadow: none;
 }
 
-.form-check-input:checked{
+.cataloging-box .form-check-input:checked{
     background-color: var(--tup-color);
     
 }
 
-.switch-label{
+.cataloging-box .switch-label{
     display: flex;
     flex-direction: column;
 }
 
-.switch-label label{
+.cataloging-box .switch-label label{
     font-size: 1.2rem;
 }
 
-.dept_name, .form-select{
+.cataloging-box .dept_name, .form-select{
     text-transform: capitalize;
 }
 
-.resource-error{
+.cataloging-box .resource-error{
     margin: 0;
     color: var(--tup-color);
     font-style: italic;

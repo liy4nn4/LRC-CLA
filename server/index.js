@@ -35,10 +35,10 @@ app.use(session({
     store
 }))
 
-app.use((req,res,next)=>{
-    console.log(store)
-    next()
-})
+// app.use((req,res,next)=>{
+//     console.log(store)
+//     next()
+// })
 
 // api key for google books
 const apikey = process.env.API_KEY;
@@ -2375,7 +2375,6 @@ app.post("/attendance", (req, res) => {
       });
     });
   });
-
 
 
 /*--------------------ONLINE CATALOG-------------------------- */

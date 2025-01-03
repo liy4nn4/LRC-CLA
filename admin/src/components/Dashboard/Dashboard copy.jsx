@@ -8,7 +8,7 @@ import more from'../../assets/Management System/dashboard/more.svg'
 import left from'../../assets/Management System/dashboard/arrow-left-black.svg'
 import right from'../../assets/Management System/dashboard/arrow-right-black.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers ,faBook, faPlus} from '@fortawesome/free-solid-svg-icons';
+import { faUsers ,faBook} from '@fortawesome/free-solid-svg-icons';
 import { faker } from '@faker-js/faker';
 import MultiLineGraph from '../MultiLineGraph'
 import { Doughnut } from 'react-chartjs-2'
@@ -206,176 +206,182 @@ const Dashboard = () => {
         <MultiLineGraph data={data}/>
         <BarChart data={bardata}/>
       </div>
+      
 
-      {/* Popular choices */}
-      <div className="popular-choices">
-        <h5>Popular Choices</h5>
-        <div className="popular-books">
-          {covers.map((item, index) => (
-            <div>
-            <Link to={`/view-item/${item.resource_id}`}>
-              <img 
-                  key={index} 
-                  src={`data:image/jpeg;base64,${item.cover}`} 
-                  alt={`Book Cover ${item.resource_title}`} 
-              />
-            </Link>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* borrowers list and books issued */}
-      <div className="borrowed">
+      {/* borrowers and books list */}
+      <div className="borrowers-books-list">
         {/* borrower list box */}
-          <div className='borrowers-list'>
-            <div className='heading'>
-              <h5>Borrowers List</h5>
-                <Link to='/circulation/patron'>
-                  <button className='btn list-add-button'>
-                    <FontAwesomeIcon icon={faPlus}/>
-                    Add new
-                  </button>
-                </Link>
-            </div>
-            <table className='borrower-table'>
-              <thead>
-                <tr>
-                  <td>TUP ID</td>
-                  <td>Name</td>
-                  <td>Course</td>
-                  <td>Book Issued</td>
-                  
-                </tr>
-              </thead>
-              <tbody>
-                {borrower.length>0?borrower.map((item,key)=>(
-                <tr key={key}>
-                  <td>{item.tup_id}</td>
-                  <td>{item.patron_fname} {item.patron_lname}</td>
-                  <td>{item.course}</td>
-                  <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.borrowed_books}</span></pre></td>
-                </tr> )):
-                <tr>
-                  <td colSpan="7">No records available</td> 
-                </tr>}
-              </tbody>
-            </table>
-            <div className='see-all-box'><Link to='/patrons'><button className='see-all-button'>See all</button></Link></div>
+        <div className='borrowers-list'>
+          <div className='borrowers-heading'>
+            <p className='list-heading'>Borrowers List</p>
+            <Link to='/circulation/patron'>
+            <button className='btn list-add-button'>
+              <img src={add} alt="" className='add-icon'/>
+              Add new
+            </button>
+            </Link>
           </div>
-          {/* book list */}
-          <div className='borrowers-list'>
-            <div className='heading'>
-              <h5>Books List</h5>
-                <Link to={'/add-item'}>
-                  <button className='btn list-add-button'>
-                    <FontAwesomeIcon icon={faPlus}/>
-                    Add new
-                  </button>
-                </Link>
-            </div>
-            <table className='borrower-table'>
-              <thead>
-                <tr>
-                  <td>ID</td>
-                  <td>Title</td>
-                  <td>Author</td>
-                  <td>Quantity</td>
+          <table className='borrower-table'>
+            <tr>
+              <th>TUP ID</th>
+              <th>Name</th>
+              <th>Course</th>
+              <th>Book Issued</th>
+              <th></th>
+            </tr>
+
+            <tbody>
+                    {borrower?borrower.length>0?borrower.map((item,key)=>(
+                    <tr key={key}>
+                        <td>{item.tup_id}</td>
+                        <td>{item.patron_fname} {item.patron_lname}</td>
+                        <td>{item.course}</td>
+                        <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.borrowed_books}</span></pre></td>
+                    </tr> )):
+                        <tr>
+                            <td colSpan="7">No records available</td> 
+                        </tr>:''}
+            </tbody>
+          </table>
+          <div className='see-all-box'><Link to='/patrons'><button className='see-all-button'>See all</button></Link></div>
+        </div>
+        {/* book list box */}
+        <div className='books-list'>
+          <div className='books-heading'>
+            <p className='list-heading'>Books List</p>
+            <Link to={'/add-item'}><button className='btn list-add-button'>
+              <img src={add} alt="" className='add-icon'/>
+              Add new
+            </button></Link>
+          </div>
+          <table className='book-table'>
+            <tr>
+              <th>Book ID</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Copies Available</th>
+              <th></th>
+            </tr>
+            <tbody>
+                      {addedBooks?addedBooks.length>0?addedBooks.map((item,key)=>(
+                      <tr key={key}>
+                          <td>{item.resource_id}</td>
+                          <td>{item.resource_title}</td>
+                          <td><pre style={{whiteSpace: "pre-wrap"}}><span className='d-flex justify-content-center align-middle m-auto'>{item.authors}</span></pre></td>
+                          <td>{item.resource_quantity}</td>
+                          
+                      </tr> )):
+                          <tr>
+                              <td colSpan="7">No records available</td> 
+                          </tr>:''}
+              </tbody>
+          </table>
+          <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+        </div>        
+
           
-                </tr>
-              </thead>
-              <tbody>
-                {addedBooks?addedBooks.length>0?addedBooks.map((item,key)=>(
-                  <tr key={key}>
-                    <td>{item.resource_id}</td>
-                    <td>{item.resource_title}</td>
-                    <td>{item.authors}</td>
-                    <td>{item.resource_quantity}</td>     
-                  </tr> )):
-                    <tr>
-                      <td colSpan="7">No records available</td> 
-                    </tr>:
-                ''}
-              </tbody>
-            </table>
-            <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
-          </div>
       </div>
 
-      {/* overdue book list */}
-      <div className='borrowers-list'>
-            <div className='heading'>
-              <h5>Overdue Book List</h5>
-            </div>
-            <table className='borrower-table'>
-              <thead>
-                <tr>
-                  <td>TUP ID</td>
-                  <td>Borrowers Name</td>
-                  <td>Book ID</td>
-                  <td>Title</td>
-                  <td>Overdue</td>
-                  <td>Status</td>
-                  <td>Fine</td>
-                </tr>
-              </thead>
-              <tbody>
-                {overdueBooks.length>0?overdueBooks.map((book, index) => (
-                  <tr key={index}>
-                    <td>{book.tup_id}</td>
-                    <td>{book.patron_fname} {book.patron_lname}</td>
-                    <td>{book.resource_id}</td>
-                    <td>{book.resource_title}</td>
-                    <td>{book.overdue_days} days</td>
-                    <td>overdue</td>
-                    <td>{book.overdue_days * 20} pesos</td>
-                    </tr>
-                )):<tr>
-                <td colSpan="7">No records available</td> 
-              </tr>}
-              </tbody>
-            </table>
-            <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
-            {/* <div className='table-pages'>
-              <img src={left} alt="" />
-              <div className='page-numbers'>
+       {/* Popular choices */}
+       <div className="popular-choices">
+          <p className='popular-choices-text'>Popular Choices</p>
+          <div className="popular-books">
+            
+            {covers.map((item, index) => (
+              <div>
+              <Link to={`/view-item/${item.resource_id}`}>
+                    <img 
+                        key={index} 
+                        src={`data:image/jpeg;base64,${item.cover}`} 
+                        alt={`Book Cover ${item.resource_title}`} 
+                    />
+                    <p>{item.resource_title}</p>
+              </Link>
+              </div>
+            
+                ))}
+            
+          </div>
+        </div>
+
+        {/* overdue book list */}
+        <div className="overdue-book-list">
+          <div className='overdue-text-table'>
+            <p className='overdue-book-text'>Overdue Book List</p>
+              <table className='overdue-book-table'>
+                  <tr>
+                    <th>TUP ID</th>
+                    <th>Borrowers Name</th>
+                    <th>Book ID</th>
+                    <th>Title</th>
+                    <th>Overdue</th>
+                    <th>Status</th>
+                    <th>Fine</th>
+                  </tr>
+                  
+                    {overdueBooks.map((book, index) => (
+                        <tr key={index}>
+                            <td>{book.tup_id}</td>
+                            <td>{book.patron_fname} {book.patron_lname}</td>
+                            <td>{book.resource_id}</td>
+                            <td>{book.resource_title}</td>
+                            <td>{book.overdue_days} days</td>
+                            <td>overdue</td>
+                            <td>{book.overdue_days * 20} pesos</td>
+                        </tr>
+                    ))}
+                  
+                </table>
+          </div>
+          <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+          {/* pagination 
+          <div className='table-pages'>
+            <img src={left} alt="" />
+            <div className='page-numbers'>
               <div className='page-number current-page'>3</div>
               <div className='page-number'>2</div>
               <div className='page-number'>1</div>
-              </div>
-              <img src={right} alt="" />
-            </div> */}
-          </div>
-
-      {/* book issued */}
-      <div className='borrowers-list'>
-            <div className='heading'>
-              <h5>Books issued</h5>
             </div>
-            <table className='borrower-table'>
-              <thead>
-                <tr>
-                  <td>TUP ID</td>
-                  <td>Name</td>
-                  <td>Title</td>
-                  <td>Return Date</td>
-                </tr>
-              </thead>
-              <tbody>
-              {checkoutData.length>0?checkoutData.map((item, index) => (
+            <img src={right} alt="" />
+          </div>*/}
+        </div>
+
+        {/* books issued and statistics */}
+        <div className="books-issued-statistics">
+          <div className="books-issued">
+            <div className='book-issued-heading'>
+              <p className='list-heading'>Books Issued</p>
+              <button className='btn list-add-button'>
+                <img src={add} alt="" className='add-icon'/>
+                Add new
+              </button>
+            </div>
+            <table className='book-issued-table'>
+              <tr>
+                <th>TUP ID</th>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Return Date</th>
+              </tr>
+              
+              {checkoutData.map((item, index) => (
                     <tr key={index}>
                         <td>{item.tup_id}</td>
                         <td>{item.patron_fname} {item.patron_lname}</td>
                         <td>{item.resource_title}</td>
                         <td>{new Date(item.checkout_due).toLocaleDateString("en-CA")}</td>
                     </tr>
-              )):<tr>
-              <td colSpan="7">No records available</td> 
-            </tr>}
-              </tbody>
+                ))}
             </table>
-            <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+            <div className='see-all-box'><button className='see-all-button'>See all</button></div>            
           </div>
+
+
+        
+        </div>
+
+
+
     </div>
   )
 }

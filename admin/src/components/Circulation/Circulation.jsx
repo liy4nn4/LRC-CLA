@@ -79,13 +79,13 @@ const Circulation = () => {
         <table className="circ-table">
           <thead>
             <tr>
-              <th>TUP ID</th>
-              <th>Name</th>
-              <th>No. of book/s issued</th>
-              <th>Book/s issued</th>
-              <th>Course</th>
-              <th>Borrow Date</th>
-              <th>Return Date</th>
+              <td>TUP ID</td>
+              <td>Name</td>
+              <td>No. of book/s issued</td>
+              <td>Book/s issued</td>
+              <td>Course</td>
+              <td>Borrow Date</td>
+              <td>Return Date</td>
             </tr>
           </thead>
           <tbody>

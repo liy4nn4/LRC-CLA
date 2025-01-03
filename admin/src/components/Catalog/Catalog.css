@@ -99,27 +99,28 @@
     
 }
 
-
-
 .cat-container .cat-table{
-    text-align: center;
+    text-align: start;
     border-radius: 8px;
     overflow: hidden;
     border-collapse: collapse;
     width: 100%;
     outline: 1px solid var(--tup-color);
+    /* table-layout: fixed; */
     
 }
 
-.cat-container .cat-table thead tr th{
+.cat-container .cat-table thead tr td{
     background-color: var(--tup-color) !important;
     color: var(--white);
     width: 70px;
     /* font-size: 1rem !important; */
+    padding: 10px;
 }
 
 .cat-container .cat-table tbody tr td{
     vertical-align: middle;
+    padding: 10px;
     /* font-size: 1rem !important; */
     border-bottom: none;
 }
