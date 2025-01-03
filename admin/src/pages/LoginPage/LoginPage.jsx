@@ -39,8 +39,8 @@ const LoginPage = () => {
                         </span>
                     </div>
                 </div>
-                <div className='login-button'>
-                    <button type='submit'>Login</button>
+                <div >
+                    <button type='submit' className='login-button'>Login</button>
                 </div>
                 
             </form>
