@@ -61,11 +61,27 @@ const AttendancePage = () => {
   };
 
   return (
-    <div className="attendance-container">
-      <div className="header">
-        <h1 className="logbook-title">Logbook</h1>
-      </div>
+      <div className="attendance-container">
+        <header className="header">
+            <img src="/tuplogo.png" className="header-logo" alt="TUP Logo" />
+            <img src="/clalogo.png" className="header-logo" alt="TUP Logo" />
+          <div className="header-title">
+            <h1>College of Liberal Arts</h1>
+            <h6>Learning Resource Center</h6>
+          </div>
+        </header>
       <div className="content">
+
+        
+      <div>
+        <div className="results">
+          {studentName && (
+            <div className="student-info">
+              <h2 className="welcome-message">Welcome,</h2>
+              <h2 className="student-name"> {studentName}!</h2>
+            </div>
+          )}
+          </div>
         <div className="search-bar">
           <form onSubmit={handleSubmit} className="form-inline">
             <input
@@ -77,17 +93,12 @@ const AttendancePage = () => {
               placeholder="Enter Student ID or Name"
             />
             <button type="submit" className="search-button">
-              Enter
+              Search
             </button>
           </form>
         </div>
+      </div>  
         <div className="results">
-          {studentName && (
-            <div className="student-info">
-              <h2 className="welcome-message">Welcome, {studentName}!</h2>
-            </div>
-          )}
-
           {message && (
             <div className="message">
               <p className="status-message">{message}</p>
@@ -95,7 +106,13 @@ const AttendancePage = () => {
           )}
         </div>
       </div>
+      <div className="footer">
+        <p>&copy; TUP CLA Learning Resource Center 2025</p>
+      </div>
     </div>
+
+      
+    
   );
 };
 

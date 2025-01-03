@@ -1,18 +1,46 @@
 /* Container for full page alignment */
+
+
 .attendance-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full viewport height */
-    background-color: #f8f9fa; /* Light background */
-    font-family: Arial, sans-serif;
+
+  flex-direction: column;
+
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+  font-family: Arial, sans-serif;
+  background-image:url("../../assets/attendance-bg.png");
+  background-position: center;
+  background-size:cover;
+
   }
-  
+
   .header {
+    display:flex;
+    justify-content: center;
     margin-bottom: 20px;
     text-align: center;
+    padding-top: 30px;
+
+}
+  .header-logo{
+    width: 40px;
+    height: 40px;
   }
+
+  .header-title{
+    text-align: left;
+    padding-left: 20px;
+  }
+
+h1{
+  line-height: 0.75;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+h6{
+  font-size: 1rem;
+}
   
   .logbook-title {
     font-size: 2.5rem;
@@ -21,6 +49,7 @@
   }
   
   .content {
+    padding-top: 70px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -30,6 +59,7 @@
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+
   }
   
   .form-inline {
@@ -38,11 +68,13 @@
   }
   
   .form-input {
-    padding: 10px;
-    width: 250px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+
+    width: 270px;
+    border: 1px solid #800000;
+    border-radius: 15px;
     font-size: 1rem;
+    padding-left: 20px;
+
   }
   
   .search-button {
@@ -50,14 +82,19 @@
     background-color: #800000; /* Maroon button */
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 15px;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
+
+
   }
   
   .search-button:hover {
     background-color: #5e0000; /* Darker maroon for hover */
+    box-shadow: 3px 6px 11px -1px rgba(0,0,0,0.39);
+    -webkit-box-shadow: 3px 6px 11px -1px rgba(0,0,0,0.39);
+    -moz-box-shadow: 3px 6px 11px -1px rgba(0,0,0,0.39);
   }
   
   .results {
@@ -69,9 +106,34 @@
     font-size: 1.5rem;
     color: #333;
   }
+
+  .student-name {
+    font-weight: 700;
+    margin-bottom: 50px;
+    font-size: 2.5rem;
+  }
   
   .status-message {
     font-size: 1.2rem;
     color: #555;
+  }
+
+  .footer{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #800000;
+    color: white;
+    font-size: x-small;
+    text-align: center;
+  }
+
+  .footer p{
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px;
+    padding-bottom: 0px;
   }
   
