@@ -47,8 +47,6 @@ const CirculationCheckout = () => {
         return axios.post(`http://localhost:3001/checkin`, {
           checkout_id: checkoutId,
           returned_date: date,
-          resource_id: item.resource_id,
-          patron_id: id,
         });
       });
 

@@ -12,6 +12,7 @@ const Circulation = () => {
 
   useEffect(() => {
     getBorrowers();
+    localStorage.removeItem('clickedAction');
   }, []);
 
   const getBorrowers = async () => {
@@ -25,6 +26,11 @@ const Circulation = () => {
     } catch (err) {
       console.log(err.message);
     }
+  };
+
+  const handleActionClick = (action) => {
+    // Store the action in localStorage
+    localStorage.setItem('clickedAction', action);
   };
 
   const handleSearch = (e) => {
@@ -47,15 +53,21 @@ const Circulation = () => {
 
       {/* Check-in buttons */}
       <div className="buttons">
-        <Link to="/circulation/patron">
-          <button className="btn checkin-btn">
-            <FontAwesomeIcon icon={faCartShopping} className="icon" />
+      <Link to='/circulation/patron'>
+          <button
+            className='btn checkin-btn'
+            onClick={() => handleActionClick('Check Out')}
+          >
+            <FontAwesomeIcon icon={faCartShopping} className='icon' />
             <span>Check out</span>
           </button>
         </Link>
-        <Link to="/circulation/patron">
-          <button className="btn checkin-btn">
-            <FontAwesomeIcon icon={faCartPlus} className="icon" />
+        <Link to='/circulation/patron'>
+          <button
+            className='btn checkin-btn'
+            onClick={() => handleActionClick('Check In')}
+          >
+            <FontAwesomeIcon icon={faCartPlus} className='icon' />
             <span>Check in</span>
           </button>
         </Link>
