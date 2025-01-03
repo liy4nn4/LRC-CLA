@@ -259,5 +259,7 @@
 }
 
 .logbook-table-button-pagination{
-    cursor: pointer;
+    /* cursor: pointer; */
+    display: flex;
+    align-items: center;
 }

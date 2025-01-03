@@ -1,31 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import './Reports.css';
 import axios from 'axios';
+import Loading from '../Loading/Loading'
 import * as XLSX from 'xlsx'; // Import xlsx for Excel export
 
 const Reports = () => {
   const reportType = [
     'Attendance Report',
     'Circulation Report',
-    'Patron Report',
-    'Cataloging Report',
-    'Audit Logs Report',
-    'Accounts Report',
+    'Inventory Report'
   ];
 
   const subOptions = {
     'Attendance Report': ['Daily Report', 'Monthly Report', 'Custom Date'],
-    'Circulation Report': [
-      'Daily Report',
-      'Monthly Report',
-      'Borrowed Resources',
-      'Overdue Resources',
-      'Most Borrowed Resource',
-    ],
-    'Patron Report': ['Active Patrons', 'Inactive Patrons', 'Patron History'],
-    'Cataloging Report': ['All Resources', 'Book', 'Journals', 'Thesis & Dissertations', 'Newsletters'],
-    'Audit Logs Report': ['User Activities', 'System Changes'],
-    'Accounts Report': ['Active Accounts', 'Inactive Accounts', 'Admin Accounts', 'Staff Accounts'],
+    'Circulation Report': ['Daily Report','Monthly Report','Borrowed Resources','Overdue Resources'],
+    'Inventory Report': ['All Resources', 'Book', 'Journals', 'Thesis & Dissertations', 'Newsletters', 'Available Resources', 'Lost Resources', 'Damaged Resources'],
   };
 
   const [selectedType, setSelectedType] = useState({
@@ -37,6 +26,7 @@ const Reports = () => {
     endDate: '',
   });
   const [generatedReport,setGeneratedReport] = useState([])
+  const [loading, setLoading] = useState(false)
 
   // Reset kind when type changes
   useEffect(() => {
@@ -75,6 +65,7 @@ const Reports = () => {
 
   const handleGenerate = async () => {
     console.log('Generating report...');
+    setLoading(true)
     try {
       const params = {
         type: selectedType.type,
@@ -90,6 +81,8 @@ const Reports = () => {
       setGeneratedReport(response.data)
     } catch (error) {
       console.error('Error generating report:', error);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -120,7 +113,7 @@ const Reports = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
   
     // Export to Excel file
-    XLSX.writeFile(workbook, `${selectedType.type}.xlsx`);
+    XLSX.writeFile(workbook, `${selectedType.type}-${selectedType.kind}.xlsx`);
   };
   
 
@@ -243,6 +236,7 @@ const Reports = () => {
 
         
       </div>
+      <Loading loading={loading}/>
     </div>
   );
 };

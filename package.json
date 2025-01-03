@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "react-icons": "^5.4.0",
     "svgr": "^1.10.0"
   }
 }

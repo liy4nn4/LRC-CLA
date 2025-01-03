@@ -2710,6 +2710,9 @@ app.get('/reports', (req, res) => {
       case 'Attendance Report':
         generateAttendance(res, kind, startDate, endDate);
         break;
+      case 'Inventory Report':
+        generateInventory(res,kind);
+        break;
       // Add cases for other report types as needed
     }
   });
@@ -2754,6 +2757,71 @@ const generateAttendance = async (res, kind, startDate, endDate) => {
     })
     
 };
+
+const generateInventory = async(res,kind)=>{
+    let whereClause = ''
+
+    switch(kind){
+        case 'Book':
+            whereClause+='WHERE resources.type_id = 1'
+            break;
+        case 'Journals':
+            whereClause+='WHERE resources.type_id = 2'
+            break;
+        case 'Newsletters':
+            whereClause+='WHERE resources.type_id = 3'
+            break;
+        case 'Thesis & Dissertations':
+            whereClause+='WHERE resources.type_id = 4'
+            break;
+        case 'Available Resources':
+            whereClause+='WHERE resources.avail_id = 1'
+            break;
+        case 'Lost Resources':
+            whereClause+='WHERE resources.avail_id = 2'
+            break;
+        case 'Damaged Resources':
+            whereClause+='WHERE resources.avail_id = 3'
+            break;
+    }
+    
+    let q = `
+        SELECT 
+			resources.resource_id,
+            resources.resource_title, 
+            resourcetype.type_name, 
+            resources.resource_quantity, 
+            department.dept_name,
+            CASE
+                WHEN resources.type_id IN ('1', '2', '3') THEN topic.topic_name
+                ELSE 'n/a'
+            END AS topic_name,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        LEFT JOIN book ON resources.resource_id = book.resource_id
+        LEFT JOIN journalnewsletter ON resources.resource_id = journalnewsletter.resource_id
+        LEFT JOIN topic 
+            ON (book.topic_id = topic.topic_id OR journalnewsletter.topic_id = topic.topic_id)
+        ${whereClause}
+        GROUP BY resources.resource_id`
+
+        
+
+        console.log(q)
+
+        db.query(q,(err,results)=>{
+            if (err) {
+                console.error(err);
+                return res.status(500).send({ error: 'Database query failed' });
+            }
+    
+            res.send(results)
+        })
+}
   
 
 
