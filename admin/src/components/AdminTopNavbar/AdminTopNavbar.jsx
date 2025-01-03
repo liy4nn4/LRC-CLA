@@ -6,6 +6,7 @@ import { faCircleUser } from '@fortawesome/free-solid-svg-icons';
 const AdminTopNavbar = () => {
     const [dateTime, setDateTime] = useState(new Date());
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const username = localStorage.getItem('uname'); 
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = new Date();
@@ -53,13 +54,11 @@ const AdminTopNavbar = () => {
                         <button className="btn cat-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <FontAwesomeIcon icon={faCircleUser} className="icon" />
                             <span>
-                                Hello, <span className="user-welcome-uname">@admin</span>
+                                Hello, <span className="user-welcome-uname">{username&&username}</span>
                             </span>
                         </button>
                         <ul className="dropdown-menu">
-                            <li><a className="dropdown-item" href="#">Action</a></li>
-                            <li><a className="dropdown-item" href="#">Another action</a></li>
-                            <li><a className="dropdown-item" href="#">Something else here</a></li>
+                            <li><a className="dropdown-item" href="#">Logout</a></li>
                         </ul>
                     </div>
                 </div>

@@ -2823,6 +2823,46 @@ const generateInventory = async(res,kind)=>{
         })
 }
   
+/*------------------login------------------ */
+app.post('/login', (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+
+    console.log(password);
+
+    // Adjusted query to include role_name from the JOIN
+    db.query(
+        "SELECT staff_uname, staff_password, role_name FROM staffaccount JOIN roles ON staffaccount.role_id = roles.role_id WHERE staff_uname = ?", 
+        username, 
+        (err, result) => {
+            if (err) {
+                return res.status(500).send({ err: err }); // Return error with status code 500
+            }
+
+            if (result.length > 0) {
+                const userRole = result[0].role_name; // Correctly retrieve role_name
+                const userName = result[0].staff_uname;
+                bcrypt.compare(password, result[0].staff_password, (error, response) => {
+                    if (error) {
+                        return res.status(500).send({ message: 'Error comparing passwords' }); // Return error if bcrypt fails
+                    }
+
+                    console.log(response);
+
+                    if (response) {
+                        console.log(userRole);
+                        return res.send({ status: 201, message: 'Login successful', role: userRole, uname:userName }); // Correctly send the role
+                    } else {
+                        return res.send({ status: 404, message: 'Incorrect username/password' });
+                    }
+                });
+            } else {
+                return res.send({ status: 404, message: 'User does not exist' });
+            }
+        }
+    );
+});
+
 
 
 server.listen(3001,()=>{

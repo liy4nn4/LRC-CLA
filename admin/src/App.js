@@ -21,6 +21,7 @@ import CirculationSelectItemPage from './pages/CirculationSelectItemPage/Circula
 import CirculationCheckoutPage from './pages/CirculationCheckoutPage/CirculationCheckoutPage';
 import AuditPage from './pages/AuditPage/AuditPage';
 import AccountsPage from './pages/AccountsPage/AccountsPage';
+import LoginPage from './pages/LoginPage/LoginPage';
   
 const App = () => {
   
@@ -28,8 +29,7 @@ const App = () => {
     <div>
       <BrowserRouter>
         <Routes>
-          <Route path='/admin-log-in' element={<AdminLogInPage/>}/>
-          <Route path='/' element={<DashboardPage/>}/>
+          <Route path='/' element={<LoginPage/>}/>
           <Route path='/dashboard' element={<DashboardPage/>}/>
           <Route path='/logbook' element={<LogbookPage/>}/>
           <Route path='/circulation' element={<CirculationPage/>}/>
