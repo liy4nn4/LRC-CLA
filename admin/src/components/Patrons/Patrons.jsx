@@ -89,17 +89,17 @@ const Patrons = () => {
             </div>
 
             {/* logbook table */}
-            <div className="patrons-table-box">
+            
                 <table className="patrons-table">
                     <thead>
                         <tr>
-                            <th>TUP ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Category</th>
-                            <th>Checkouts</th>
-                            <th>Fines</th>
-                            <th></th>
+                            <td>TUP ID</td>
+                            <td>Name</td>
+                            <td>Email</td>
+                            <td>Category</td>
+                            <td>Checkouts</td>
+                            <td>Fines</td>
+                            <td></td>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,7 +131,6 @@ const Patrons = () => {
                         )}
                     </tbody>
                 </table>
-            </div>
         </div>
     );
 };
