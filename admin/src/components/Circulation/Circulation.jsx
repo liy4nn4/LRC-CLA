@@ -12,60 +12,71 @@ const Circulation = () => {
 
   useEffect(() => {
     getBorrowers();
-    localStorage.clear();
   }, []);
 
   const getBorrowers = async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/getCirculation`).then((res) => res.data);
+      const response = await axios
+        .get(`http://localhost:3001/getCirculation`)
+        .then((res) => res.data);
       setBorrowers(response);
+      setFilteredBorrowers(response); // Initialize filteredBorrowers with all borrowers
       console.log(response);
     } catch (err) {
       console.log(err.message);
     }
   };
 
-  const handleActionClick = (action) => {
-    // Store the action in localStorage
-    localStorage.setItem('clickedAction', action);
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
+
+    // Filter borrowers based on the search term
+    const filtered = borrowers.filter((borrower) =>
+      `${borrower.patron_fname} ${borrower.patron_lname}`.toLowerCase().includes(value) ||
+      borrower.tup_id.toLowerCase().includes(value) ||
+      borrower.course.toLowerCase().includes(value) ||
+      borrower.borrowed_books.toLowerCase().includes(value)
+    );
+    setFilteredBorrowers(filtered);
   };
 
   return (
     <div className="circulation-container">
       <h1>Circulation</h1>
 
-      {/* Buttons for Check Out and Check In */}
+      {/* Check-in buttons */}
       <div className="buttons">
-        <Link to='/circulation/patron'>
-          <button
-            className='btn checkin-btn'
-            onClick={() => handleActionClick('Check Out')}
-          >
-            <FontAwesomeIcon icon={faCartShopping} className='icon' />
+        <Link to="/circulation/patron">
+          <button className="btn checkin-btn">
+            <FontAwesomeIcon icon={faCartShopping} className="icon" />
             <span>Check out</span>
           </button>
         </Link>
-        <Link to='/circulation/patron'>
-          <button
-            className='btn checkin-btn'
-            onClick={() => handleActionClick('Check In')}
-          >
-            <FontAwesomeIcon icon={faCartPlus} className='icon' />
+        <Link to="/circulation/patron">
+          <button className="btn checkin-btn">
+            <FontAwesomeIcon icon={faCartPlus} className="icon" />
             <span>Check in</span>
           </button>
         </Link>
       </div>
 
-      {/* Search Bar */}
+      {/* Search */}
       <div className="search-container">
-        <input type="text" className='search-bar' placeholder='Search' />
-        <button className='btn search-btn'>Search</button>
+        <input
+          type="text"
+          className="search-bar"
+          placeholder="Search"
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+        <button className="btn search-btn">Search</button>
       </div>
 
       <div>
         <h2>Recent transactions</h2>
         {/* Table */}
-        <table className='circ-table'>
+        <table className="circ-table">
           <thead>
             <tr>
               <th>TUP ID</th>
@@ -78,8 +89,8 @@ const Circulation = () => {
             </tr>
           </thead>
           <tbody>
-            {borrowers.length > 0 ? (
-              borrowers.map((borrower, index) => (
+            {filteredBorrowers.length > 0 ? (
+              filteredBorrowers.map((borrower, index) => (
                 <tr key={index} style={{ borderBottom: '1px solid #ddd' }}>
                   <td style={{ padding: '10px' }}>{borrower.tup_id}</td>
                   <td style={{ padding: '10px' }}>
@@ -99,7 +110,7 @@ const Circulation = () => {
             ) : (
               <tr>
                 <td colSpan="7" style={{ textAlign: 'center', padding: '10px' }}>
-                  No borrowers found.
+                  No records found...
                 </td>
               </tr>
             )}
