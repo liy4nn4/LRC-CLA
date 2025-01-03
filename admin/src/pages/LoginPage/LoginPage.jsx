@@ -1,45 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LoginPage.css';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import the useNavigate hook
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");  // New state for error message
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate(); // Initialize navigate function
+    const navigate = useNavigate();
+
+    // Check if the user is already logged in
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+            try {
+                const response = await axios.get('http://localhost:3001/user-details', {
+                    withCredentials: true
+                });
+                if (response.status === 200) {
+                    navigate('/dashboard'); // Redirect to dashboard if logged in
+                }
+            } catch (err) {
+                console.log("User is not logged in.");
+            }
+        };
+
+        checkLoginStatus();
+    }, [navigate]);
 
     const login = async () => {
-        // Form validation
         if (!username || !password) {
             setError("Both fields are required.");
             return;
-        } else {
-            setError("");  // Clear error message if validation passes
         }
 
         try {
             setLoading(true);
-            const response = await axios.post('http://localhost:3001/login', {
-                username: username,
-                password: password
-            });
-            console.log(response.data)
-            // Check if backend returns a message indicating incorrect username/password
-            if (response.data) {
-                if (response.data.status === 404) {
-                    setError(response.data.message);
-                } else if (response.data.status === 201) {
-                    localStorage.setItem('userRole', response.data.role);
-                    localStorage.setItem('uname', response.data.uname);
-                    // Navigate to the dashboard
-                    navigate('/dashboard');
-                }
+            const response = await axios.post(
+                'http://localhost:3001/login',
+                { username, password },
+                { withCredentials: true } // Important for cookies
+            );
+
+            if (response.status === 201) {
+                navigate('/dashboard');
             }
         } catch (err) {
-            console.log('Cannot login. An error occurred: ', err.message);
-            setError("An error occurred. Please try again.");
+            setError(err.response?.data?.message || "An error occurred.");
         } finally {
             setLoading(false);
         }
@@ -60,19 +67,14 @@ const LoginPage = () => {
                     <input
                         type="text"
                         placeholder='Enter Username'
-                        name=""
-                        id=""
                         onChange={(e) => setUsername(e.target.value)}
                     />
                     <input
                         type='password'
-                        name=""
-                        id="password"
                         placeholder='Enter Password'
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
-                {/* Display error message if validation fails or credentials are incorrect */}
                 {error && <div className="error-message">{error}</div>}
                 <div className="login">
                     {loading ? (

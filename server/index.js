@@ -10,6 +10,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import bcrypt from 'bcrypt';
 const saltRounds = 10;
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -19,10 +20,12 @@ const dbPromise = mysqlPromise.createConnection({ host: process.env.DB_HOST_LOCA
     database: process.env.DB_DATABASE_LOCAL, });
 
 const app = express()
+app.use(cookieParser());
 app.use(express.json())
 app.use(cors({
     origin: ['http://localhost:3000','http://localhost:3002'],
-    methods: 'GET,POST,PUT,DELETE'
+    methods: 'GET,POST,PUT,DELETE',
+    credentials:true
 }));
 
 // api key for google books
@@ -2433,62 +2436,47 @@ app.get('/resources/view', (req, res) => {
 });
 
 /*------------------USER ACCOUNT-------------*/
-app.post('/accounts/create',(req,res)=>{
-    console.log(req.body)
-    const password = req.body.password;
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
 
-    //check if user exist 
-    const checkQ = `
-    SELECT * FROM staffaccount WHERE staff_uname = ? AND staff_fname = ? AND staff_lname = ?`
+    const query = `
+        SELECT staff_uname, staff_password, role_name 
+        FROM staffaccount 
+        JOIN roles ON staffaccount.role_id = roles.role_id 
+        WHERE staff_uname = ?`;
 
-    const checkValues = [
-        req.body.uname,
-        req.body.fname,
-        req.body.lname
-    ]
+    db.query(query, [username], (err, results) => {
+        if (err) return res.status(500).send({ error: 'Database query failed' });
 
-    db.query(checkQ, checkValues, (err, checkResults)=>{
-        if (err) {
-            console.error(err);
-            return res.status(500).send({ error: 'Database query failed' });
-        }
+        if (results.length > 0) {
+            const user = results[0];
+            bcrypt.compare(password, user.staff_password, (err, isMatch) => {
+                if (isMatch) {
+                    // Set HTTP-only cookies
+                    res.cookie('uname', user.staff_uname, {
+                        httpOnly: true,
+                        secure: true, // Use true for HTTPS
+                        sameSite: 'Strict',
+                        maxAge: 24 * 60 * 60 * 1000, // 1 day
+                    });
 
-        if(checkResults.length>0){
-            return res.send({status: 409, message: 'This user already exist. Please create a new one.'})
-        }else{
-            const q = `
-            INSERT INTO staffaccount (staff_uname, staff_fname, staff_lname, staff_password, staff_status, role_id ) 
-            VALUES (?, ?, ?, ?, ?, ?)`
-            
-            bcrypt.hash(password,saltRounds,(err,hash)=>{
-                if(err){
-                    console.log(err)
+                    res.cookie('role', user.role_name, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'Strict',
+                        maxAge: 24 * 60 * 60 * 1000, // 1 day
+                    });
+
+                    res.status(201).send({ message: 'Login successful' });
+                } else {
+                    res.status(401).send({ message: 'Invalid username or password' });
                 }
-
-                const values = [
-                    req.body.uname,
-                    req.body.fname,
-                    req.body.lname,
-                    hash,
-                    'active',
-                    req.body.role
-                ]
-
-                db.query(q, values, (err,results)=>{
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send({ error: 'Database query failed' });
-                    }
-
-                    io.emit('userUpdated')
-                    res.send({status: 201, message:'User Created Successfully'});
-                
-                })
-
-            })
+            });
+        } else {
+            res.status(404).send({ message: 'User not found' });
         }
-    })
-})
+    });
+});
 
 app.get('/accounts', (req,res)=>{
     const keyword = req.query.keyword || '';
@@ -2825,44 +2813,63 @@ const generateInventory = async(res,kind)=>{
   
 /*------------------login------------------ */
 app.post('/login', (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+    const { username, password } = req.body;
 
-    console.log(password);
+    const query = `
+        SELECT staff_uname, staff_password, role_name 
+        FROM staffaccount 
+        JOIN roles ON staffaccount.role_id = roles.role_id 
+        WHERE staff_uname = ?`;
 
-    // Adjusted query to include role_name from the JOIN
-    db.query(
-        "SELECT staff_uname, staff_password, role_name FROM staffaccount JOIN roles ON staffaccount.role_id = roles.role_id WHERE staff_uname = ?", 
-        username, 
-        (err, result) => {
-            if (err) {
-                return res.status(500).send({ err: err }); // Return error with status code 500
-            }
+    db.query(query, [username], (err, results) => {
+        if (err) return res.status(500).send({ error: 'Database query failed' });
 
-            if (result.length > 0) {
-                const userRole = result[0].role_name; // Correctly retrieve role_name
-                const userName = result[0].staff_uname;
-                bcrypt.compare(password, result[0].staff_password, (error, response) => {
-                    if (error) {
-                        return res.status(500).send({ message: 'Error comparing passwords' }); // Return error if bcrypt fails
-                    }
-
-                    console.log(response);
-
-                    if (response) {
-                        console.log(userRole);
-                        return res.send({ status: 201, message: 'Login successful', role: userRole, uname:userName }); // Correctly send the role
-                    } else {
-                        return res.send({ status: 404, message: 'Incorrect username/password' });
-                    }
-                });
-            } else {
-                return res.send({ status: 404, message: 'User does not exist' });
-            }
+        if (results.length > 0) {
+            const user = results[0];
+            bcrypt.compare(password, user.staff_password, (err, isMatch) => {
+                if (isMatch) {
+                    // Set HTTP-only cookies
+                    res.cookie('role', user.role_name, {
+                        httpOnly: true,
+                        secure: false, // Set to true if using HTTPS
+                        sameSite: 'Strict',
+                        maxAge: 24 * 60 * 60 * 1000, // 1 day
+                    });
+                    
+                    res.cookie('uname', user.staff_uname, {
+                        httpOnly: true,
+                        secure: false, // Set to true if using HTTPS
+                        sameSite: 'Strict',
+                        maxAge: 24 * 60 * 60 * 1000, // 1 day
+                    });
+                    
+                    res.status(201).send({ message: 'Login successful' });
+                } else {
+                    res.status(401).send({ message: 'Invalid username or password' });
+                }
+            });
+        } else {
+            res.status(404).send({ message: 'User not found' });
         }
-    );
+    });
 });
 
+app.get('/user-details', (req, res) => {
+    const uname = req.cookies.uname;
+    const role = req.cookies.role;
+
+    if (uname && role) {
+        res.send({ uname, role });
+    } else {
+        res.status(401).send({ message: 'Not authenticated' });
+    }
+});
+
+app.post('/logout', (req, res) => {
+    res.clearCookie('role');
+    res.clearCookie('uname');
+    res.status(200).send({ message: 'Logged out successfully' });
+});
 
 
 server.listen(3001,()=>{
