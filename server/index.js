@@ -2695,6 +2695,67 @@ app.put('/account/activate/:id',(req,res)=>{
     })
 })
 
+/*----------------------REPORT GENERATION---------------- */
+app.get('/reports', (req, res) => {
+    const type = req.query.type;
+    const kind = req.query.kind;
+    const startDate = req.query.startDate; // Custom start date
+    const endDate = req.query.endDate; // Custom end date
+  
+    console.log(type);
+    console.log(kind);
+    console.log(startDate, endDate);
+  
+    switch (type) {
+      case 'Attendance Report':
+        generateAttendance(res, kind, startDate, endDate);
+        break;
+      // Add cases for other report types as needed
+    }
+  });
+  
+const generateAttendance = async (res, kind, startDate, endDate) => {
+    let q = `
+      SELECT 
+          patron.tup_id,
+          patron.patron_fname,
+          patron.patron_lname,
+          patron.patron_sex,
+          patron.patron_mobile,
+          patron.patron_email,
+          patron.category,
+          college.college_name,
+          course.course_name,
+          attendance.att_log_in_time,
+          attendance.att_date
+      FROM attendance
+      JOIN patron ON patron.patron_id = attendance.patron_id
+      JOIN college ON patron.college_id = college.college_id
+      JOIN course ON patron.course_id = course.course_id
+    `;
+  
+    if (kind === 'Daily Report') {
+      q += `WHERE attendance.att_date = CURRENT_DATE()`;
+    } else if (kind === 'Monthly Report') {
+      // Adjust the query to select records for the current month
+      q += `WHERE MONTH(attendance.att_date) = MONTH(CURRENT_DATE()) AND YEAR(attendance.att_date) = YEAR(CURRENT_DATE())`;
+    } else if (kind === 'Custom Date') {
+      // If the kind is 'Custom Date', use the provided startDate and endDate
+      q += `WHERE attendance.att_date BETWEEN ? AND ?`;
+    }
+  
+    db.query(q,[startDate,endDate],(err,results)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        res.send(results)
+    })
+    
+};
+  
+
 
 server.listen(3001,()=>{
     console.log('this is the backend')

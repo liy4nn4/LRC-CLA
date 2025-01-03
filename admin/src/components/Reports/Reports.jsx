@@ -1,44 +1,250 @@
-import React from 'react'
-import './Reports.css'
-import dropdown from '../../assets/Management System/reports/arrow-dropdown.svg'
-import report from '../../assets/Management System/reports/generate-report.svg'
+import React, { useEffect, useState } from 'react';
+import './Reports.css';
+import axios from 'axios';
+import * as XLSX from 'xlsx'; // Import xlsx for Excel export
 
 const Reports = () => {
+  const reportType = [
+    'Attendance Report',
+    'Circulation Report',
+    'Patron Report',
+    'Cataloging Report',
+    'Audit Logs Report',
+    'Accounts Report',
+  ];
+
+  const subOptions = {
+    'Attendance Report': ['Daily Report', 'Monthly Report', 'Custom Date'],
+    'Circulation Report': [
+      'Daily Report',
+      'Monthly Report',
+      'Borrowed Resources',
+      'Overdue Resources',
+      'Most Borrowed Resource',
+    ],
+    'Patron Report': ['Active Patrons', 'Inactive Patrons', 'Patron History'],
+    'Cataloging Report': ['All Resources', 'Book', 'Journals', 'Thesis & Dissertations', 'Newsletters'],
+    'Audit Logs Report': ['User Activities', 'System Changes'],
+    'Accounts Report': ['Active Accounts', 'Inactive Accounts', 'Admin Accounts', 'Staff Accounts'],
+  };
+
+  const [selectedType, setSelectedType] = useState({
+    type: '',
+    kind: '',
+  });
+  const [customDate, setCustomDate] = useState({
+    startDate: '',
+    endDate: '',
+  });
+  const [generatedReport,setGeneratedReport] = useState([])
+
+  // Reset kind when type changes
+  useEffect(() => {
+    setSelectedType((prevSelected) => ({
+      ...prevSelected,
+      kind: '',
+    }));
+  }, [selectedType.type]);
+
+  const handleSelectedFilter = (e) => {
+    const { name, value } = e.target;
+    setSelectedType((prevSelected) => ({
+      ...prevSelected,
+      [name]: value,
+    }));
+  };
+
+  const handleCustomDateChange = (e) => {
+    const { id, value } = e.target;
+    setCustomDate((prevCustomDate) => ({
+      ...prevCustomDate,
+      [id]: value,
+    }));
+  };
+
+  const handleClear = () => {
+    setSelectedType({
+      type: '',
+      kind: '',
+    });
+    setCustomDate({
+      startDate: '',
+      endDate: '',
+    });
+  };
+
+  const handleGenerate = async () => {
+    console.log('Generating report...');
+    try {
+      const params = {
+        type: selectedType.type,
+        kind: selectedType.kind,
+        ...(selectedType.kind === 'Custom Date' && {
+          startDate: customDate.startDate,
+          endDate: customDate.endDate,
+        }),
+      };
+      
+      const response = await axios.get('http://localhost:3001/reports', { params });
+      console.log(response.data);  // Handle response here
+      setGeneratedReport(response.data)
+    } catch (error) {
+      console.error('Error generating report:', error);
+    }
+  };
+
+  const exportToExcel = () => {
+    // Check if the report data exists
+    if (generatedReport.length === 0) {
+      console.error('No data to export');
+      return;
+    }
+  
+    // Prepare the headers dynamically based on the report data
+    const headers = Object.keys(generatedReport[0]).map((key) =>
+      key.replace(/_/g, ' ').toUpperCase() // Format the header (replace underscores with spaces)
+    );
+  
+    // Format the data for Excel export
+    const data = generatedReport.map((item, index) => {
+      const formattedItem = {};
+      Object.keys(item).forEach((key) => {
+        formattedItem[key.replace(/_/g, ' ').toUpperCase()] = item[key];
+      });
+      return formattedItem;
+    });
+  
+    // Create a worksheet and a workbook
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+  
+    // Export to Excel file
+    XLSX.writeFile(workbook, `${selectedType.type}.xlsx`);
+  };
+  
+
+  console.log(selectedType)
+  console.log(customDate)
+
   return (
-    <div className='reports-container'>
+    <div className="reports-container">
       <h1>Reports</h1>
-        {/* reports summary */}
-        <div className="reports-summary">
-          <h4>Generate Reports</h4>
-          {/* type of report */}
-          <div className="report-type">
-            <label htmlFor="">Type of Report</label>
-            <select name="" id="">
-              <option value="" disabled selected>Select a type</option>
+      {/* Reports Summary */}
+      <div className="reports-summary">
+        <h4>Generate Reports</h4>
+
+        {/* Type of Report */}
+        <div className="report-type">
+          <label htmlFor="report-type">Type of Report</label>
+          <select
+            name="type"
+            id="report-type"
+            defaultValue=""
+            onChange={handleSelectedFilter}
+          >
+            <option value="" disabled>
+              Select a type
+            </option>
+            {reportType.map((item, index) => (
+              <option key={index} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Display Based on Selected Type */}
+        {selectedType.type && subOptions[selectedType.type] && (
+          <div className="sub-options">
+            <label htmlFor="sub-option">Report Detail</label>
+            <select
+              name="kind"
+              id="sub-option"
+              onChange={handleSelectedFilter}
+              value={selectedType.kind}
+            >
+              <option value="" disabled>
+                Select a detail
+              </option>
+              {subOptions[selectedType.type].map((option, index) => (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
           </div>
-          {/* date range */}
-          <div className="date-range">
-            {/* start date */}
-            <div className="start-date">
-              <label htmlFor="start-date">Start date</label>
-              <input type="date" name="" id="start-date" />
-            </div>
-            {/* end date */}
-            <div className="end-date">
-              <label htmlFor="end-date">End date</label>
-              <input type="date" name="" id="end-date" />
-            </div>
+        )}
+
+        {/* Custom Date Range */}
+        {selectedType.kind === 'Custom Date' && (
+          <div className="custom">
+            <input
+              type="date"
+              id="startDate"
+              value={customDate.startDate}
+              onChange={handleCustomDateChange}
+            />
+            <span>to</span>
+            <input
+              type="date"
+              id="endDate"
+              value={customDate.endDate}
+              onChange={handleCustomDateChange}
+            />
           </div>
-          <div className="buttons">
-            <button className="btn clear-btn">Clear</button>
-            <div className="btn generate-report">Generate Report</div>
-          </div>
+        )}
+
+        <div className="buttons">
+          <button
+            className="btn clear-btn"
+            disabled={!selectedType.type}
+            onClick={handleClear}
+          >
+            Clear
+          </button>
+          <button
+            className="btn generate-report"
+            onClick={handleGenerate}
+            disabled={!selectedType.type || !selectedType.kind}
+          >
+            Generate Report
+          </button>
         </div>
-     
+
+        {/* display generated report */}
+        {generatedReport.length > 0 ? (
+        <div className="report">
+          <table>
+            <thead>
+              <tr>
+                {Object.keys(generatedReport[0]).map((key, index) => (
+                  <th key={index}>{key.replace(/_/g, ' ').toUpperCase()}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {generatedReport.map((item, index) => (
+                <tr key={index}>
+                  {Object.keys(item).map((key, index) => (
+                    <td key={index}>{item[key]}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p>No data available</p>
+      )}
+
+      {generatedReport.length>0?
+      <div className="d-flex"><button className='btn export-report' onClick={exportToExcel}>Export</button></div>:''}
+
+        
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Reports
-
+export default Reports;

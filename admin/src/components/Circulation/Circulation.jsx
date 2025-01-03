@@ -40,7 +40,7 @@ const Circulation = () => {
       <div className="search-container">
         <input type="text" className='search-bar' placeholder='Search'/>
         <button className='btn search-btn'>Search</button>
-        <div class="dropdown">
+        {/* <div class="dropdown">
           <button class="btn dropdown-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             Dropdown button
           </button>
@@ -49,7 +49,7 @@ const Circulation = () => {
             <li><a class="dropdown-item" href="#">Another action</a></li>
             <li><a class="dropdown-item" href="#">Something else here</a></li>
           </ul>
-        </div>
+        </div> */}
       </div>
 
       <div>
