@@ -18,6 +18,8 @@ const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 const AddItem = () => {
     //pag may id, nagiging view ung purpose ng add item component
     const {id} = useParams()
+    const [uname, setUname] = useState(null);
+    
 
     const navigate = useNavigate()
     // initialize offline database
@@ -49,6 +51,18 @@ const AddItem = () => {
         status:'',
         message:''
     })
+
+    const getUsername = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
+            if (response.data.user) {
+                setUname(response.data.user.username); // Assuming the role is returned from session
+                
+            }
+        } catch (err) {
+            console.log('Error fetching session data', err);
+        }
+    };
 
     useEffect(() => {
         if(!disabled){
@@ -388,8 +402,8 @@ const AddItem = () => {
                 Object.entries(bookData).forEach(([key, value]) => {
                     formData.append(key, value);
                 });
-
-                const response = await axios.post('http://localhost:3001/save', formData);
+                console.log(formData)
+                const response = await axios.post('http://localhost:3001/save', formData, uname);
                 console.log(response)
                  // close loading
                  setLoading(false)

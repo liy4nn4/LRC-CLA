@@ -1641,7 +1641,7 @@ try {
 });
 
 app.post('/checkout', async (req, res) => {
-    const { checkout_date, checkout_due, resource_id, patron_id } = req.body;
+    const { checkout_date, checkout_due, resource_id, patron_id, username } = req.body;
     if (!checkout_date || !checkout_due || !resource_id || !patron_id) {
         return res.status(400).json({
           error: 'Invalid input. All fields (checkout_date, checkout_due, resource_id, patron_id) are required.',
@@ -1652,6 +1652,20 @@ app.post('/checkout', async (req, res) => {
         'INSERT INTO checkout (checkout_date, checkout_due, resource_id, patron_id) VALUES (?, ?, ?, ?)',
         [checkout_date, checkout_due, resource_id, patron_id]
       );
+
+    const [resource] = await (await dbPromise).query(
+        'SELECT resource_title FROM resources WHERE resource_id = ?',
+        [resource_id]
+    );
+
+    // If no resource is found, handle the case (optional)
+    if (!resource || !resource.length) {
+        return res.status(404).json({ error: 'Resource not found' });
+    }
+
+    const resource_title = resource[0].resource_title;
+
+      logAuditAction(username, 'INSERT', 'checkout', resource_id, null, JSON.stringify({ book_name: resource_title , status: 'borrowed' }));
       res.status(200).json({ message: 'Checkout successful!', checkout_id: result.insertId });
     } catch (error) {
       console.error('Error inserting checkout:', error.message);
@@ -1676,53 +1690,71 @@ app.post('/checkout', async (req, res) => {
   
   // Check In (insert records into the checkin table)
 // Check In (insert records into the checkin table and delete from checkout)
-app.post('/checkin', (req, res) => {
-    const { checkout_id, returned_date } = req.body;
+app.post('/checkin', async (req, res) => {
+    const { checkout_id, returned_date, patron_id, resource_id, username } = req.body;
   
     if (!checkout_id || !returned_date) {
       return res.status(400).json({ error: 'checkout_id and returned_date are required.' });
     }
   
-    db.beginTransaction((err) => {
-      if (err) {
-        console.error('Transaction Start Error:', err);
-        return res.status(500).json({ error: 'Failed to start transaction.' });
-      }
+    try {
+      await new Promise((resolve, reject) => {
+        db.beginTransaction((err) => {
+          if (err) {
+            console.error('Transaction Start Error:', err);
+            return reject('Failed to start transaction.');
+          }
   
-      // Insert into the checkin table
-      const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
-      db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
-        if (err) {
-          console.error('Checkin Insert Error:', err);
-          return db.rollback(() => {
-            res.status(500).json({ error: 'Failed to insert into checkin table.' });
-          });
-        }
-  
-        // Delete from checkout table
-        const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
-        db.query(updateCheckoutStatusQuery, ['returned', checkout_id], (err, results) => {
-        if (err) {
-            console.error('Update Checkout Status Error:', err);
-            return db.rollback(() => {
-            res.status(500).json({ error: 'Failed to update checkout status.' });
-            });
-        }
-  
-          // Commit the transaction
-          db.commit((err) => {
+          // Insert into the checkin table
+          const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
+          db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
             if (err) {
-              console.error('Transaction Commit Error:', err);
-              return db.rollback(() => {
-                res.status(500).json({ error: 'Transaction commit failed.' });
-              });
+              console.error('Checkin Insert Error:', err);
+              return db.rollback(() => reject('Failed to insert into checkin table.'));
             }
   
-            res.status(201).json({ message: 'Item successfully checked in and removed from checkout.' });
+            // Update checkout status
+            const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
+            db.query(updateCheckoutStatusQuery, ['returned', checkout_id], (err, results) => {
+              if (err) {
+                console.error('Update Checkout Status Error:', err);
+                return db.rollback(() => reject('Failed to update checkout status.'));
+              }
+  
+              // Commit the transaction
+              db.commit((err) => {
+                if (err) {
+                  console.error('Transaction Commit Error:', err);
+                  return db.rollback(() => reject('Transaction commit failed.'));
+                }
+                resolve();
+              });
+            });
           });
         });
       });
-    });
+  
+      // After the transaction is committed, fetch the resource title
+      const [resource] = await (await dbPromise).query(
+        'SELECT resource_title FROM resources WHERE resource_id = ?',
+        [resource_id]
+      );
+  
+      // If no resource is found, handle the case
+      if (!resource || !resource.length) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+  
+      const resource_title = resource[0].resource_title;
+  
+      // Log the audit action
+      logAuditAction(username, 'INSERT', 'checkin', resource_id, null, JSON.stringify({ book_name: resource_title, status: 'returned' }));
+  
+      res.status(201).json({ message: 'Item successfully checked in and removed from checkout.' });
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: error });
+    }
   });
   
 

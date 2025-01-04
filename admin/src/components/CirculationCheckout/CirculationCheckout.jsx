@@ -10,6 +10,7 @@ const CirculationCheckout = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [uname, setUname] = useState(null);
   const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
   const id = localStorage.getItem('id');
   const clickedAction = localStorage.getItem('clickedAction'); // Get clicked action
@@ -33,8 +34,22 @@ const CirculationCheckout = () => {
     }
   };
 
+  const getUsername = async () => {
+    try {
+        const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
+        if (response.data.user) {
+            setUname(response.data.user.username); // Assuming the role is returned from session
+            
+        }
+    } catch (err) {
+        console.log('Error fetching session data', err);
+    }
+};
+
+
   useEffect(() => {
     getPatron();
+    getUsername();
     console.log(patron)
   }, []);
 
@@ -47,6 +62,7 @@ const CirculationCheckout = () => {
           checkout_due: dueDate,
           resource_id: item.resource_id,
           patron_id: id,
+          username: uname,
         });
       });
 
