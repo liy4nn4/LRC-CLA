@@ -156,8 +156,10 @@ app.post('/file', upload.single('file'), (req, res) => {
 app.post('/save', upload.single('file'), async (req, res) => {
     console.log('Saving resource...');
     const mediaType = req.body.mediaType;
+    const username = req.body.username;
     let adviserFname, adviserLname, filePath, imageFile;
     let pub = {};
+    console.log('username 1: ', username)
 
     // Handle image upload or URL
     try{
@@ -169,7 +171,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
             const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
             imageFile = response.data;
         }
-    
+        
         // initialize variables based on media type
         if(mediaType==='1'){
            pub = {
@@ -193,7 +195,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
         ? req.body.authors: req.body.authors.split(',');
        
         // Insert resource
-        const resourceId = await insertResources(res, req, authors);
+        const resourceId = await insertResources(res, req, authors, username);
     
         if (mediaType === '1') {
             // Handle books
@@ -427,7 +429,7 @@ const checkResourceIfExist = (title) => {
 };
 
 //insert resource
-const insertResources = async (res, req, authors) => {
+const insertResources = async (res, req, authors, username) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Check if the resource exists
@@ -437,7 +439,7 @@ const insertResources = async (res, req, authors) => {
                 console.log('Resource already exists.');
                 return reject({ status: 409, message: 'Resource already exists.' });
             }
-
+            console.log("username: ",username)
             // Insert the resource
             const insertQuery = `
                 INSERT INTO resources (
@@ -470,7 +472,7 @@ const insertResources = async (res, req, authors) => {
 
                 // Get the `resource_id` of the newly inserted row
                 const resourceId = results.insertId;
-
+                logAuditAction(username, 'INSERT', 'resources', null, null, JSON.stringify({ resource_name: req.body.title }));
                 try {
                     // Insert authors for the resource
                     await insertAuthors(res, authors, resourceId);
