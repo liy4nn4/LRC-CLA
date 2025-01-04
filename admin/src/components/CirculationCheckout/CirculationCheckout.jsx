@@ -34,17 +34,22 @@ const CirculationCheckout = () => {
     }
   };
 
-  const getUsername = async () => {
+  const getUsername = async()=>{
     try {
-        const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
-        if (response.data.user) {
-            setUname(response.data.user.username); // Assuming the role is returned from session
-            
-        }
-    } catch (err) {
-        console.log('Error fetching session data', err);
+      // Request server to verify the JWT token
+      const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
+      console.log(response.data)
+      // If session is valid, set the role
+      if (response.data.loggedIn) {
+        setUname(response.data.username);
+      } else {
+        setUname(null); // If not logged in, clear the role
+      }
+    } catch (error) {
+      console.error('Error verifying session:', error);
+      setUname(null); // Set null if there's an error
     }
-};
+  }
 
 
   useEffect(() => {
