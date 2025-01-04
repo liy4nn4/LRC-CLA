@@ -22,7 +22,6 @@ import CirculationCheckoutPage from './pages/CirculationCheckoutPage/Circulation
 import AuditPage from './pages/AuditPage/AuditPage';
 import AccountsPage from './pages/AccountsPage/AccountsPage';
 import LoginPage from './pages/LoginPage/LoginPage';
-import LoginPage from './pages/LoginPage/LoginPage';
 import Cookies from 'js-cookie';
 import ProtectedRoute from './components/ProtectedRoute'
 const App = () => {

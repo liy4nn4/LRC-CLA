@@ -37,28 +37,45 @@ const CirculationCheckout = () => {
   const handleCheckin = async () => {
     try {
       const checkinPromises = selectedItems.map(async (item) => {
-        const checkoutResponse = await axios.get(`http://localhost:3001/getCheckoutRecord`, {
-          params: { resource_id: item.resource_id, patron_id: id },
-        });
-
-        const checkoutId = checkoutResponse.data.checkout_id;
-        console.log(checkoutId);
-
-        return axios.post(`http://localhost:3001/checkin`, {
-          checkout_id: checkoutId,
-          returned_date: date,
-        });
+        try {
+          // Get checkout record
+          const checkoutResponse = await axios.get('http://localhost:3001/getCheckoutRecord', {
+            params: { resource_id: item.resource_id, patron_id: id },
+          });
+  
+          if (!checkoutResponse.data.checkout_id) {
+            throw new Error(`No checkout record found for resource_id: ${item.resource_id}`);
+          }
+  
+          const checkoutId = checkoutResponse.data.checkout_id;
+  
+          // Post to checkin endpoint
+          const response = await axios.post('http://localhost:3001/checkin', {
+            checkout_id: checkoutId,
+            returned_date: date,
+          });
+  
+          if (response.status !== 201) {
+            throw new Error(`Failed to check in item with checkout_id: ${checkoutId}`);
+          }
+  
+          return response.data;
+        } catch (error) {
+          console.error(`Error during check-in for item: ${item.resource_id}`, error.message);
+          throw error;
+        }
       });
-
+  
       await Promise.all(checkinPromises);
       console.log('All items checked in successfully!');
       setOpen(true);
       setSelectedItems([]);
     } catch (error) {
       console.error('Error during check-in:', error.message);
+      alert('Failed to check in some items. Please try again.');
     }
   };
-
+  
   const patronName = patron.length > 0 ? `${patron[0].patron_fname} ${patron[0].patron_lname}` : '';
 
   return (
