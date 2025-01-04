@@ -68,7 +68,7 @@ const Patrons = () => {
                     >
                         <option value="">Any</option>
                         <option value="Student">Student</option>
-                        <option value="Staff">Staff</option>
+                        <option value="Faculty">Faculty</option>
                     </select>
                 </div>
             </div>

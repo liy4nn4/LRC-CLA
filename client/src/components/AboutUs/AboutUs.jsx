@@ -91,15 +91,22 @@ const AboutUs = () => {
       </div>
 
       <section className="coordinator-box container row">
-        <div className="col-12 col-lg-6 coor-img">
+        {/* second purpose <div className="col-12 col-lg-6 coor-img">
           <img src={claLrc} alt="" />
-        </div>
+        </div> */}
         <div className="col-12 col-lg-6 coor-remarks">
           <div>
             <h4>Prof. Jaime Jr. E. Mozo</h4>
             <p className='position'>Coordinator of College of Liberal Arts’ Learning Resources Center</p>
           </div>
-          <p className='remark'>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Culpa deleniti non sunt fuga incidunt. Culpa, alias? Libero earum necessitatibus, cumque beatae cupiditate exercitationem quo a quod alias enim fugiat ex aperiam sint corporis dolorem praesentium nam consequatur! Dolorem, explicabo ea aut excepturi, quam neque magnam nisi, facilis animi ut suscipitt.</p>
+          <p className='remark'>The vision is to create an environment where students, faculty, and staff can easily access valuable resources, benefit from exceptional services, and thrive within a culture of continuous learning and collaboration. By prioritizing accessibility, responsiveness, and innovation, the coordinator aims to contribute to the academic and personal growth of every individual who engages with the center, fostering a supportive community that encourages success and development.
+
+
+
+
+
+
+</p>
         </div>
       </section>
 
