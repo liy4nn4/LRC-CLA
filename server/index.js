@@ -10,6 +10,8 @@ import http from 'http';
 import { Server } from 'socket.io';
 import bcrypt from 'bcrypt';
 const saltRounds = 10;
+import session from 'express-session'
+const store = new session.MemoryStore()
 
 dotenv.config();
 
@@ -22,8 +24,21 @@ const app = express()
 app.use(express.json())
 app.use(cors({
     origin: ['http://localhost:3000','http://localhost:3002'],
-    methods: 'GET,POST,PUT,DELETE'
+    methods: 'GET,POST,PUT,DELETE',
+    credentials:true
 }));
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    cookie:{ maxAge: 24 * 60 * 60 * 1000},
+    saveUninitialized: false,
+    store
+}))
+
+// app.use((req,res,next)=>{
+//     console.log(store)
+//     next()
+// })
 
 // api key for google books
 const apikey = process.env.API_KEY;
@@ -1345,6 +1360,50 @@ db.query(q, (err, results) => {
 });
 });
 
+app.get('/patronCheckin', (req, res) => {
+
+
+    const q = `SELECT 
+            p.patron_id,
+            p.tup_id,
+            p.patron_fname,
+            p.patron_lname,
+            p.patron_email,
+            p.category,
+            cr.course_name,
+            COUNT(c.checkout_id) AS total_checkouts
+        FROM 
+            patron p
+        LEFT JOIN 
+            checkout c 
+        ON 
+            p.patron_id = c.patron_id
+        LEFT JOIN 
+            course cr
+        ON 
+            p.course_id = cr.course_id
+        GROUP BY 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            cr.course_name
+        HAVING 
+            COUNT(c.checkout_id) > 0;
+    `;
+    
+    db.query(q, (err, results) => {
+        if (err) {
+        res.send(err);
+        } else if (results.length > 0) {
+        res.json(results);
+        } else {
+        res.json({ message: 'No patrons found' });
+        }
+    });
+    });
+
 app.get('/getBorrowers', (req, res) => {
     const q = `SELECT 
             p.tup_id, 
@@ -1431,6 +1490,108 @@ app.get('/api/books/search', async (req, res) => {
     }
   });
 
+  app.get('/api/books/search/checkin', async (req, res) => {
+    const { query, patron_id } = req.query; // Assuming patron_id is passed as a query parameter
+
+    // Validate query and patron_id
+    if (!query || !patron_id) {
+        return res.status(400).json({ error: 'Both query and patron_id parameters are required' });
+    }
+    
+    console.log('Incoming query:', req.query);
+
+    try {
+        const [results] = await (await dbPromise).execute(
+            `
+            SELECT 
+                b.book_isbn, 
+                b.book_cover,
+                r.resource_title AS title, 
+                r.resource_quantity AS quantity, 
+                r.resource_id
+            FROM 
+                book b
+            INNER JOIN 
+                resources r 
+            ON 
+                b.resource_id = r.resource_id
+            WHERE 
+                (b.book_isbn LIKE ? OR r.resource_title LIKE ?)
+                AND r.patron_id = ?
+            LIMIT 10;
+            `,
+            [`%${query}%`, `%${query}%`, `%${patron_id}%`]
+        );
+
+        const covers = results.map(book => ({
+            cover: book.book_cover
+                ? Buffer.from(book.book_cover).toString('base64')
+                : null, // Handle potential null covers
+            resource_id: book.resource_id,
+            resource_title: book.title,
+            resource_quantity: book.quantity,
+            book_isbn: book.book_isbn,
+        }));
+
+        res.json(covers);
+    } catch (error) {
+        console.error('Error fetching book suggestions:', error);
+        res.status(500).send("Error fetching book suggestions");
+    }
+});
+
+app.get('/api/books/search/checkin2', async (req, res) => {
+    const { query, patron_id } = req.query;
+
+    // Validate query and patron_id
+    if (!query || !patron_id) {
+        return res.status(400).json({ error: 'Both query and patron_id parameters are required' });
+    }
+
+    console.log('Incoming query:', req.query);
+
+    try {
+        const [results] = await (await dbPromise).execute(
+            `
+            SELECT 
+                b.book_isbn, 
+                b.book_cover,
+                r.resource_title AS title, 
+                r.resource_id
+            FROM 
+                book b
+            INNER JOIN 
+                resources r 
+            ON 
+                b.resource_id = r.resource_id
+            INNER JOIN 
+                checkout c 
+            ON 
+                r.resource_id = c.resource_id
+            WHERE 
+                (b.book_isbn LIKE ? OR r.resource_title LIKE ?)
+                AND c.patron_id = ?
+            LIMIT 10;
+            `,
+            [`%${query}%`, `%${query}%`, patron_id]
+        );
+
+        const covers = results.map(book => ({
+            cover: book.book_cover
+                ? Buffer.from(book.book_cover).toString('base64')
+                : null, // Handle potential null book covers
+            resource_id: book.resource_id,
+            resource_title: book.title,
+            book_isbn: book.book_isbn,
+        }));
+
+        res.json(covers);
+    } catch (error) {
+        console.error('Error fetching book suggestions:', error);
+        res.status(500).send("Error fetching book suggestions");
+    }
+});
+
 app.get('/checkoutPatron', async (req, res) => {
 const { id } = req.query;
 
@@ -1484,6 +1645,65 @@ app.post('/checkout', async (req, res) => {
       res.status(500).json({ error: 'Failed to process checkout' });
     }
   });
+
+  app.get('/getCheckoutRecord', (req, res) => {
+    const { resource_id, patron_id } = req.query;
+    const query = 'SELECT checkout_id FROM checkout WHERE resource_id = ? AND patron_id = ?';
+  
+    db.query(query, [resource_id, patron_id], (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'Checkout record not found.' });
+      }
+      res.json(results[0]);
+    });
+  });
+  
+  // Check In (insert records into the checkin table)
+// Check In (insert records into the checkin table and delete from checkout)
+app.post('/checkin', (req, res) => {
+    const { checkout_id, returned_date } = req.body;
+  
+    // Start a transaction to ensure atomicity
+    db.beginTransaction((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Transaction failed to start.' });
+      }
+  
+      // First, insert into the checkin table
+      const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
+      db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
+        if (err) {
+          return db.rollback(() => {
+            res.status(500).json({ error: err.message });
+          });
+        }
+  
+        // After successfully inserting into checkin, delete from checkout table
+        const deleteCheckoutQuery = 'DELETE FROM checkout WHERE checkout_id = ?';
+        db.query(deleteCheckoutQuery, [checkout_id], (err, results) => {
+          if (err) {
+            return db.rollback(() => {
+              res.status(500).json({ error: err.message });
+            });
+          }
+  
+          // Commit the transaction if both queries are successful
+          db.commit((err) => {
+            if (err) {
+              return db.rollback(() => {
+                res.status(500).json({ error: 'Transaction commit failed.' });
+              });
+            }
+            res.status(201).json({ message: 'Item successfully checked in and removed from checkout.' });
+          });
+        });
+      });
+    });
+  });
+  
   
 
 app.get('/getCirculation', (req, res) => {
@@ -1497,7 +1717,7 @@ app.get('/getCirculation', (req, res) => {
             c.checkout_due,
             GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
             course.course_name AS course, 
-            COUNT(c.checkout_id) AS total_checkouts
+            COUNT(c.patron_id) AS total_checkouts
         FROM 
             patron p
         INNER JOIN 
@@ -2146,6 +2366,7 @@ app.post("/attendance", (req, res) => {
         return res.status(500).json({ success: false, message: "Failed to log attendance." });
         }
 
+        io.emit('attendanceUpdated');
         return res.status(200).json({
         success: true,
         studentName: studentName,
@@ -2154,7 +2375,6 @@ app.post("/attendance", (req, res) => {
       });
     });
   });
-
 
 
 /*--------------------ONLINE CATALOG-------------------------- */
@@ -2433,62 +2653,7 @@ app.get('/resources/view', (req, res) => {
 });
 
 /*------------------USER ACCOUNT-------------*/
-app.post('/accounts/create',(req,res)=>{
-    console.log(req.body)
-    const password = req.body.password;
 
-    //check if user exist 
-    const checkQ = `
-    SELECT * FROM staffaccount WHERE staff_uname = ? AND staff_fname = ? AND staff_lname = ?`
-
-    const checkValues = [
-        req.body.uname,
-        req.body.fname,
-        req.body.lname
-    ]
-
-    db.query(checkQ, checkValues, (err, checkResults)=>{
-        if (err) {
-            console.error(err);
-            return res.status(500).send({ error: 'Database query failed' });
-        }
-
-        if(checkResults.length>0){
-            return res.send({status: 409, message: 'This user already exist. Please create a new one.'})
-        }else{
-            const q = `
-            INSERT INTO staffaccount (staff_uname, staff_fname, staff_lname, staff_password, staff_status, role_id ) 
-            VALUES (?, ?, ?, ?, ?, ?)`
-            
-            bcrypt.hash(password,saltRounds,(err,hash)=>{
-                if(err){
-                    console.log(err)
-                }
-
-                const values = [
-                    req.body.uname,
-                    req.body.fname,
-                    req.body.lname,
-                    hash,
-                    'active',
-                    req.body.role
-                ]
-
-                db.query(q, values, (err,results)=>{
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send({ error: 'Database query failed' });
-                    }
-
-                    io.emit('userUpdated')
-                    res.send({status: 201, message:'User Created Successfully'});
-                
-                })
-
-            })
-        }
-    })
-})
 
 app.get('/accounts', (req,res)=>{
     const keyword = req.query.keyword || '';
@@ -2823,10 +2988,14 @@ const generateInventory = async(res,kind)=>{
         })
 }
   
+/*------------------login------------------ */
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
 
     if (username && password) {
         if (req.session.authenticated) {
-            return res.status(200).json(req.session);
+            // User is already logged in
+            return res.json(req.session);
         } else {
             const query = `
                 SELECT staff_uname, staff_password, role_name
@@ -2835,37 +3004,27 @@ const generateInventory = async(res,kind)=>{
                 WHERE staff_uname = ?`;
 
             db.query(query, [username], (err, results) => {
-                if (err) {
-                    console.error('Database error:', err);
-                    return res.status(500).json({ error: 'Database query failed', session: req.session });
-                }
+                if (err) return res.status(500).send({ error: 'Database query failed' });
 
                 if (results.length > 0) {
                     const user = results[0];
                     const role = user.role_name;
                     bcrypt.compare(password, user.staff_password, (err, isMatch) => {
-                        if (err) {
-                            console.error('Password comparison error:', err);
-                            return res.status(500).json({ error: 'Password comparison failed', session: req.session });
-                        }
                         if (isMatch) {
                             req.session.authenticated = true;
                             req.session.user = { username, role };
-                            return res.status(200).json(req.session);
+                            res.status(200).json(req.session);
                         } else {
-                            return res.status(401).json({ message: 'Invalid username or password', session: req.session });
+                            res.status(401).send({ message: 'Invalid username or password' });
                         }
                     });
                 } else {
-                    return res.status(404).json({ message: 'User not found', session: req.session });
+                    res.status(404).send({ message: 'User not found' });
                 }
             });
         }
-    } else {
-        return res.status(400).json({ message: 'Username and password are required', session: req.session });
     }
 });
-
 
 
 app.get('/login', (req, res) => {

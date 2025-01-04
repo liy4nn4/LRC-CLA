@@ -1,32 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import './CirculationSelectItem.css';
-import { Link, useNavigate, useParams} from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBarcode, faPlus, faTrashCan, faX, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faBarcode, faTrashCan, faX, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 
 const CirculationSelectItem = () => {
   const navigate = useNavigate();
-  const {id} = useParams();
+  const { id } = useParams();
+  const patronId = id;
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
-
   const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
-  
-    //const selectedItems = location.state?.selectedItems || [];
 
+  const actionSelected = localStorage.getItem('clickedAction') || 'Check Out'; // Default to 'Check Out'
+  const actionLabel = actionSelected === 'Check In' ? 'Check In' : 'Check Out'; // Dynamic label based on action
+  const isDisabled = selectedItems.length === 0;
   // Fetch suggestions from the database
   const fetchSuggestions = async (query) => {
     if (!query) {
-      setSuggestions([]);
+      setSuggestions([]); // Clear suggestions if the query is empty
       return;
     }
+
+    const endpoint =
+      actionSelected === 'Check In' ? '/api/books/search/checkin2' : '/api/books/search'; // Determine the API endpoint
+
     try {
-      console.log(query)
-      const response = await axios.get(`http://localhost:3001/api/books/search`, {
-        params: { query },
+      const response = await axios.get(`http://localhost:3001${endpoint}`, {
+        params: {
+          query,
+          ...(actionSelected === 'Check In' && { patron_id: id }), // Include patronId only for Check In
+        },
       });
-      setSuggestions(response.data);
+      setSuggestions(response.data); // Update the suggestions state
     } catch (error) {
       console.error('Error fetching suggestions:', error);
     }
@@ -37,28 +45,17 @@ const CirculationSelectItem = () => {
     const query = e.target.value;
     setSearchQuery(query);
     fetchSuggestions(query);
-    if(query === ""){
-      setSuggestions("")
-    }
   };
 
   // Add item to the selected list
   const handleAddItem = (item) => {
-    // Check if the item is already added
     const exists = selectedItems.find((i) => i.resource_id === item.resource_id);
     if (!exists) {
       setSelectedItems([...selectedItems, item]);
-      
     }
-    
     setSearchQuery(''); // Clear input field
     setSuggestions([]); // Clear suggestions
   };
-
-  useEffect(() => {
-    console.log(selectedItems);
-    console.log(id)
-  }, [selectedItems]);
 
   // Remove item from the selected list
   const handleRemoveItem = (id) => {
@@ -83,25 +80,22 @@ const CirculationSelectItem = () => {
       <div className="row add-items">
         {/* Scan or manual */}
         <div className="col scan-manual">
-          {/* Scan barcode */}
           <div className="barcode">
             <FontAwesomeIcon icon={faBarcode} className='icon' />
-            <p>Scan items in the scanner <br />to be checked out</p>
+            <p>Scan items in the scanner <br />to be {actionLabel.toLowerCase()}.</p>
           </div>
           <p>No barcode available? Input manually instead</p>
 
-          {/* Manual input for ISBN */}
           <div className='circ-info'>
             <label htmlFor="">ISBN / Title</label>
             <input
               type="text"
-              placeholder='Enter ISBN or Title'
+              placeholder={`Enter ISBN or Title for ${actionLabel}`}
               value={searchQuery}
               onChange={handleInputChange}
             />
           </div>
 
-          {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
             <div className="suggestions">
               {suggestions.map((item) => (
@@ -120,7 +114,6 @@ const CirculationSelectItem = () => {
         {/* Items added */}
         <div className="col summary">
           <div>
-            {/* Header */}
             <div className="header">
               <h5>Items added (<span>{selectedItems.length}</span>)</h5>
               <button className="btn" onClick={handleClearItems}>
@@ -129,21 +122,16 @@ const CirculationSelectItem = () => {
               </button>
             </div>
 
-            {/* Selected items */}
             <div className='inner overflow-y-auto'>
               {selectedItems.map((item) => (
-                <div className="item row mt-2 " key={item.resource_id}>
-                  {/* Cover */}
+                <div className="item row mt-2" key={item.resource_id}>
                   <div className="col-3 cover">
                     <img src={`data:image/jpeg;base64,${item.cover}` || 'https://via.placeholder.com/100'} alt={item.title} />
-                    
                   </div>
-                  {/* Item info */}
                   <div className="col-8 info">
                     <p className='ttle'>{item.resource_title}</p>
-                    <p className='qnty'>Quantity: <span>1{/* {item.resource_quantity} */}</span></p>
+                    <p className='qnty'>Quantity: <span>1</span></p>
                   </div>
-                  {/* Remove item button */}
                   <div className="col-1 remove" onClick={() => handleRemoveItem(item.resource_id)}>
                     <FontAwesomeIcon icon={faX} />
                   </div>
@@ -152,14 +140,29 @@ const CirculationSelectItem = () => {
             </div>
           </div>
 
-          {/* Proceed to checkout */}
           <div className='checkout'>
-            <Link to='/circulation/patron/item/checkout'>
-              <button className="btn checkout-btn" onClick = { () => {localStorage.setItem('selectedItems', JSON.stringify(selectedItems)); localStorage.setItem('id', id)}}>
-                Proceed to checkout
+            {/* <Link to='/circulation/patron/item/checkout'> */}
+              <button disabled={isDisabled}
+                className="btn checkout-btn"
+                onClick={() => {
+                  localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+                  localStorage.setItem('id', id);
+                  
+                  const clickedAction = localStorage.getItem('clickedAction');
+    
+                  // Navigate based on the clickedAction value
+                  if (clickedAction === 'Check In') {
+                    navigate('/circulation/patron/item/checkin');
+                  } else {
+                    navigate('/circulation/patron/item/checkout');
+                  }
+
+                }}
+              >
+                Proceed to {actionLabel.toLowerCase()}
                 <FontAwesomeIcon icon={faArrowRight} />
               </button>
-            </Link>
+            {/* </Link> */}
           </div>
         </div>
       </div>

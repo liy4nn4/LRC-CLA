@@ -3,15 +3,17 @@ import axios from 'axios'
 import './Dashboard.css'
 import { Link,  useNavigate  } from 'react-router-dom'
 import dropdown_black from '../../assets/Management System/dashboard/dropdown-black.svg'
-import visitors from '../../assets/Management System/dashboard/total-visitors.svg'
-import borrowed from '../../assets/Management System/dashboard/total-borrowed.svg'
 import add from '../../assets/Management System/dashboard/add.svg'
 import more from'../../assets/Management System/dashboard/more.svg'
 import left from'../../assets/Management System/dashboard/arrow-left-black.svg'
 import right from'../../assets/Management System/dashboard/arrow-right-black.svg'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUsers ,faBook, faPlus} from '@fortawesome/free-solid-svg-icons';
+import { faker } from '@faker-js/faker';
+import MultiLineGraph from '../MultiLineGraph'
+import { Doughnut } from 'react-chartjs-2'
+import BarChart from '../BarChart'
 
-import {UserData} from '../../Data'
-import VisitorsBorrowersStatistics from '../VisitorsBorrowersStatistics/VisitorsBorrowersStatistics'
 
 const Dashboard = () => {
   const [totalVisitors, setTotalVisitors] = useState("");
@@ -64,7 +66,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Visitors',
-        data: booksData,
+        data: visitStats,
         backgroundColor: '#94152B',
       }
     ],
@@ -153,7 +155,7 @@ const Dashboard = () => {
       const visitorsStats = visitors.map(item=>
         item.total_attendance
       )
-      setVisitStats(visitorStats)
+      setVisitStats(visitorsStats)
       
     }catch(err){
       console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
@@ -254,25 +256,49 @@ const Dashboard = () => {
       <div className='dashboard-overview'>
         {/* total visitors */}
         <div className="dash-box">
-          <p className='total-visitors-p'>Total Visits</p>
-          <div className='visitor-count-icon'>
-            <p className='total-visitors-count'>{totalVisitors}</p>
-            <img src={visitors} alt="" className='total-visitors-icon'/>
+          <div className="total-box">
+            <span className='total'>{totalVisitors}</span>
+            <span className='label'>Total Visits</span>
           </div>
+          <FontAwesomeIcon icon={faUsers} className='icon'/>
         </div>
 
         {/* borrowed books */}
         <div className="dash-box">
-          <p className='borrowed-books-p'>Borrowed Books</p>
-          <div className='borrowed-count-icon'>
-            <p className='borrowed-books-count'>{totalBorrowed}</p>
-            <img src={borrowed} alt="" className='borrowed-books-icon'/>
+          <div className="total-box">
+            <span className='total'>{totalBorrowed}</span>
+            <span className='label'>Borrowed Books</span>
           </div>
+          <FontAwesomeIcon icon={faBook} className='icon'/>
         </div>
       </div>
 
-      {/* borrowers and books list */}
-      <div className="borrowers-books-list">
+      {/* borrowed trends */}
+      <div className="graphs">
+        <MultiLineGraph data={data}/>
+        <BarChart data={bardata}/>
+      </div>
+
+      {/* Popular choices */}
+      <div className="popular-choices">
+        <h5>Popular Choices</h5>
+        <div className="popular-books">
+          {covers.map((item, index) => (
+            <div>
+            <Link to={`/view-item/${item.resource_id}`}>
+              <img 
+                  key={index} 
+                  src={`data:image/jpeg;base64,${item.cover}`} 
+                  alt={`Book Cover ${item.resource_title}`} 
+              />
+            </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* borrowers list and books issued */}
+      <div className="borrowed">
         {/* borrower list box */}
           <div className='borrowers-list'>
             <div className='heading'>
@@ -309,65 +335,43 @@ const Dashboard = () => {
             </table>
             <div className='see-all-box'><Link to='/patrons'><button className='see-all-button'>See all</button></Link></div>
           </div>
-          <table className='borrower-table'>
-            <tr>
-              <th>TUP ID</th>
-              <th>Name</th>
-              <th>Course</th>
-              <th>Book Issued</th>
-              <th></th>
-            </tr>
-
-            <tbody>
-                    {borrower?borrower.length>0?borrower.map((item,key)=>(
-                    <tr key={key}>
-                        <td>{item.tup_id}</td>
-                        <td>{item.patron_fname} {item.patron_lname}</td>
-                        <td>{item.course}</td>
-                        <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.borrowed_books}</span></pre></td>
-                    </tr> )):
-                        <tr>
-                            <td colSpan="7">No records available</td> 
-                        </tr>:''}
-            </tbody>
-          </table>
-          <div className='see-all-box'><Link to='/patrons'><button className='see-all-button'>See all</button></Link></div>
-        </div>
-        {/* book list box */}
-        <div className='books-list'>
-          <div className='books-heading'>
-            <p className='list-heading'>Books List</p>
-            <Link to={'/add-item'}><button className='btn list-add-button'>
-              <img src={add} alt="" className='add-icon'/>
-              Add new
-            </button></Link>
-          </div>
-          <table className='book-table'>
-            <tr>
-              <th>Book ID</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Copies Available</th>
-              <th></th>
-            </tr>
-            <tbody>
-                      {addedBooks?addedBooks.length>0?addedBooks.map((item,key)=>(
-                      <tr key={key}>
-                          <td>{item.resource_id}</td>
-                          <td>{item.resource_title}</td>
-                          <td><pre style={{whiteSpace: "pre-wrap"}}><span className='d-flex justify-content-center align-middle m-auto'>{item.authors}</span></pre></td>
-                          <td>{item.resource_quantity}</td>
-                          
-                      </tr> )):
-                          <tr>
-                              <td colSpan="7">No records available</td> 
-                          </tr>:''}
-              </tbody>
-          </table>
-          <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
-        </div>        
-
+          {/* book list */}
+          <div className='borrowers-list'>
+            <div className='heading'>
+              <h5>Books List</h5>
+                <Link to={'/add-item'}>
+                  <button className='btn list-add-button'>
+                    <FontAwesomeIcon icon={faPlus}/>
+                    Add new
+                  </button>
+                </Link>
+            </div>
+            <table className='borrower-table'>
+              <thead>
+                <tr>
+                  <td>ID</td>
+                  <td>Title</td>
+                  <td>Author</td>
+                  <td>Quantity</td>
           
+                </tr>
+              </thead>
+              <tbody>
+                {addedBooks?addedBooks.length>0?addedBooks.map((item,key)=>(
+                  <tr key={key}>
+                    <td>{item.resource_id}</td>
+                    <td>{item.resource_title}</td>
+                    <td>{item.authors}</td>
+                    <td>{item.resource_quantity}</td>     
+                  </tr> )):
+                    <tr>
+                      <td colSpan="7">No records available</td> 
+                    </tr>:
+                ''}
+              </tbody>
+            </table>
+            <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+          </div>
       </div>
 
       {/* overdue book list */}
@@ -410,54 +414,40 @@ const Dashboard = () => {
               <div className='page-number current-page'>3</div>
               <div className='page-number'>2</div>
               <div className='page-number'>1</div>
-            </div>
-            <img src={right} alt="" />
-          </div>*/}
-        </div>
+              </div>
+              <img src={right} alt="" />
+            </div> */}
+          </div>
 
-        {/* books issued and statistics */}
-        <div className="books-issued-statistics">
-          <div className="books-issued">
-            <div className='book-issued-heading'>
-              <p className='list-heading'>Books Issued</p>
-              <button className='btn list-add-button'>
-                <img src={add} alt="" className='add-icon'/>
-                Add new
-              </button>
+      {/* book issued */}
+      <div className='borrowers-list'>
+            <div className='heading'>
+              <h5>Books issued</h5>
             </div>
-            <table className='book-issued-table'>
-              <tr>
-                <th>TUP ID</th>
-                <th>Name</th>
-                <th>Title</th>
-                <th>Return Date</th>
-              </tr>
-              
-              {checkoutData.map((item, index) => (
+            <table className='borrower-table'>
+              <thead>
+                <tr>
+                  <td>TUP ID</td>
+                  <td>Name</td>
+                  <td>Title</td>
+                  <td>Return Date</td>
+                </tr>
+              </thead>
+              <tbody>
+              {checkoutData.length>0?checkoutData.map((item, index) => (
                     <tr key={index}>
                         <td>{item.tup_id}</td>
                         <td>{item.patron_fname} {item.patron_lname}</td>
                         <td>{item.resource_title}</td>
                         <td>{new Date(item.checkout_due).toLocaleDateString("en-CA")}</td>
                     </tr>
-                ))}
+              )):<tr>
+              <td colSpan="7">No records available</td> 
+            </tr>}
+              </tbody>
             </table>
             <div className='see-all-box'><Link to={'/circulation'}><button className='see-all-button'>See all</button></Link></div>
           </div>
-
-
-          {/* visitors and borrowers stats */}
-          <div className="statistics">
-            <p className='stats-text'>Visitors & Borrowed Statistics</p>
-            <div>
-              <VisitorsBorrowersStatistics chartData={user}/>
-            </div>
-
-          </div>
-        </div>
-
-
-
     </div>
   )
 }

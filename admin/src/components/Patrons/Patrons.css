@@ -47,23 +47,23 @@
     color: var(--black);
 }
 
-.search-bar-box{
+.patrons-container .search-bar-box{
     display: flex;
     gap: 15px;
 }
 
-.search-field-category-filter{
+.patrons-container .search-field-category-filter{
     display: flex;
     gap: 30px;
 }
 
-.patrons-search-field,.patrons-category{
+.patrons-container .patrons-search-field,.patrons-container .patrons-category{
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.patrons-filter{
+.patrons-container .patrons-filter{
     padding: 5px;
     height: 40px;
     
@@ -71,25 +71,25 @@
     border-radius: 5px;
 }
 
-.patrons-search-bar{
+.patrons-container .patrons-search-bar{
     height: 40px;
     padding: 10px;
     padding-left: 15px;
     width: 600px;
     border-radius: 5px;
-    border-color: var(--tup-color);
+    border-color: var(--shadow);
     font-size: 1rem;
 }
 
-.patrons-search-bar:active,.patrons-search-bar:focus{
-    border: 3px solid var(--tup-color);
+.patrons-container .patrons-search-bar:active,.patrons-container .patrons-search-bar:focus{
+    border: 3px solid var(--button);
     outline: none;
 }
 
-.patrons-search-button{
+.patrons-container .patrons-search-button{
     height: 40px;
     border: none;
-    background-color: var(--button);
+    background-color: var(--tup-color);
     color: var(--white);
     padding: 8px;
     width: 110px;
@@ -103,47 +103,45 @@
     transition: all 0.1s linear;
 }
 
-.patrons-search-button:hover{
-    background-color: var(--button-hover);
+.patrons-container .patrons-search-button:hover{
+    background-color: var(--button);
 }
 
-.patrons-table-box{
-    width: 100%;
+.patrons-container .patrons-table {
+    table-layout: fixed !important;
+    outline: 1px solid var(--tup-color);
     border-radius: 10px;
-    border: 1px solid var(--tup-color);
     overflow: hidden;
 }
 
-.patrons-table thead{
+.patrons-container .patrons-table thead{
     background-color: var(--tup-color);
+    color: var(--white);
     
 }
 
-.patrons-table thead tr th{
-    color: var(--white);
+.patrons-container .patrons-table tr td{
+    padding: 10px;
 }
 
-.patrons-table tbody tr:nth-child(even){
+.patrons-container .patrons-table thead tr td{
+    padding: 10px;
+}
+.patrons-container .patrons-table tbody tr:nth-child(even){
     background-color: var(--light-red);
 }
 
-.patrons-table{
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-}
-
-.patron-edit-checkout{
+.patrons-container .patron-edit-checkout{
     display: flex;
     flex-direction: column;
     align-items: start;
     gap: 3px;
 }
 
-.patron-edit-button, .patron-checkout-button{
+.patrons-container .patron-edit-button, .patron-checkout-button{
     border-radius: 5px;
     padding: 8px 10px;
-    background-color: var(--button);
+    background-color: var(--tup-color);
     border: none;
     color: var(--white);
     display: flex;
@@ -152,6 +150,6 @@
     gap: 5px;
 }
 
-.patron-edit-button img, .patron-checkout-button img{
+.patrons-container .patron-edit-button img, .patrons-container.patron-checkout-button img{
     width: 20px;
 }
