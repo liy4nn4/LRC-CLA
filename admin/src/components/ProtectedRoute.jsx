@@ -1,53 +1,48 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import axios from "axios";
-import Cookies from "js-cookie";
+import { Navigate } from "react-router-dom";
+import axios from 'axios';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const [loading, setLoading] = useState(true); // to handle loading state while checking session
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);  // Loading state to handle async behavior
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    // Fetch user role from the server via cookies (JWT stored in HttpOnly cookie)
+    const fetchUserRole = async () => {
       try {
-        // Check if the user is logged in
-        const response = await axios.get("http://localhost:3001/login", {
-          withCredentials: true,
-        });
+        // Request server to verify the JWT token
+        const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
 
+        // If session is valid, set the role
         if (response.data.loggedIn) {
-          const { user } = response.data;
-          setUser(user);
-
-          // Check if the user's role is allowed for this route
-          if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-            // If role is not allowed, redirect to dashboard or any other page
-            navigate("/dashboard");
-          }
+          setUserRole(response.data.userRole);
         } else {
-          // Redirect to login if not logged in
-          navigate("/");
+          setUserRole(null); // If not logged in, clear the role
         }
-      } catch (err) {
-        console.log("Error checking login status", err);
-        navigate("/"); // Redirect to login if error in fetching session
+      } catch (error) {
+        console.error('Error verifying session:', error);
+        setUserRole(null); // Set null if there's an error
       } finally {
-        setLoading(false);
+        setLoading(false);  // Stop loading once the request completes
       }
     };
 
-    checkLoginStatus();
-  }, [allowedRoles, navigate]);
+    fetchUserRole();
+  }, []);
 
   if (loading) {
-    // You can show a loading spinner or placeholder while checking login status
-    return <div></div>;
+    // Optionally, you can show a loading spinner or placeholder while checking login status
+    return <div>Loading...</div>;
   }
 
-  if (!user) {
-    // If user is not authenticated or session is invalid, redirect to login
+  if (!userRole) {
+    // If no role is found, redirect to the login page
     return <Navigate to="/" />;
+  }
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    // If user is not authorized based on roles, redirect to an unauthorized page
+    return <Navigate to="/unauthorized" />;
   }
 
   // If user is authenticated and authorized, render the children (protected content)

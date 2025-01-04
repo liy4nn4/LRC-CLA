@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LoginPage.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
 
 const LoginPage = () => {
     const [username, setUsername] = useState("");
@@ -11,49 +10,53 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    // Check if the user is already logged in when the component mounts
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
-                const response = await axios.get('http://localhost:3001/login', { withCredentials: true });
+                const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
+                
                 if (response.data.loggedIn) {
+                    // If the user is logged in, redirect to the dashboard
                     navigate('/dashboard');
                 }
-            } catch (err) {
-                // No session, continue with login
-                console.log('User not logged in');
+            } catch (error) {
+                console.error('Error checking session:', error);
             }
         };
-    
+
         checkLoginStatus();
     }, [navigate]);
-    
 
+    // Function to handle login
     const login = async () => {
         if (!username || !password) {
             setError("Both fields are required.");
             return;
         }
-    
+
         try {
             setLoading(true);
+
             const response = await axios.post(
                 'http://localhost:3001/login',
                 { username, password },
-                { withCredentials: true }
+                { withCredentials: true } // Include credentials for secure cookie handling
             );
-    
+
             if (response.status === 200) {
-                console.log("Logged in user:", response.data.user);
+                console.log("Login successful:", response.data);
+                // Redirect to dashboard
                 navigate('/dashboard');
             }
         } catch (err) {
-            setError(err.response?.data?.message || "An error occurred.");
+            setError(err.response?.data?.message || "An error occurred during login.");
         } finally {
             setLoading(false);
         }
     };
-    
 
+    // Handle "Enter" key press
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             login();
@@ -75,12 +78,14 @@ const LoginPage = () => {
                     <input
                         type="text"
                         placeholder="Enter Username"
+                        value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         onKeyDown={handleKeyDown}
                     />
                     <input
                         type="password"
                         placeholder="Enter Password"
+                        value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         onKeyDown={handleKeyDown}
                     />

@@ -12,19 +12,24 @@ const AdminTopNavbar = () => {
     const navigate = useNavigate(); // Hook to navigate programmatically
 
     useEffect(() => {
-        // Fetch session or user data from the server to get the username
-        const getUsername = async () => {
+        const getUsername = async()=>{
             try {
-                const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
-                if (response.data.user) {
-                    setUname(response.data.user.username); // Assuming the role is returned from session
-                }
-            } catch (err) {
-                console.log('Error fetching session data', err);
+              // Request server to verify the JWT token
+              const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
+              console.log(response.data)
+              // If session is valid, set the role
+              if (response.data.loggedIn) {
+                setUname(response.data.username);
+              } else {
+                setUname(null); // If not logged in, clear the role
+              }
+            } catch (error) {
+              console.error('Error verifying session:', error);
+              setUname(null); // Set null if there's an error
             }
-        };
+          }
 
-        getUsername();
+          getUsername()
     }, []);
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -54,10 +59,17 @@ const AdminTopNavbar = () => {
     // Logout function
     const logout = async () => {
         try {
+            // Send a logout request to the server
             await axios.post('http://localhost:3001/logout', {}, { withCredentials: true });
-            navigate('/'); // Redirect to login page after logout
+
+            // Clear all relevant data from localStorage
+            localStorage.removeItem('role');  // Remove the user's role
+            localStorage.removeItem('username');  // Remove username or any other session-related data
+
+            // Redirect the user to the login page
+            navigate('/');
         } catch (err) {
-            console.log('Logout error:', err);
+            console.error('Logout error:', err);
         }
     };
 

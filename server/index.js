@@ -10,8 +10,9 @@ import http from 'http';
 import { Server } from 'socket.io';
 import bcrypt from 'bcrypt';
 const saltRounds = 10;
-import session from 'express-session'
-const store = new session.MemoryStore()
+import jwt from 'jsonwebtoken'
+import cookieParser from 'cookie-parser'
+
 
 dotenv.config();
 
@@ -21,19 +22,14 @@ const dbPromise = mysqlPromise.createConnection({ host: process.env.DB_HOST_LOCA
     database: process.env.DB_DATABASE_LOCAL, });
 
 const app = express()
+app.use(cookieParser());
 app.use(express.json())
 app.use(cors({
     origin: ['http://localhost:3000','http://localhost:3002'],
     methods: 'GET,POST,PUT,DELETE',
     credentials:true
 }));
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    cookie:{ maxAge: 24 * 60 * 60 * 1000},
-    saveUninitialized: false,
-    store
-}))
+
 
 // app.use((req,res,next)=>{
 //     console.log(store)
@@ -2953,6 +2949,9 @@ app.get('/reports', (req, res) => {
       case 'Inventory Report':
         generateInventory(res,kind);
         break;
+      case 'Circulation Report':
+        generateCirculation(res,kind);
+        break;
       // Add cases for other report types as needed
     }
   });
@@ -2995,6 +2994,83 @@ const generateAttendance = async (res, kind, startDate, endDate) => {
 
         res.send(results)
     })
+    
+};
+
+const generateCirculation = async (res, kind, startDate, endDate) => {
+
+    if(kind!='Borrowed Resources'){
+        let q = `
+        SELECT
+            checkout.checkout_id,
+            resources.resource_title,
+            patron.patron_fname,
+            patron.patron_lname,
+            patron.category,
+            college.college_name,
+            course.course_name,
+            checkout.checkout_date,
+            checkout.checkout_due
+        FROM 
+            checkout
+        JOIN patron ON patron.patron_id = checkout.patron_id
+        JOIN resources ON resources.resource_id = checkout.resource_id
+        JOIN college ON patron.college_id = college.college_id
+        JOin course ON patron.course_id = course.course_id
+        `;
+    
+        if (kind === 'Daily Report') {
+        q += `WHERE checkout.checkout_date = CURRENT_DATE()`;
+        } else if (kind === 'Monthly Report') {
+        // Adjust the query to select records for the current month
+        q += `WHERE MONTH(checkout.checkout_date) = MONTH(CURRENT_DATE()) AND YEAR(checkout.checkout_date) = YEAR(CURRENT_DATE())`;
+        } else if (kind === 'Custom Date') {
+        // If the kind is 'Custom Date', use the provided startDate and endDate
+        q += `WHERE checkout.chekcout_date BETWEEN ? AND ?`;
+        }
+    
+        db.query(q,[startDate,endDate],(err,results)=>{
+            if (err) {
+                console.error(err);
+                return res.status(500).send({ error: 'Database query failed' });
+            }
+
+            res.send(results)
+        })
+    }else if(kind=='Borrowed Resources'){
+        const q = `
+        SELECT	resources.resource_id,
+            resources.resource_title, 
+            resourcetype.type_name, 
+            department.dept_name,
+            CASE
+                WHEN resources.type_id IN ('1', '2', '3') THEN topic.topic_name
+                ELSE 'n/a'
+            END AS topic_name,
+            GROUP_CONCAT(CONCAT(author.author_fname, ' ', author.author_lname) SEPARATOR ', ') AS author_names
+        FROM resources
+        JOIN checkout ON checkout.resource_id = resources.resource_id
+        JOIN resourceauthors ON resourceauthors.resource_id = resources.resource_id 
+        JOIN author ON resourceauthors.author_id = author.author_id 
+        JOIN resourcetype ON resources.type_id = resourcetype.type_id 
+        JOIN department ON department.dept_id = resources.dept_id
+        LEFT JOIN book ON resources.resource_id = book.resource_id
+        LEFT JOIN journalnewsletter ON resources.resource_id = journalnewsletter.resource_id
+        LEFT JOIN topic 
+            ON (book.topic_id = topic.topic_id OR journalnewsletter.topic_id = topic.topic_id)
+		WHERE checkout.resource_id = resources.resource_id
+        GROUP BY resources.resource_id
+        `
+        db.query(q,[startDate,endDate],(err,results)=>{
+            if (err) {
+                console.error(err);
+                return res.status(500).send({ error: 'Database query failed' });
+            }
+
+            res.send(results)
+        })
+    }
+    
     
 };
 
@@ -3064,69 +3140,91 @@ const generateInventory = async(res,kind)=>{
 }
   
 /*------------------login------------------ */
-app.post('/login', (req, res) => {
+
+app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
-    if (username && password) {
-        if (req.session.authenticated) {
-            // User is already logged in
-            return res.json(req.session);
-        } else {
-            const query = `
-                SELECT staff_uname, staff_password, role_name
-                FROM staffaccount
-                JOIN roles ON staffaccount.role_id = roles.role_id
-                WHERE staff_uname = ?`;
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+    }
 
-            db.query(query, [username], (err, results) => {
-                if (err) return res.status(500).send({ error: 'Database query failed' });
+    const query = `
+        SELECT staff_uname, staff_password, role_name
+        FROM staffaccount
+        JOIN roles ON staffaccount.role_id = roles.role_id
+        WHERE staff_uname = ?`;
 
-                if (results.length > 0) {
-                    const user = results[0];
-                    const role = user.role_name;
-                    bcrypt.compare(password, user.staff_password, (err, isMatch) => {
-                        if (isMatch) {
-                            req.session.authenticated = true;
-                            req.session.user = { username, role };
-                            res.status(200).json(req.session);
-                        } else {
-                            res.status(401).send({ message: 'Invalid username or password' });
-                        }
-                    });
-                } else {
-                    res.status(404).send({ message: 'User not found' });
-                }
+    try {
+        db.query(query, [username], async (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: 'Database query failed' });
+            }
+
+            if (results.length === 0) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            const user = results[0];
+            const role = user.role_name;
+
+            // Compare provided password with hashed password from the database
+            const isMatch = await bcrypt.compare(password, user.staff_password);
+
+            if (!isMatch) {
+                return res.status(401).json({ message: 'Invalid username or password' });
+            }
+
+            // Generate a JWT for the user
+            const payload = { username: user.staff_uname, role };
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+            // Optionally store the token as a secure cookie
+            res.cookie('authToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Secure cookie for HTTPS only in production
+                sameSite: 'strict',
             });
-        }
-    }
-});
 
-
-app.get('/login', (req, res) => {
-    if (req.session.user) {
-        res.send({ loggedIn: true, user: req.session.user });
-        console.log(req.session.user)
-    } else {
-        res.send({ loggedIn: false, user: null });
-    }
-});
-
-
-app.get('/session', (req, res) => {
-    if (req.session.authenticated) {
-        res.json({ user: req.session.user });
-    } else {
-        res.status(401).send({ message: 'Not authenticated' });
+            // Send the response
+            return res.status(200).json({
+                message: 'Login successful',
+                token, // Send the token (if needed for client-side use)
+                user: { username: user.staff_uname, role },
+            });
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 app.post('/logout', (req, res) => {
-    req.session.destroy((err) => {
+    // Clear the authToken cookie
+    res.clearCookie('authToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Secure cookie for HTTPS only in production
+        sameSite: 'strict',
+    });
+
+    // Send response indicating successful logout
+    return res.status(200).json({ message: 'Logged out successfully' });
+});
+
+app.get('/check-session', (req, res) => {
+    const token = req.cookies.authToken;
+
+    // console.log(token)
+    if (!token) {
+        return res.status(401).json({ loggedIn: false });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(500).send({ message: 'Failed to log out' });
+            return res.status(401).json({ loggedIn: false });
         }
-        res.clearCookie('connect.sid');  // Clear the session cookie
-        res.status(200).send({ message: 'Logged out successfully' });
+
+        // Return the user role based on the JWT payload
+        return res.status(200).json({ loggedIn: true, userRole: decoded.role, username:decoded.username });
     });
 });
 
@@ -3210,6 +3308,10 @@ app.get('/visitor/stats', (req,res)=>{
         res.send(result)
     })
 })
+
+/*--------------check overdue resources using cron-------- */
+
+
 
 server.listen(3001,()=>{
     console.log('this is the backend')

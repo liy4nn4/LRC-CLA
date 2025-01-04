@@ -13,7 +13,7 @@ const Reports = () => {
 
   const subOptions = {
     'Attendance Report': ['Daily Report', 'Monthly Report', 'Custom Date'],
-    'Circulation Report': ['Daily Report','Monthly Report','Borrowed Resources','Overdue Resources'],
+    'Circulation Report': ['Daily Report','Monthly Report','Custom Date','Borrowed Resources'],
     'Inventory Report': ['All Resources', 'Book', 'Journals', 'Thesis & Dissertations', 'Newsletters', 'Available Resources', 'Lost Resources', 'Damaged Resources'],
   };
 
