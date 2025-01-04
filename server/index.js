@@ -102,6 +102,25 @@ io.on('connection', (socket) => {
     });
 });
 
+// Function to log user actions
+const logAuditAction = (userId, actionType, tableName, recordId, oldValue = null, newValue = null) => {
+    const query = `
+        INSERT INTO audit_log (user_id, action_type, table_name, record_id, old_value, new_value)
+        VALUES (?, ?, ?, ?, ?, ?)`;
+
+    const values = [userId, actionType, tableName, recordId, oldValue, newValue];
+
+    db.query(query, values, (err, results) => {
+        if (err) {
+            console.error('Error logging audit action:', err);
+        } else {
+            console.log('Audit action logged successfully:', results);
+        }
+    });
+};
+
+
+
 /*--------------MULTER------------------------- */
 
 const storage = multer.diskStorage({
