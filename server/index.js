@@ -102,6 +102,25 @@ io.on('connection', (socket) => {
     });
 });
 
+// Function to log user actions
+const logAuditAction = (userId, actionType, tableName, recordId, oldValue = null, newValue = null) => {
+    const query = `
+        INSERT INTO audit_log (user_id, action_type, table_name, record_id, old_value, new_value)
+        VALUES (?, ?, ?, ?, ?, ?)`;
+
+    const values = [userId, actionType, tableName, recordId, oldValue, newValue];
+
+    db.query(query, values, (err, results) => {
+        if (err) {
+            console.error('Error logging audit action:', err);
+        } else {
+            console.log('Audit action logged successfully:', results);
+        }
+    });
+};
+
+
+
 /*--------------MULTER------------------------- */
 
 const storage = multer.diskStorage({
@@ -1322,31 +1341,28 @@ app.get('/patron', (req, res) => {
 
 
 const q = `SELECT 
-        p.patron_id,
-        p.tup_id,
-        p.patron_fname,
-        p.patron_lname,
-        p.patron_email,
-        p.category,
-        cr.course_name,
-        COUNT(c.checkout_id) AS total_checkouts
-    FROM 
-        patron p
-    LEFT JOIN 
-        checkout c 
-    ON 
-        p.patron_id = c.patron_id
-    LEFT JOIN 
-        course cr
-    ON 
-        p.course_id = cr.course_id
-    GROUP BY 
-        p.tup_id, 
-        p.patron_fname, 
-        p.patron_lname, 
-        p.patron_email, 
-        p.category, 
-        cr.course_name;
+            p.patron_id,
+            p.tup_id,
+            p.patron_fname,
+            p.patron_lname,
+            p.patron_email,
+            p.category,
+            cr.course_name,
+            COUNT(CASE WHEN c.status = 'borrowed' THEN 1 END) AS total_checkouts
+        FROM 
+            patron p
+        LEFT JOIN 
+            checkout c ON p.patron_id = c.patron_id
+        LEFT JOIN 
+            course cr ON p.course_id = cr.course_id
+        GROUP BY 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_email, 
+            p.category, 
+            cr.course_name;
+
 `;
 
 db.query(q, (err, results) => {
@@ -1364,33 +1380,33 @@ app.get('/patronCheckin', (req, res) => {
 
 
     const q = `SELECT 
-            p.patron_id,
-            p.tup_id,
-            p.patron_fname,
-            p.patron_lname,
-            p.patron_email,
-            p.category,
-            cr.course_name,
-            COUNT(c.checkout_id) AS total_checkouts
-        FROM 
-            patron p
-        LEFT JOIN 
-            checkout c 
-        ON 
-            p.patron_id = c.patron_id
-        LEFT JOIN 
-            course cr
-        ON 
-            p.course_id = cr.course_id
-        GROUP BY 
-            p.tup_id, 
-            p.patron_fname, 
-            p.patron_lname, 
-            p.patron_email, 
-            p.category, 
-            cr.course_name
-        HAVING 
-            COUNT(c.checkout_id) > 0;
+                    p.patron_id,
+                    p.tup_id,
+                    p.patron_fname,
+                    p.patron_lname,
+                    p.patron_email,
+                    p.category,
+                    cr.course_name,
+                    COUNT(c.checkout_id) AS total_checkouts
+                FROM 
+                    patron p
+                LEFT JOIN 
+                    checkout c 
+                ON 
+                    p.patron_id = c.patron_id AND c.status = 'borrowed'
+                LEFT JOIN 
+                    course cr
+                ON 
+                    p.course_id = cr.course_id
+                GROUP BY 
+                    p.tup_id, 
+                    p.patron_fname, 
+                    p.patron_lname, 
+                    p.patron_email, 
+                    p.category, 
+                    cr.course_name
+                HAVING 
+                    COUNT(c.checkout_id) > 0;
     `;
     
     db.query(q, (err, results) => {
@@ -1570,7 +1586,8 @@ app.get('/api/books/search/checkin2', async (req, res) => {
                 r.resource_id = c.resource_id
             WHERE 
                 (b.book_isbn LIKE ? OR r.resource_title LIKE ?)
-                AND c.patron_id = ?
+                AND c.patron_id = ? AND c.status = "borrowed"
+
             LIMIT 10;
             `,
             [`%${query}%`, `%${query}%`, patron_id]
@@ -1666,37 +1683,45 @@ app.post('/checkout', async (req, res) => {
 app.post('/checkin', (req, res) => {
     const { checkout_id, returned_date } = req.body;
   
-    // Start a transaction to ensure atomicity
+    if (!checkout_id || !returned_date) {
+      return res.status(400).json({ error: 'checkout_id and returned_date are required.' });
+    }
+  
     db.beginTransaction((err) => {
       if (err) {
-        return res.status(500).json({ error: 'Transaction failed to start.' });
+        console.error('Transaction Start Error:', err);
+        return res.status(500).json({ error: 'Failed to start transaction.' });
       }
   
-      // First, insert into the checkin table
+      // Insert into the checkin table
       const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
       db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
         if (err) {
+          console.error('Checkin Insert Error:', err);
           return db.rollback(() => {
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: 'Failed to insert into checkin table.' });
           });
         }
   
-        // After successfully inserting into checkin, delete from checkout table
-        const deleteCheckoutQuery = 'DELETE FROM checkout WHERE checkout_id = ?';
-        db.query(deleteCheckoutQuery, [checkout_id], (err, results) => {
-          if (err) {
+        // Delete from checkout table
+        const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
+        db.query(updateCheckoutStatusQuery, ['returned', checkout_id], (err, results) => {
+        if (err) {
+            console.error('Update Checkout Status Error:', err);
             return db.rollback(() => {
-              res.status(500).json({ error: err.message });
+            res.status(500).json({ error: 'Failed to update checkout status.' });
             });
-          }
+        }
   
-          // Commit the transaction if both queries are successful
+          // Commit the transaction
           db.commit((err) => {
             if (err) {
+              console.error('Transaction Commit Error:', err);
               return db.rollback(() => {
                 res.status(500).json({ error: 'Transaction commit failed.' });
               });
             }
+  
             res.status(201).json({ message: 'Item successfully checked in and removed from checkout.' });
           });
         });
@@ -1704,9 +1729,8 @@ app.post('/checkin', (req, res) => {
     });
   });
   
-  
 
-app.get('/getCirculation', (req, res) => {
+app.get('/getCirculation1', (req, res) => {
     const q = `SELECT 
             p.tup_id, 
             p.patron_fname, 
@@ -1714,6 +1738,7 @@ app.get('/getCirculation', (req, res) => {
             p.patron_email, 
             p.category, 
             c.checkout_date,
+            c.status,
             c.checkout_due,
             GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
             course.course_name AS course, 
@@ -1736,7 +1761,57 @@ app.get('/getCirculation', (req, res) => {
         ORDER BY 
             MAX(c.checkout_date) DESC;
 `;
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else if (results.length > 0) {
+            res.json(results);
+        } else {
+            res.json({ message: 'No patrons with checkouts found' });
+        }
+    });
+});
 
+app.get('/getCirculation', (req, res) => {
+    const q = `SELECT 
+                p.tup_id, 
+                p.patron_fname, 
+                p.patron_lname, 
+                p.patron_email, 
+                p.category, 
+                c.checkout_date,
+                c.status,
+                c.checkout_due,
+                GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
+                course.course_name AS course, 
+                COUNT(c.patron_id) AS total_checkouts,
+                CASE 
+                    WHEN c.status = 'borrowed' THEN 'Currently Borrowed'
+                    WHEN c.status = 'returned' THEN 'Returned'
+                    ELSE 'Other'
+                END AS status_category
+            FROM 
+                patron p
+            INNER JOIN 
+                checkout c ON p.patron_id = c.patron_id
+            INNER JOIN 
+                resources r ON c.resource_id = r.resource_id
+            JOIN 
+                course ON p.course_id = course.course_id
+            GROUP BY 
+                status_category,
+                p.tup_id, 
+                p.patron_fname, 
+                p.patron_lname, 
+                p.patron_email, 
+                p.category, 
+                course.course_name
+            ORDER BY 
+                status_category, 
+                MAX(c.checkout_date) DESC;
+
+            `;
     db.query(q, (err, results) => {
         if (err) {
             console.error(err);
