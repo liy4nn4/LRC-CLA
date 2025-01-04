@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import {
   BrowserRouter,
   Routes,
@@ -25,6 +25,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import Cookies from 'js-cookie';
 import ProtectedRoute from './components/ProtectedRoute'
 const App = () => {
+  
   return (
     <div>
       <BrowserRouter>
@@ -112,7 +113,7 @@ const App = () => {
         </Routes>
       </BrowserRouter>
     </div>
-  );
-};
+  )
+}
 
-export default App;
+export default App

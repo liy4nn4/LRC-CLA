@@ -47,23 +47,23 @@
     color: var(--black);
 }
 
-.patrons-container .search-bar-box{
+.search-bar-box{
     display: flex;
     gap: 15px;
 }
 
-.patrons-container .search-field-category-filter{
+.search-field-category-filter{
     display: flex;
     gap: 30px;
 }
 
-.patrons-container .patrons-search-field,.patrons-container .patrons-category{
+.patrons-search-field,.patrons-category{
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.patrons-container .patrons-filter{
+.patrons-filter{
     padding: 5px;
     height: 40px;
     
@@ -71,25 +71,25 @@
     border-radius: 5px;
 }
 
-.patrons-container .patrons-search-bar{
+.patrons-search-bar{
     height: 40px;
     padding: 10px;
     padding-left: 15px;
     width: 600px;
     border-radius: 5px;
-    border-color: var(--shadow);
+    border-color: var(--tup-color);
     font-size: 1rem;
 }
 
-.patrons-container .patrons-search-bar:active,.patrons-container .patrons-search-bar:focus{
-    border: 3px solid var(--button);
+.patrons-search-bar:active,.patrons-search-bar:focus{
+    border: 3px solid var(--tup-color);
     outline: none;
 }
 
-.patrons-container .patrons-search-button{
+.patrons-search-button{
     height: 40px;
     border: none;
-    background-color: var(--tup-color);
+    background-color: var(--button);
     color: var(--white);
     padding: 8px;
     width: 110px;
@@ -103,45 +103,47 @@
     transition: all 0.1s linear;
 }
 
-.patrons-container .patrons-search-button:hover{
-    background-color: var(--button);
+.patrons-search-button:hover{
+    background-color: var(--button-hover);
 }
 
-.patrons-container .patrons-table {
-    table-layout: fixed !important;
-    outline: 1px solid var(--tup-color);
+.patrons-table-box{
+    width: 100%;
     border-radius: 10px;
+    border: 1px solid var(--tup-color);
     overflow: hidden;
 }
 
-.patrons-container .patrons-table thead{
+.patrons-table thead{
     background-color: var(--tup-color);
-    color: var(--white);
     
 }
 
-.patrons-container .patrons-table tr td{
-    padding: 10px;
+.patrons-table thead tr th{
+    color: var(--white);
 }
 
-.patrons-container .patrons-table thead tr td{
-    padding: 10px;
-}
-.patrons-container .patrons-table tbody tr:nth-child(even){
+.patrons-table tbody tr:nth-child(even){
     background-color: var(--light-red);
 }
 
-.patrons-container .patron-edit-checkout{
+.patrons-table{
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.patron-edit-checkout{
     display: flex;
     flex-direction: column;
     align-items: start;
     gap: 3px;
 }
 
-.patrons-container .patron-edit-button, .patron-checkout-button{
+.patron-edit-button, .patron-checkout-button{
     border-radius: 5px;
     padding: 8px 10px;
-    background-color: var(--tup-color);
+    background-color: var(--button);
     border: none;
     color: var(--white);
     display: flex;
@@ -150,6 +152,6 @@
     gap: 5px;
 }
 
-.patrons-container .patron-edit-button img, .patrons-container.patron-checkout-button img{
+.patron-edit-button img, .patron-checkout-button img{
     width: 20px;
 }

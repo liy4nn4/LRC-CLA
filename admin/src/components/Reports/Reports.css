@@ -134,20 +134,16 @@
     overflow-y: scroll;
 }
 
-.reports-container .report thead tr td{
+.reports-container .report thead tr th{
     background-color: var(--tup-color) !important;
     color: var(--white);
     /* font-size: 1rem !important; */
-    padding: 10px;
-    text-align: start;
 }
 
 .reports-container .report tbody tr td{
     vertical-align: middle;
     /* font-size: 1rem !important; */
     border-bottom: none;
-    padding: 10px;
-    text-align: start;
 }
 
 .reports-container .report tbody tr:nth-child(odd){

@@ -133,12 +133,10 @@
     
 }
 
-.circulation-container .circ-table thead tr td{
+.circulation-container .circ-table thead tr th{
     background-color: var(--tup-color) !important;
     color: var(--white);
     width: 70px;
-    padding: 10px;
-    font-size: 1rem;
     /* font-size: 1rem !important; */
 }
 
@@ -146,8 +144,6 @@
     vertical-align: middle;
     /* font-size: 1rem !important; */
     border-bottom: none;
-    padding: 10px;
-    font-size: 1rem;
 }
 
 .circulation-container .circ-table tbody tr:nth-child(odd){

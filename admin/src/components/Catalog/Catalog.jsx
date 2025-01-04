@@ -427,32 +427,32 @@ console.log(selectedFilters)
             <table className="cat-table">
               <thead>
                 <tr>
-                  {/* <td >ID</td> */}
-                  <td>
+                  {/* <th >ID</th> */}
+                  <th>
                     Title
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('title', e.target.value)}>
                       <option value="" disabled selected></option>
                       <option value="1">Sort by Title (A-z)</option>
                       <option value="2">Sort by Title (Z-A)</option>
                     </select>
-                  </td>
-                  <td>Type
+                  </th>
+                  <th>Type
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('type', e.target.value)}>
                     <option value="" disabled selected></option>
                       {type.length>0?type.map(item=>{
                         return <option value={item.type_id}>{item.type_name}</option>
                       }):''}
                     </select>
-                  </td>
-                  <td>
+                  </th>
+                  <th>
                     Authors
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('author', e.target.value)}>
                       <option value="" disabled selected></option>
                       <option value="1">Sort by Author Name (A-z)</option>
                       <option value="2">Sort by Author Name (Z-A)</option>
                     </select>
-                  </td>
-                  <td>
+                  </th>
+                  <th>
                     Department
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('department', e.target.value)}>
                       <option value="" disabled selected></option>
@@ -460,17 +460,17 @@ console.log(selectedFilters)
                         return <option value={item.dept_id}>{item.dept_name}</option>
                       }):''}
                     </select>
-                  </td>
-                  <td>Topic
+                  </th>
+                  <th>Topic
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('topic', e.target.value)}>
                       <option value="" disabled selected></option>
                       {topic.length>0?topic.map(item=>{
                         return <option value={item.topic_id}>{item.topic_name}</option>
                       }):''}
                     </select>
-                  </td>
-                  <td >Copies</td>
-                  <td ></td>
+                  </th>
+                  <th >Copies</th>
+                  <th ></th>
                 </tr>
               </thead>
               <tbody>

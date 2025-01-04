@@ -53,9 +53,9 @@ const Audit = () => {
         <table>
             <thead>
                 <tr>
-                    <td>User</td>
-                    <td>Action</td>
-                    <td>Timestamp</td>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody>

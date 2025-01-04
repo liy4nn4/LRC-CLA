@@ -6,9 +6,6 @@ import exportIcon from '../../assets/Management System/logbook/export.svg'
 import left from '../../assets/Management System/logbook/arrow-left-red.svg'
 import right from '../../assets/Management System/logbook/arrow-right-red.svg'
 import * as XLSX from 'xlsx'; // Import xlsx for Excel export
-import io from 'socket.io-client';
-
-const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const Logbook = () => {
     const [patron, setPatron] = useState([]);
@@ -21,18 +18,7 @@ const Logbook = () => {
 
     useEffect(() => {
         getPatron();
-        
-        // Listen for updates from the server (via socket)
-        socket.on('attendanceUpdated', () => {
-          console.log('attendance updated, refreshing attendance...');
-          getPatron(); // Call userAccounts to refresh the list
-        });
-    
-        return () => {
-          socket.off('attendanceUpdated'); // Cleanup on component unmount
-        };
     }, [currentPage, entriesPerPage]);
-
 
     const getPatron = async () => {
         try {
@@ -108,6 +94,7 @@ const Logbook = () => {
 
             {/* filters */}
             <div className="logbook-filters">
+                <div className="logbook-entries-page">
                     <label htmlFor="entries">Entries per page</label>
                     <select
                         className="form-select"
@@ -119,24 +106,24 @@ const Logbook = () => {
                         <option value={20}>20</option>
                         <option value="All">All</option>
                     </select>
-                
+                </div>
             </div>
 
             {/* table */}
-      
+            <div className='logbook-table-box'>
                 <table className='logbook-table'>
                     <thead>
                         <tr>
-                            <td>No.</td>
-                            <td>TUP ID</td>
-                            <td>First Name</td>
-                            <td>Last Name</td>
-                            <td>Gender</td>
-                            <td>Phone No.</td>
-                            <td>Course</td>
-                            <td>College</td>
-                            <td>Date</td>
-                            <td>Time in</td>
+                            <th>Number</th>
+                            <th>TUP ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Gender</th>
+                            <th>Phone No.</th>
+                            <th>Course</th>
+                            <th>College</th>
+                            <th>Date</th>
+                            <th>Time in</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,12 +152,12 @@ const Logbook = () => {
                     </tbody>
                     
                 </table>
-          
+            </div>
 
             {/* pagination */}
             <div className="logbook-table-pagination">
                 <p className="logbook-table-entries m-0">
-                    Showing {patron.length} of {totalEntries}   Entries
+                    Showing {patron.length} of {totalEntries} Entries
                 </p>
                 {entriesPerPage !== "All" && (
                     <div className="logbook-table-button-pagination">
