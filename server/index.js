@@ -12,7 +12,7 @@ import bcrypt from 'bcrypt';
 const saltRounds = 10;
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
-
+import cron from 'node-cron'
 
 dotenv.config();
 
@@ -3342,8 +3342,73 @@ app.get('/visitor/stats', (req,res)=>{
 })
 
 /*--------------check overdue resources using cron-------- */
+const checkOverdue = async () => {
+    const q = `
+    SELECT c.checkout_id
+    FROM checkout c
+    LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
+    WHERE ci.checkout_id IS NULL`;
+
+    db.query(q, (err, result) => {
+        if (err) {
+            return console.error('Error fetching checkout data:', err);
+        }
+
+        if (result.length > 0) {
+            result.forEach(item => {
+                console.log('Processing checkout_id:', item.checkout_id);
+
+                // Check if the checkout_id already exists in the overdue table
+                const checkOverdueQuery = `
+                SELECT * FROM overdue WHERE checkout_id = ?`;
+
+                db.query(checkOverdueQuery, [item.checkout_id], (err, overdueResult) => {
+                    if (err) {
+                        return console.error('Error checking overdue table:', err);
+                    }
+
+                    if (overdueResult.length > 0) {
+                        // If the checkout_id exists, increment the overdue_days by 1
+                        const updateOverdueQuery = `
+                        UPDATE overdue
+                        SET overdue_days = overdue_days + 1
+                        WHERE checkout_id = ?`;
+
+                        db.query(updateOverdueQuery, [item.checkout_id], (err, updateResult) => {
+                            if (err) {
+                                return console.error('Error updating overdue table:', err);
+                            }
+
+                            console.log('Overdue days incremented for checkout_id:', item.checkout_id);
+                        });
+                    } else {
+                        // If checkout_id doesn't exist in the overdue table, insert it
+                        const insertOverdueQuery = `
+                        INSERT INTO overdue (overdue_days, overdue_fine, checkout_id)
+                        VALUES (?, ?, ?)`;
+
+                        const values = [1, 0, item.checkout_id];
+
+                        db.query(insertOverdueQuery, values, (err, insertResult) => {
+                            if (err) {
+                                return console.error('Error inserting into overdue table:', err);
+                            }
+
+                            console.log('New overdue entry created for checkout_id:', item.checkout_id);
+                        });
+                    }
+                });
+            });
+        } else {
+            console.log('No overdue checkouts found.');
+        }
+    });
+};
 
 
+cron.schedule('0 0 * * *', () => {
+    checkOverdue()
+});
 
 server.listen(3001,()=>{
     console.log('this is the backend')
