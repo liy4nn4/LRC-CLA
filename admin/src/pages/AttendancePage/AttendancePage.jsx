@@ -15,7 +15,6 @@ const AttendancePage = () => {
   const handleInputChange = (e) => {
     setStudentId(e.target.value);
   };
-  
 
   // Handle form submission
   const handleSubmit = async (e) => {

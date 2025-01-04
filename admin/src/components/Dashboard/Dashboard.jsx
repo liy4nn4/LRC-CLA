@@ -12,7 +12,6 @@ import { faUsers ,faBook, faPlus} from '@fortawesome/free-solid-svg-icons';
 import { faker } from '@faker-js/faker';
 import MultiLineGraph from '../MultiLineGraph'
 import { Doughnut } from 'react-chartjs-2'
-import PieChart from '../PieChart'
 import BarChart from '../BarChart'
 
 
@@ -27,14 +26,14 @@ const Dashboard = () => {
   const [dateTime,setDateTime] = useState(new Date());
   const [dropdown, setDropdown]= useState(false);
   const [checkoutData, setCheckoutData] = useState([]);
-  // sample data
+  const [uname, setUname] = useState(null)
   let navigate = useNavigate();
-
-
-  // for borrowing trends (per week)
   const weeklyLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const booksData = [50, 65, 80, 45, 90, 100]; // Example: Borrowed books data
-  const journalsData = [20, 30, 50, 25, 40, 60]; // Example: Borrowed journals data
+  const [booksData, setBooksData] = useState([])
+  const [jnData, setJnData] = useState([])
+  const [visitStats, setVisitStats] = useState([])
+  // const booksData = [50, 65, 80, 45, 90, 100]; // Example: Borrowed books data
+  // const journalsData = [20, 30, 50, 25, 40, 60]; // Example: Borrowed journals data
 
   const data = {
     labels:weeklyLabels,
@@ -54,7 +53,7 @@ const Dashboard = () => {
       },
       {
         label: 'Journals & Newsletters',
-        data: journalsData, // Updated API
+        data: jnData, // Updated API
         borderColor: '#EDDF13',
         backgroundColor: '#EDDF13',
         yAxisID: 'y1',
@@ -67,11 +66,30 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Visitors',
-        data: booksData,
+        data: visitStats,
         backgroundColor: '#94152B',
       }
     ],
   };
+
+  useEffect(() => {
+    // Fetch session or user data from the server to get the username
+    const getUsername = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
+            if (response.data.user) {
+                setUname(response.data.user.username); // Assuming the role is returned from session
+            }
+        } catch (err) {
+            console.log('Error fetching session data', err);
+        }
+    };
+
+    getBookTrends()
+    getJnTrends()
+    visitorStats()
+    getUsername();
+  }, []);
 
   useEffect(() => {
     //setInterval throws an id na pwede natin gamitin to stop the interval
@@ -94,6 +112,57 @@ const Dashboard = () => {
     setDropdown(prev=>!prev)
   }
 
+  //get book trends
+  const getBookTrends = async()=>{
+    try{
+      const response = await axios.get(`http://localhost:3001/borrowed/book/trends`)
+      const books = response.data;
+      console.log(books)
+
+      const borrowingTrends = books.map(item=>
+        item.total_books_borrowed
+      )
+      setBooksData(borrowingTrends)
+      
+    }catch(err){
+      console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
+    }
+  }
+
+  //get journal and newsletter trends
+  const getJnTrends = async()=>{
+    try{
+      const response = await axios.get(`http://localhost:3001/borrowed/jn/trends`)
+      const jn = response.data;
+      console.log(jn)
+
+      const jnTrends = jn.map(item=>
+        item.total_jn_borrowed
+      )
+      setJnData(jnTrends)
+      
+    }catch(err){
+      console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
+    }
+  }
+
+  const visitorStats = async()=>{
+    try{
+      const response = await axios.get(`http://localhost:3001/visitor/stats`)
+      const visitors = response.data;
+      console.log(visitors)
+
+      const visitorsStats = visitors.map(item=>
+        item.total_attendance
+      )
+      setVisitStats(visitorsStats)
+      
+    }catch(err){
+      console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
+    }
+  }
+
+  //total visitors
   const getTotalVisitors = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/getTotalVisitors`, {
@@ -106,6 +175,7 @@ const Dashboard = () => {
     }
   };
 
+  //total borrowed
   const getBorrowedBooks = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/getBorrowedBooks`, {
@@ -118,6 +188,7 @@ const Dashboard = () => {
     }
   };
 
+  //books list
   const getAddedBooks = async()=>{
     try {
       const response = await axios.get(`http://localhost:3001/getAddedBooks`).then(res=>res.data);
@@ -128,6 +199,7 @@ const Dashboard = () => {
     }
   }
 
+  //borrower
   const getBorrowers = async()=>{
     try {
       const response = await axios.get(`http://localhost:3001/getBorrowers`).then(res=>res.data);
@@ -138,6 +210,7 @@ const Dashboard = () => {
     }
   }
   
+  //popular book
   const fetchCovers = async () => {
     try {
         const response = await axios.get(`http://localhost:3001/getCover`);
@@ -147,8 +220,7 @@ const Dashboard = () => {
     }
   }
 
-
-
+  //overdue books
   const fetchOverdueBooks = async () => {
       try {
           const response = await axios.get(`http://localhost:3001/api/overdue-books`);
@@ -158,7 +230,7 @@ const Dashboard = () => {
       }
   };
 
-
+  //books issued
   const fetchCheckoutInfo = async () => {
       try {
           const response = await fetch(`http://localhost:3001/checkout-info`);
@@ -177,7 +249,7 @@ const Dashboard = () => {
       {/* dashboard heading */}
       <div className="dashboard-heading">
         {/* Goodmorning,admin */}
-        <p className='dashboard-heading-text'>{dateTime.getHours()>=1 && dateTime.getHours()<12?'Good morning, ':dateTime.getHours()>=12&&dateTime.getHours()<17?'Good afternoon, ':'Good evening,'} <span>admin</span></p>
+        <p className='dashboard-heading-text'>{dateTime.getHours()>=1 && dateTime.getHours()<12?'Good morning, ':dateTime.getHours()>=12&&dateTime.getHours()<17?'Good afternoon, ':'Good evening,'} <span>{uname}</span></p>
       </div>
 
       {/* dashboard boxes */}
@@ -254,7 +326,7 @@ const Dashboard = () => {
                   <td>{item.tup_id}</td>
                   <td>{item.patron_fname} {item.patron_lname}</td>
                   <td>{item.course}</td>
-                  <td><pre style={{whiteSpace: "pre-wrap"}}><span>{item.borrowed_books}</span></pre></td>
+                  <td>{item.borrowed_books}</td>
                 </tr> )):
                 <tr>
                   <td colSpan="7">No records available</td> 
@@ -335,7 +407,7 @@ const Dashboard = () => {
               </tr>}
               </tbody>
             </table>
-            <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+            <div className='see-all-box'><Link to={'/circulation'}><button className='see-all-button'>See all</button></Link></div>
             {/* <div className='table-pages'>
               <img src={left} alt="" />
               <div className='page-numbers'>
@@ -374,7 +446,7 @@ const Dashboard = () => {
             </tr>}
               </tbody>
             </table>
-            <div className='see-all-box'><Link to={'/catalog'}><button className='see-all-button'>See all</button></Link></div>
+            <div className='see-all-box'><Link to={'/circulation'}><button className='see-all-button'>See all</button></Link></div>
           </div>
     </div>
   )

@@ -97,7 +97,7 @@ const Circulation = () => {
               <td>Book/s issued</td>
               <td>Course</td>
               <td>Borrow Date</td>
-              <td>Return Date</td>
+              <td>Status</td>
             </tr>
           </thead>
           <tbody>
@@ -115,7 +115,7 @@ const Circulation = () => {
                     {new Date(borrower.checkout_date).toLocaleDateString('en-CA')}
                   </td>
                   <td style={{ padding: '10px' }}>
-                    {new Date(borrower.checkout_due).toLocaleDateString('en-CA')}
+                    {borrower.status}
                   </td>
                 </tr>
               ))
