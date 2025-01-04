@@ -2994,8 +2994,7 @@ app.post('/login', (req, res) => {
 
     if (username && password) {
         if (req.session.authenticated) {
-            // User is already logged in
-            return res.json(req.session);
+            return res.status(200).json(req.session);
         } else {
             const query = `
                 SELECT staff_uname, staff_password, role_name
@@ -3004,32 +3003,43 @@ app.post('/login', (req, res) => {
                 WHERE staff_uname = ?`;
 
             db.query(query, [username], (err, results) => {
-                if (err) return res.status(500).send({ error: 'Database query failed' });
+                if (err) {
+                    console.error('Database error:', err);
+                    return res.status(500).json({ error: 'Database query failed', session: req.session });
+                }
 
                 if (results.length > 0) {
                     const user = results[0];
                     const role = user.role_name;
                     bcrypt.compare(password, user.staff_password, (err, isMatch) => {
+                        if (err) {
+                            console.error('Password comparison error:', err);
+                            return res.status(500).json({ error: 'Password comparison failed', session: req.session });
+                        }
                         if (isMatch) {
                             req.session.authenticated = true;
                             req.session.user = { username, role };
-                            res.status(200).json(req.session);
+                            return res.status(200).json(req.session);
                         } else {
-                            res.status(401).send({ message: 'Invalid username or password' });
+                            return res.status(401).json({ message: 'Invalid username or password', session: req.session });
                         }
                     });
                 } else {
-                    res.status(404).send({ message: 'User not found' });
+                    return res.status(404).json({ message: 'User not found', session: req.session });
                 }
             });
         }
+    } else {
+        return res.status(400).json({ message: 'Username and password are required', session: req.session });
     }
 });
+
 
 
 app.get('/login', (req, res) => {
     if (req.session.user) {
         res.send({ loggedIn: true, user: req.session.user });
+        console.log(req.session.user)
     } else {
         res.send({ loggedIn: false, user: null });
     }
@@ -3053,6 +3063,87 @@ app.post('/logout', (req, res) => {
         res.status(200).send({ message: 'Logged out successfully' });
     });
 });
+
+/*------------------CHARTS IN DASHBOARD--------------- */
+app.get('/borrowed/book/trends', (req,res)=>{
+    const q = `
+    SELECT 
+        DAYNAME(c.checkout_date) AS day_of_week, 
+        COUNT(*) AS total_books_borrowed
+    FROM 
+        checkout c
+    JOIN 
+        book b ON c.resource_id = b.resource_id
+    WHERE
+        c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+    GROUP BY 
+        DAYOFWEEK(c.checkout_date)
+    ORDER BY 
+        CASE 
+            WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
+            ELSE DAYOFWEEK(c.checkout_date) - 1 
+        END;`
+
+    db.query(q, (err,result)=>{
+        if (err) return res.status(500).send({ error: 'Database query failed' });
+
+        res.send(result)
+    })
+})
+
+app.get('/borrowed/jn/trends', (req,res)=>{
+    const q = `
+    SELECT 
+        DAYNAME(c.checkout_date) AS day_of_week, 
+        COUNT(*) AS total_jn_borrowed
+    FROM 
+        checkout c
+    JOIN 
+        journalnewsletter jn ON c.resource_id = jn.resource_id
+    WHERE
+        c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+    GROUP BY 
+        DAYOFWEEK(c.checkout_date)
+    ORDER BY 
+        CASE 
+            WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
+            ELSE DAYOFWEEK(c.checkout_date) - 1 
+        END;`
+
+    db.query(q, (err,result)=>{
+        if (err) return res.status(500).send({ error: 'Database query failed' });
+
+        res.send(result)
+    })
+})
+
+app.get('/visitor/stats', (req,res)=>{
+    const q = `
+   SELECT 
+        DAYNAME(a.att_date) AS day_of_week, 
+        COUNT(*) AS total_attendance,
+        a.att_date
+    FROM 
+        attendance a
+    WHERE
+        a.att_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+        AND a.att_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+    GROUP BY 
+        DAYOFWEEK(a.att_date)
+    ORDER BY 
+        CASE 
+            WHEN DAYOFWEEK(a.att_date) = 1 THEN 7 
+            ELSE DAYOFWEEK(a.att_date) - 1 
+        END`
+
+    db.query(q, (err,result)=>{
+        if (err) return res.status(500).send({ error: 'Database query failed' });
+
+        res.send(result)
+    })
+})
 
 server.listen(3001,()=>{
     console.log('this is the backend')
