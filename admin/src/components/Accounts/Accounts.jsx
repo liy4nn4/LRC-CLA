@@ -349,47 +349,47 @@ const Accounts = () => {
       <table>
         <thead>
           <tr>
-            <th>
+            <td>
               First Name
               <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('fname', e.target.value)}>
                   <option value="" disabled selected></option>
                   <option value="1" >Sort by First Name (A-Z)</option>
                   <option value="2">Sort by First Name (Z-A)</option>
               </select>
-            </th>
-            <th>
+            </td>
+            <td>
               Last Name
               <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('lname', e.target.value)}>
                 <option value="" disabled selected></option>
                   <option value="1">Sort by Last Name (A-Z)</option>
                   <option value="2">Sort by Last Name (Z-A)</option>
               </select>
-            </th>
-            <th>
+            </td>
+            <td>
               Username
               <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('uname', e.target.value)}>
                   <option value="" disabled selected></option>
                   <option value="1">Sort by Username (A-Z)</option>
                   <option value="2">Sort by Username (Z-A)</option>
               </select>
-            </th>
-            <th>
+            </td>
+            <td>
               Role
               <select name="role" id="" className='sort' onChange={(e)=>handleSelectedFilter('role', e.target.value)}>
                   <option value="" disabled selected></option>
                   <option value="1">Admin</option>
                   <option value="2">Staff</option>
               </select>
-            </th>
-            <th>
+            </td>
+            <td>
               Status
               <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('status', e.target.value)}>
                   <option value="" disabled selected></option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
               </select>
-            </th>
-            <th>Action</th>
+            </td>
+            <td>Action</td>
           </tr>
         </thead>
         <tbody>

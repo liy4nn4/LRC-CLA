@@ -45,34 +45,28 @@
     color: var(--black);
 }
 
-.search-export{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.log-search-bar{
+.logbook-container .log-search-bar{
     width: 400px;
 }
 
-.logbook-search{
+.logbook-container .logbook-search{
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.log-search-button{
+.logbook-container .log-search-button{
     background-color: var(--tup-color);
     color: var(--white);
 }
 
-.log-search-button:hover,.log-search-button:focus{
+.logbook-container .log-search-button:hover,.logbook-container .log-search-button:focus{
     border-color: var(--button) !important;
     background-color: var(--button) !important;
     color: var(--white) !important;
 }
 
-.log-search-button img{
+.logbook-container .log-search-button img{
     width: 14px;
     position: relative;
     top: -1.5px;
@@ -80,145 +74,73 @@
    
 }
 
-.logbook-export-button{
-    background-color: var(--yellow);
-}
-
-.logbook-export-button img{
-    width: 20px;
-    position: relative;
-    top: -1.5px;
-    margin-right: 6px;
-}
-
-.logbook-export-button:hover,.logbook-export-button:focus{
-    background-color: var(--yellow-hover) !important;
-    border-color: var(--yellow-hover) !important;
-    color: var(--black) !important;
-}
-
-.logbook-filters{
+.logbook-container .logbook-filters{
     display: flex;
+    gap: 10px;
     align-items: center;
-    gap: 50px;
 }
 
-.logbook-entries-page{
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 300px;
-
+.logbook-container .logbook-filters select{
+    width: 100px;
 }
 
-.logbook-date-filter{
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.log-dropdown{
-    border-color: var(--button);
-}
-
-.log-dropdown:hover,.log-dropdown:focus{
-    border-color: var(--button) !important;
-    background-color: var(--button) !important;
-    color: var(--white) !important;
-}
-
-.logbook-filter-date{
-    padding: 5px;
-    height: 38px;
-    width: 150px;
-    border-color: var(--tup-color);
-    border-radius: 5px;
-}
-
-.logbook-clear-button{
-    background-color: var(--tup-color);
-    color: var(--white);
-}
-
-.logbook-clear-button:hover,.logbook-clear-button:focus{
-    background-color: var(--button) !important;
-    color: var(--white) !important;
-}
-
-.logbook-go-button{
-    background-color: green;
-    color: var(--white);
-}
-
-.logbook-go-button:hover,.logbook-go-button:focus{
-    background-color: var(--green) !important;
-    color: var(--white) !important;
-}
-
-.logbook-table-box{
+.logbook-container .logbook-table{
+    table-layout: fixed;
+    overflow: hidden;
+    outline: 1px solid var(--tup-color) !important;
     width: 100%;
     border-radius: 10px;
-    border: 1px solid var(--tup-color);
-    overflow: auto;
-    /* height: 50vh; */
-    scrollbar-width: thin;
 }
 
-.logbook-table-box thead{
+.logbook-container .logbook-table-box thead{
     position: sticky;
     top: 0;
-
-    
 }
 
-.logbook-table thead{
+.logbook-container .logbook-table thead{
     background-color: var(--tup-color);
-    
 }
 
-.logbook-table tr{
-    
+.logbook-container .logbook-table tr td{
+    padding: 13px;
+    text-align: start;
+    /* font-size: 0.9rem; */
 }
 
-.logbook-table thead tr th{
+.logbook-container .logbook-table thead tr td{
     color: var(--white);
 }
 
-.logbook-table tbody tr:nth-child(even){
+.logbook-container .logbook-table tbody tr:nth-child(even){
     background-color: var(--light-red);
 }
 
-.logbook-table{
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
-}
 
-.logbook-table-pagination{
+.logbook-container .logbook-table-pagination{
     display: flex;
     justify-content: space-between;
 
 }
 
-.logbook-table-pagination button{
+.logbook-container .logbook-table-pagination button{
     border: none;
 }
 
-.logbook-current-entry,.logbook-total-entry{
+.logbook-container .logbook-current-entry,.logbook-total-entry{
     font-weight: 700;
 }
 
-.logbook-table-button-pagination{
+.logbook-container.logbook-table-button-pagination{
     display: flex;
     gap: 15px;
 }
 
-.logbook-pages{
+.logbook-container .logbook-pages{
     display: flex;
     gap: 8px;
 }
 
-.logbook-pages-not-current{
+.logbook-container.logbook-pages-not-current{
     background-color: var(--white);
     border: 1px solid var(--tup-color);
     width: 20px;
@@ -226,19 +148,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 1rem;
     border-radius: 50%;
     color: var(--tup-color);
     transition: all 0.2s linear;
     cursor: pointer;
 }
 
-.logbook-pages-not-current:hover{
+.logbook-container .logbook-pages-not-current:hover{
     background-color: var(--tup-color);
     color: var(--white);
 }
 
-.logbook-pages-current{
+.logbook-container .logbook-pages-current{
     background-color: var(--tup-color) !important;
     color: var(--white) !important;
     border: none;
@@ -247,18 +169,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 1rem;
     border-radius: 50%;
     transition: all 0.2s linear;
     cursor: pointer;
 }
 
-.logbook-pages-current:hover{
+.logbook-container .logbook-pages-current:hover{
     background-color: var(--button-hover);
+        
     
 }
 
-.logbook-table-button-pagination{
+.logbook-container .logbook-table-button-pagination{
     /* cursor: pointer; */
     display: flex;
     align-items: center;

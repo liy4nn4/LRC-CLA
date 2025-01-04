@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -22,9 +22,10 @@ import CirculationCheckoutPage from './pages/CirculationCheckoutPage/Circulation
 import AuditPage from './pages/AuditPage/AuditPage';
 import AccountsPage from './pages/AccountsPage/AccountsPage';
 import LoginPage from './pages/LoginPage/LoginPage';
-  
+import LoginPage from './pages/LoginPage/LoginPage';
+import Cookies from 'js-cookie';
+import ProtectedRoute from './components/ProtectedRoute'
 const App = () => {
-  
   return (
     <div>
       <BrowserRouter>
@@ -46,12 +47,10 @@ const App = () => {
           <Route path='/attendance' element={<AttendancePage/>}/>
           <Route path='/audit' element={<AuditPage/>}/>
           <Route path='/accounts' element={<AccountsPage/>}/>
-          <Route path='/login' element={<LoginPage/>}/>
-          
         </Routes>
       </BrowserRouter>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

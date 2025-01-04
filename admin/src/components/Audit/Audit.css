@@ -116,25 +116,26 @@
 .audit-container table{
     width: 100%;
     border-radius: 10px;
-    border: 1px solid var(--tup-color);
     overflow: hidden;
+    text-align: center;
+    outline: 1px solid var(--tup-color);
 }
 
 .audit-container table thead{
     background-color: var(--tup-color);
+    /* color: var(--white); */
     
 }
 
-.audit-container table thead tr th{
+.audit-container table thead tr td{
     color: var(--white);
+    padding: 10px;
+}
+
+.audit-container table tbody tr td{
+    padding: 10px;
 }
 
 .audit-container table tbody tr:nth-child(even){
     background-color: var(--light-red);
-}
-
-.audit-container table{
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
 }
