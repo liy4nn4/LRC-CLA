@@ -10,6 +10,7 @@ const CirculationCheckout = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [uname, setUname] = useState(null);
   const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
   const id = localStorage.getItem('id');
   const clickedAction = localStorage.getItem('clickedAction');
@@ -30,8 +31,21 @@ const CirculationCheckout = () => {
     }
   };
 
+  const getUsername = async () => {
+    try {
+        const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
+        if (response.data.user) {
+            setUname(response.data.user.username); // Assuming the role is returned from session
+            
+        }
+    } catch (err) {
+        console.log('Error fetching session data', err);
+    }
+};
+
   useEffect(() => {
     getPatron();
+    getUsername();
   }, []);
 
   const handleCheckin = async () => {
@@ -41,18 +55,21 @@ const CirculationCheckout = () => {
           // Get checkout record
           const checkoutResponse = await axios.get('http://localhost:3001/getCheckoutRecord', {
             params: { resource_id: item.resource_id, patron_id: id },
-          });
-  
+          }); 
           if (!checkoutResponse.data.checkout_id) {
             throw new Error(`No checkout record found for resource_id: ${item.resource_id}`);
           }
   
           const checkoutId = checkoutResponse.data.checkout_id;
-  
+          const resourceid = item.resource_id;
+          console.log(resourceid)
           // Post to checkin endpoint
           const response = await axios.post('http://localhost:3001/checkin', {
             checkout_id: checkoutId,
             returned_date: date,
+            patron_id: id,
+            resource_id: resourceid,
+            username: uname,
           });
   
           if (response.status !== 201) {

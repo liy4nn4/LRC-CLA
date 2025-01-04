@@ -18,6 +18,7 @@ const AdminTopNavbar = () => {
                 const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
                 if (response.data.user) {
                     setUname(response.data.user.username); // Assuming the role is returned from session
+                    
                 }
             } catch (err) {
                 console.log('Error fetching session data', err);
