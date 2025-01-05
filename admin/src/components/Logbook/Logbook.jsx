@@ -1,10 +1,9 @@
     import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import './Logbook.css'
-import search from '../../assets/Management System/logbook/search.svg'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch, faArrowLeft, faArrowRight} from '@fortawesome/free-solid-svg-icons';
 import exportIcon from '../../assets/Management System/logbook/export.svg'
-import left from '../../assets/Management System/logbook/arrow-left-red.svg'
-import right from '../../assets/Management System/logbook/arrow-right-red.svg'
 import * as XLSX from 'xlsx'; // Import xlsx for Excel export
 import io from 'socket.io-client';
 
@@ -21,18 +20,7 @@ const Logbook = () => {
 
     useEffect(() => {
         getPatron();
-        
-        // Listen for updates from the server (via socket)
-        socket.on('attendanceUpdated', () => {
-          console.log('attendance updated, refreshing attendance...');
-          getPatron(); // Call userAccounts to refresh the list
-        });
-    
-        return () => {
-          socket.off('attendanceUpdated'); // Cleanup on component unmount
-        };
     }, [currentPage, entriesPerPage]);
-
 
     const getPatron = async () => {
         try {
@@ -40,8 +28,8 @@ const Logbook = () => {
                 search: searchInput,
                 startDate,
                 endDate,
-                limit: entriesPerPage === "All" ? null : entriesPerPage,
-                page: entriesPerPage === "All" ? 1 : currentPage, // Include current page in the request
+                limit: entriesPerPage,
+                page: currentPage, // Include current page in the request
             };
             const query = new URLSearchParams(params).toString();
             const response = await axios.get(`http://localhost:3001/patronSort?${query}`);
@@ -75,6 +63,29 @@ const Logbook = () => {
             'Date',
             'Time in',
         ];
+
+        // Format data for Excel
+        const data = patron.map((item, index) => ({
+            'Number': index + 1 + (currentPage - 1) * entriesPerPage,
+            'TUP ID': item.tup_id,
+            'First Name': item.patron_fname,
+            'Last Name': item.patron_lname,
+            'Gender': item.patron_sex,
+            'Phone No.': item.patron_mobile,
+            'Email': item.patron_email,
+            'Course': item.course,
+            'College': item.college,
+            'Date': new Date(item.att_date).toLocaleDateString('en-CA'),
+            'Time in': item.att_log_in_time,
+        }));
+
+        // Create a worksheet and a workbook
+        const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Logbook');
+
+        // Export to Excel file
+        XLSX.writeFile(workbook, 'Logbook.xlsx');
     };
 
     const totalPages = Math.ceil(totalEntries / entriesPerPage);
@@ -84,6 +95,7 @@ const Logbook = () => {
             setCurrentPage(newPage);
         }
     };
+
 
     return (
         <div className='logbook-container'>
@@ -101,7 +113,8 @@ const Logbook = () => {
                         onChange={(e) => setSearchInput(e.target.value)}
                     />
                     <button className="btn log-search-button" onClick={getPatron}>
-                        <img src={search} alt="" /> Search
+                        <FontAwesomeIcon icon={faSearch} className='icon'/> 
+                        Search
                     </button>
                 </div>
             </div>
@@ -174,14 +187,14 @@ const Logbook = () => {
                 </p>
                 {entriesPerPage !== "All" && (
                     <div className="logbook-table-button-pagination">
-                        <button onClick={() => handlePageChange(currentPage - 1)} className="btn btn-outline-danger">
-                            <img src={left} alt="" />
+                        <button onClick={() => handlePageChange(currentPage - 1)} className="btn ">
+                            <FontAwesomeIcon icon={faArrowLeft} className='icon'/>
                         </button>
                         <div className="logbook-pages">
                             Page {currentPage} of {totalPages}
                         </div>
-                        <button onClick={() => handlePageChange(currentPage + 1)} className="btn btn-outline-danger">
-                            <img src={right} alt="" />
+                        <button onClick={() => handlePageChange(currentPage + 1)} className="btn ">
+                            <FontAwesomeIcon icon={faArrowRight} className='icon'/>
                         </button>
                     </div>
                 )}
