@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './AddItem.css';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import CatalogInfo from '../CatalogInfo/CatalogInfo';
 import Cataloging from '../Cataloging/Cataloging';
 import axios from 'axios';
@@ -13,7 +13,6 @@ import { viewResourcesOffline } from '../../indexedDb/viewResourcesOffline';
 import { editResourceOffline } from '../../indexedDb/editResourcesOffline';
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal';
 
-const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const AddItem = () => {
     //pag may id, nagiging view ung purpose ng add item component
@@ -24,7 +23,7 @@ const AddItem = () => {
     const navigate = useNavigate()
     // initialize offline database
     const [disabled,setDisabled] = useState(false)
-    const [type, setType] = useState('');
+    //const [type, setType] = useState('');
     const [bookData, setBookData] = useState({
         mediaType: '1',
         authors: [],
@@ -282,16 +281,16 @@ const AddItem = () => {
         }));
     }
     // Add publisher
-    const addPublisher = (publisher) => {
-        if (publisher.length !== 1) {
-            setBookData((prevData) => ({
-                ...prevData,
-                publisher
-            }));
-        } else {
-            console.log('Please enter valid publisher data');
-        }
-    };
+    // const addPublisher = (publisher) => {
+    //     if (publisher.length !== 1) {
+    //         setBookData((prevData) => ({
+    //             ...prevData,
+    //             publisher
+    //         }));
+    //     } else {
+    //         console.log('Please enter valid publisher data');
+    //     }
+    // };
     // Add adviser
     const addAdviser = (adviser) => {
         console.log(adviser)
@@ -533,7 +532,7 @@ const AddItem = () => {
         console.log('edit resource offline')
             try{
                 setLoading(true)
-                const response = await editResourceOffline(bookData,parseInt(id))
+                // const response = await editResourceOffline(bookData,parseInt(id))
                 setLoading(false)
                 setStatusModal(true)
                 setStatusModalContent({
