@@ -2097,6 +2097,19 @@ ORDER BY
     });
 });
 
+app.get('/getAudit', (req, res) => {
+    const q = `SELECT * FROM audit_log`;
+
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error('Database query error:', err.message);
+            res.status(500).send({ error: 'Database error', details: err.message });
+        } else {
+            res.json(results.length > 0 ? results : []);
+        }
+    });
+});
+
 app.get('/getAddedBooks', (req, res) => {
     const q = `SELECT 
     r.resource_id, 
