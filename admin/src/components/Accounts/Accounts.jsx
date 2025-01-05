@@ -7,7 +7,7 @@ import EditUserModal from '../EditUserModal/EditUserModal';
 import DeactivateModal from '../DeactivateModal/DeactivateModal';
 import ActivateModal from '../ActivateModal/ActivateModal';
 import axios from 'axios';
-import Loading from '../Loading/Loading';
+
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal';
 
 import io from 'socket.io-client';
@@ -36,7 +36,7 @@ const Accounts = () => {
   const [toEditAccount, setToEditAccount] = useState({});
   const [selectedUname, setSelectedUname] = useState('');
   const [selectedId, setSelectedId] = useState('');
-  const [pagination, setPagination] = useState(5); // Items per page
+
   const [currentPage, setCurrentPage] = useState(1); // Current page
   const [totalPages, setTotalPages] = useState(0); // Total pages
   const [keyword, setKeyword] = useState('');
