@@ -27,9 +27,9 @@ const Dashboard = () => {
   const [covers, setCovers] = useState([]);
   const date = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });  // e.g., "2024-12-16"
   const [overdueBooks, setOverdueBooks] = useState([]);
-  //const [dateTime,setDateTime] = useState(new Date());
-  //const [dropdown, setDropdown]= useState(false);
-  //const [checkoutData, setCheckoutData] = useState([]);
+  const [dateTime,setDateTime] = useState(new Date());
+  const [dropdown, setDropdown]= useState(false);
+  const [checkoutData, setCheckoutData] = useState([]);
   const [uname, setUname] = useState(null)
   //let navigate = useNavigate();
   const weeklyLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
