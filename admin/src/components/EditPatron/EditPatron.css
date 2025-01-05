@@ -112,6 +112,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    margin-bottom: 16px;
 
 }
 
@@ -163,4 +164,10 @@
     background-color: var(--button-hover); /* Darker green on hover */
 }
 
+.patron-error{
+    margin-top: 4px;
+    color: var(--tup-color);
+    font-style: italic;
+    font-size: 12px;
+}
 

@@ -15,10 +15,11 @@ import cookieParser from 'cookie-parser'
 import cron from 'node-cron'
 import nodemailer from 'nodemailer'
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+import validateTupIdRouter from './routes/validateTupId.js'; // Adjust the path if needed
 
 dotenv.config();
 
-const dbPromise = mysqlPromise.createConnection({ host: process.env.DB_HOST_LOCAL,
+const dbPromise = mysqlPromise.createPool({ host: process.env.DB_HOST_LOCAL,
     user: process.env.DB_USER_LOCAL,
     password: process.env.DB_PASSWORD_LOCAL,
     database: process.env.DB_DATABASE_LOCAL, });
@@ -32,6 +33,7 @@ app.use(cors({
     credentials:true
 }));
 
+ 
 
 // app.use((req,res,next)=>{
 //     console.log(store)
@@ -3787,45 +3789,48 @@ app.get('/category-options', async (req, res) => {
     }
 });
 
+// 
+app.post('/validate-tup-id', async (req, res) => {
+    const { tup_id } = req.body;
+
+    if (!tup_id) {
+        return res.status(400).json({ error: 'TUP ID is required.' });
+    }
+
+    try {
+        const query = 'SELECT 1 FROM patron WHERE tup_id = ? LIMIT 1';
+        const [rows] = await dbPromise.query(query, [tup_id]);
+
+        if (rows.length > 0) {
+            return res.status(200).json({ exists: true, message: 'TUP ID already exists.' });
+        }
+
+        res.status(200).json({ exists: false, message: 'TUP ID is available.' });
+    } catch (error) {
+        console.error('Error checking TUP ID:', error);
+        res.status(500).json({ error: 'Server error while checking TUP ID.' });
+    }
+});
 
 
 
+export { dbPromise, db };
 
+(async () => {
+    try {
+        const [rows] = await dbPromise.execute('SELECT 1');
+        console.log('Database connection test successful:', rows);
+    } catch (error) {
+        console.error('Database connection test failed:', error);
+    }
+})();
 
-// Backend - Fetching the college and course details
-// app.get('/update-patron/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const query = 'SELECT * FROM patron WHERE patron_id = ?';
+app.use((req, res, next) => {
+    console.log(`Received request: ${req.method} ${req.url}`);
+    next();
+});
 
-//     try {
-//         // Execute query using await on dbPromise
-//         const [results] = await dbPromise.query(query, [id]);
-        
-//         if (results.length === 0) {
-//             return res.status(404).json({ message: 'Patron not found' });
-//         }
-//         res.json({ patronData: results[0] });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).send('Database query error');
-//     }
-// });
-
-
-// app.put('/update-patron/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const updatedData = req.body;
-//     const query = `UPDATE patron SET ? WHERE patron_id = ?`;
-
-//     try {
-//         await dbPromise.query(query, [updatedData, id]);
-//         res.json({ message: 'Patron updated successfully' });
-//     } catch (err) {
-//         console.error('Error updating patron:', err);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// });
-
+app.use('/', validateTupIdRouter); // Connect the router
 
 
 server.listen(3001,()=>{

@@ -22,13 +22,11 @@ const EditPatron = () => {
 
     const { id } = useParams(); // ID from the route parameter
     const navigate = useNavigate(); // For programmatic navigation
+    const [errors, setErrors] = useState({});
+
 
     const [isLoading, setIsLoading] = useState(true);
-    
-
-
-
-    
+  
     useEffect(() => {
         axios.get(`http://localhost:3001/update-patron/${id}`)
             .then(res => {
@@ -53,33 +51,200 @@ const EditPatron = () => {
             .catch(err => console.error(err));
     }, [id]);
     
-    
-    
 
-    const handleChange = (e) => {
-        setPatronData({
-            ...patronData,
-            [e.target.name]: e.target.value
-        });
+    const handleChange = async (e) => {
+        const { name, value } = e.target;
+    
+        if (name === 'tup_id') {
+            let formattedValue = value;
+    
+            if (!value.startsWith("TUPM-")) {
+                formattedValue = "TUPM-";
+            }
+    
+            formattedValue = formattedValue
+                .replace(/^TUPM-/g, '') // Remove prefix for manipulation
+                .replace(/[^\d-]/g, '') // Allow only digits and dashes
+                .padEnd(7, '-') // Add placeholders for remaining format
+                .slice(0, 7); // Ensure correct length
+    
+            setPatronData((prev) => ({
+                ...prev,
+                [name]: `TUPM-${formattedValue}`,
+            }));
+    
+            await validateField(name, `TUPM-${formattedValue}`);
+            return;
+        }
+    
+        setPatronData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    
+        await validateField(name, value);
     };
-
-    const handleSave = () => {
-        const updatedData = {
-            ...patronData,
-            category: patronData.category === 'None' ? '' : patronData.category,
-        };
-        axios.put(`http://localhost:3001/update-patron/${id}`, patronData)
-            .then(() => {
-                console.log('Patron updated successfully');
-                navigate('/patrons'); // Redirect after saving
-            })
-            .catch((error) => {
-                console.error('There was an error updating the patron data:', error);
-            });
+    
+ 
+    const validateField = async (name, value) => {
+        const phoneRegex = /^[0-9]{10,15}$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const tupIdRegex = /^TUPM-\d{2}-\d{4}$/;
+    
+        let error = '';
+    
+        switch (name) {
+            case 'patron_fname':
+                case 'patron_lname':
+                    if (!value.trim()) {
+                        error = `${name === 'patron_fname' ? 'First' : 'Last'} name is required.`;
+                    } else if (!/^[A-Za-z\s\-]+$/.test(value.trim())) {
+                        error = `${name === 'patron_fname' ? 'First' : 'Last'} name can only contain letters, spaces, or hyphens.`;
+                    }
+                    break;
+                
+    
+            case 'patron_mobile':
+                if (!phoneRegex.test(value)) {
+                    error = 'Invalid phone number. Input 11 digits only.';
+                }
+                break;
+    
+            case 'patron_email':
+                if (!emailRegex.test(value)) {
+                    error = 'Invalid email format.';
+                }
+                break;
+    
+            case 'tup_id':
+                if (!tupIdRegex.test(value)) {
+                    error = 'TUP ID must follow the format TUPM-**-****.';
+                } else {
+                    try {
+                        const response = await axios.post('http://localhost:3001/validate-tup-id', { tup_id: value });
+                        if (response.data.exists) {
+                            error = response.data.message || 'TUP ID already exists.';
+                        }
+                    } catch (err) {
+                        console.error('Error validating TUP ID:', err);
+                        error = 'Unable to validate TUP ID. Please try again.';
+                    }
+                }
+                break;
+    
+            default:
+                break;
+        }
+    
+        setErrors((prev) => ({
+            ...prev,
+            [name]: error,
+        }));
+    
+        return error; // Return the error for blocking logic
     };
     
     
+    const handleTupIdChange = async (e) => {
+        const { value, selectionStart } = e.target;
+        const prefix = "TUPM-";
+        const prefixLength = prefix.length;
+    
+        // Ensure the input starts with "TUPM-"
+        if (!value.startsWith(prefix)) return;
+    
+        // Extract and clean the editable portion
+        let editablePart = value.slice(prefixLength).replace(/[^0-9]/g, ""); // Allow digits only
+    
+        // Auto-format the editable part as **-****
+        if (editablePart.length > 2) {
+            editablePart = `${editablePart.slice(0, 2)}-${editablePart.slice(2)}`;
+        }
+    
+        const formattedValue = `${prefix}${editablePart}`;
+    
+        // Update state with the formatted value
+        setPatronData((prev) => ({
+            ...prev,
+            tup_id: formattedValue,
+        }));
+    
+        // Adjust cursor position after formatting
+        const newCursorPos = Math.max(
+            prefixLength,
+            Math.min(selectionStart, formattedValue.length)
+        );
+        setTimeout(() => e.target.setSelectionRange(newCursorPos, newCursorPos), 0);
+    
+        // Validate the TUP ID
+        await validateField("tup_id", formattedValue);
+    };
+    
 
+    const handleTupIdKeyDown = (e) => {
+        const cursorPos = e.target.selectionStart;
+        const prefixLength = 5; // "TUPM-"
+    
+        // Prevent moving cursor before the prefix or deleting it
+        if (cursorPos < prefixLength && (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) {
+            e.preventDefault();
+        }
+    };
+    
+    const handleTupIdClick = (e) => {
+        const prefixLength = 5; // "TUPM-"
+    
+        // Ensure the cursor always starts after the prefix
+        if (e.target.selectionStart < prefixLength) {
+            e.target.setSelectionRange(prefixLength, prefixLength);
+        }
+    };
+    
+
+    
+
+    const handleSave = async () => {
+        let errors = {};
+    
+        // Validate TUP ID and check if it exists
+        const tupIdError = await validateField('tup_id', patronData.tup_id);
+        if (tupIdError) {
+            errors.tup_id = tupIdError;
+        }
+    
+        // Validate other fields
+        if (!patronData.patron_fname.trim()) {
+            errors.patron_fname = 'First name is required.';
+        }
+    
+        if (!patronData.patron_lname.trim()) {
+            errors.patron_lname = 'Last name is required.';
+        }
+    
+        // If there are errors, block the save operation
+        if (Object.keys(errors).length > 0) {
+            setErrors(errors);
+            console.error('Validation errors:', errors);
+            return; // Stop the function if validation fails
+        }
+    
+        // Proceed with saving data if no errors
+        try {
+            const updatedData = {
+                ...patronData,
+                category: patronData.category === 'None' ? '' : patronData.category,
+            };
+    
+            await axios.put(`http://localhost:3001/update-patron/${id}`, updatedData);
+            console.log('Patron updated successfully');
+            navigate('/patrons'); // Redirect after saving
+        } catch (error) {
+            console.error('Error saving patron:', error);
+        }
+    };
+    
+    
+    
     return (
         <div className='edit-patron-container'>
             <h1 className='m-0'>Patrons</h1>
@@ -108,16 +273,24 @@ const EditPatron = () => {
                             <div className='row'>
                                 {/* TUP ID */}
                                 <div className='col-3 patron-input-box'>
-                                    <label htmlFor="">TUP ID</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder='Enter TUP ID' 
-                                        name='tup_id' 
-                                        value={patronData.tup_id} 
-                                        onChange={handleChange}
+                                    <label htmlFor=''>TUP ID</label>
+                                    <input
+                                        type='text'
+                                        placeholder='TUPM-**-****'
+                                        maxLength={12} // Includes TUPM- and the rest of the format
+                                        name='tup_id'
+                                        value={patronData.tup_id}
+                                        onChange={handleTupIdChange}
+                                        onClick={handleTupIdClick}
+                                        onKeyDown={handleTupIdKeyDown}
                                     />
-                                    <p className='patron-error'></p>
+                                    <p className='patron-error'>{errors.tup_id}</p>
                                 </div>
+
+
+
+
+
                             </div>
 
                             <div className='row'>
@@ -131,7 +304,7 @@ const EditPatron = () => {
                                         value={patronData.patron_fname}
                                         onChange={handleChange}
                                     />
-                                    <p className='patron-error'></p>
+                                    <p className='patron-error'>{errors.patron_fname}</p>
                                 </div>
 
                                 {/* Last Name Input */}
@@ -144,7 +317,7 @@ const EditPatron = () => {
                                         value={patronData.patron_lname}
                                         onChange={handleChange}
                                     />
-                                    <p className='patron-error'></p>
+                                    <p className='patron-error'>{errors.patron_lname}</p>
                                 </div>
                             </div>
 
@@ -160,8 +333,8 @@ const EditPatron = () => {
                                     >
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
+                                        <p className="patron-error"></p>
                                     </select>
-                                    <p className='patron-error'></p>
                                 </div>
 
                                 {/* PHONE NUMBER */}
@@ -174,7 +347,7 @@ const EditPatron = () => {
                                         value={patronData.patron_mobile}
                                         onChange={handleChange}
                                     />
-                                    <p className='patron-error'></p>
+                                    <p className='patron-error'>{errors.patron_mobile}</p>
                                 </div>
 
                                 {/* EMAIL */}
@@ -187,7 +360,7 @@ const EditPatron = () => {
                                         value={patronData.patron_email}
                                         onChange={handleChange}
                                     />
-                                    <p className='patron-error'></p>
+                                    <p className='patron-error'>{errors.patron_email}</p>
                                 </div>
 
                                 {/* CATEGORY */}
@@ -199,7 +372,6 @@ const EditPatron = () => {
                                         onChange={handleChange}
                                         className="patron-dropdown"
                                     >
-                                        <option value="">Select Category</option>
                                         <option value="Student">Student</option>
                                         <option value="Faculty">Faculty</option>
                                     </select>
