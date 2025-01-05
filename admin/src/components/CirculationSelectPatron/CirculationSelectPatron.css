@@ -153,7 +153,7 @@
     justify-content: center;
 }
 
-.circ-select-patron-container  .patron-list .pagination{
+.circ-select-patron-container .pagination{
     display: flex;
     justify-content: end;
     position: relative;
@@ -162,17 +162,31 @@
 
 .circ-select-patron-container  .patron-list .pagination  .buttons{
     display: flex;
+    align-items: center;
     gap: 10px;
 }
 
 .circ-select-patron-container .patron-list .pagination button{
-    background-color: var(--tup-color);
-    color: var(--white);
+    background-color: transparent;
+    color: var(--tup-color);
+    border: none;
 }
 
 .circ-select-patron-container .patron-list .pagination button:hover,
 .circ-select-patron-container .patron-list .pagination button:active,
 .circ-select-patron-container .patron-list .pagination button:focus{
-    background-color: var(--tup-color-hover);
+    background-color: var(--tup-color);
     color: var(--white);
+}
+
+.patron.disabled {
+    pointer-events: none; /* Disable interaction */
+    opacity: 0.6; /* Slightly fade the row */
+    background-color: #f0f0f0; /* Light grey background */
+    color: #888; /* Grey text */
+    cursor: not-allowed; /* Change cursor to indicate unclickable */
+}
+
+    .patron input[type="radio"]:disabled {
+    cursor: not-allowed; /* Indicate disabled radio button */
 }

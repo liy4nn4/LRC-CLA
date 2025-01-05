@@ -13,9 +13,9 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
     
     useEffect(()=>{
         if(bookData.isbn&&!disabled){
-            if(bookData.isbn.length){
+            
                getBookData(); 
-            }
+            
         }
         
     },[bookData.isbn])
@@ -81,7 +81,7 @@ const BookInput = ({disabled,handleChange,bookData,addAuthor,setBookData,formVal
         }))
     }
 
-
+    console.log(bookData.isbn)
   return (
     <div className='row'>
         {/* author */}

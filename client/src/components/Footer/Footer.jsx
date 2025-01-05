@@ -2,8 +2,14 @@ import React from 'react'
 import './Footer.css'
 import tupLogo from '../../assets/OPAC/icons/tup-logo.png'
 import claLogo  from '../../assets/OPAC/icons/cla-logo.png'
+import { Link } from 'react-router-dom'
 
 const Footer = () => {
+  //display page from the top
+  const handleNavigate = () => {
+    window.scrollTo(0, 0);
+  };
+  
   return (
     <div className='footer-container'>
       {/* footer logo and college name */}
@@ -23,7 +29,11 @@ const Footer = () => {
         </div>
       </div>
       {/* copyright */}
+      <div className="tc-cpy">
+        <Link to='/terms-conditions' onClick={handleNavigate} className='tc'>Terms & Conditions</Link>
        <p className='m-0 copyright'>Copyright©2024. All Rights Reserved TUP-CLA Learning Resource Center</p>
+      </div>
+        
     </div>
   )
 }

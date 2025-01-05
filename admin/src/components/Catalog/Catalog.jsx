@@ -9,7 +9,6 @@ import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
 import { Link } from 'react-router-dom';
 
-
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const Catalog = () => {
@@ -36,17 +35,28 @@ const Catalog = () => {
     const fetchData = async () => {
       if (navigator.onLine) {
         setIsOnline(true);
+        getType();
+        getDept()
+        getTopics()
         await getCatalogOnline();
       } else {
         setIsOnline(false);
+        //get offline type 
+        const types = await getAllFromStore('resourcetype');
+        setType(types);
+        //get offline department
+        const depts = await getAllFromStore('department')
+        setDepartment(depts)
+        //get offline topics
+        const tps = await getAllFromStore('topic');
+        setTopic(tps)
+
         await getCatalogOffline();
+
       }
     };
 
     fetchData();
-    getType();
-    getDept()
-    getTopics()
 
     const handleConnectionChange = () => {
       setIsOnline(navigator.onLine);
@@ -108,12 +118,39 @@ const getCatalogOnline = async (resetPage = false) => {
 };
 
 
-//get catalog offline
-const getCatalogOffline = async () => {
+const getCatalogOffline = async (resetPage = false) => {
   const data = await getCatalogDetailsOffline();
-  setCatalog(data);
+  if (resetPage) {
+    setCurrentPage(1);
+    setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })
+  }
+  console.log(data)
+  // Check if the keyword is empty, if so display all data
+  if (keyword == '' || keyword == '%%') {
+    setCatalog(data);
+  } else {
+    // Filter the data based on the keyword
+    const filteredData = data.filter(item => {
+      // Check if the title includes the keyword (case-insensitive)
+      const titleMatch = item.resource_title.toLowerCase().includes(keyword.toLowerCase());
+
+      // Check if any author name in the array matches the keyword (case-insensitive)
+      const authorMatch = item.author_names.some(author =>
+        author.toLowerCase().includes(keyword.toLowerCase())
+      );
+
+      // Return true if either the title or any author name matches the keyword
+      return titleMatch || authorMatch;
+    });
+
+    setCatalog(filteredData);
+  }
+
+  // Update the total pages based on the filtered data
   setTotalPages(Math.ceil(data.length / pagination));
 };
+
+
 
 // fetch resourceType ( book, journal, newsletter, thesis)
 const getType = async()=>{
@@ -395,6 +432,7 @@ console.log(selectedFilters)
               </Link>
           </div>
           {/* sync*/}
+          {isOnline?
           <div className="add-author-publisher">
               {/* sync to database */}
               <button
@@ -403,9 +441,9 @@ console.log(selectedFilters)
               disabled={!navigator.onLine}
               title='You need internet connection to sync to database.'
             >
-              Sync to database
+              Sync offline data to database
             </button>
-           </div>
+           </div>:''}
         </div>
         
         {/* search-filter */}
@@ -413,93 +451,105 @@ console.log(selectedFilters)
             <input type="search" placeholder="Search by title or author" onChange={handleChange} onKeyDown={handleEnter}/>
             <button 
               className="btn" 
-              onClick={() => getCatalogOnline(true)}>
+              onClick={() => {isOnline?getCatalogOnline(true):getCatalogOffline(true)}}>
               Search
             </button>
+            {isOnline?
             <button 
               className="btn " 
               onClick={() => setSelectedFilters({ title:0, author:0, type: 0, department: 0, topic: 0 })}>
               Reset filter
-              </button>
+              </button>:''}
           </div>
      
-
             <table className="cat-table">
               <thead>
                 <tr>
                   {/* <td >ID</td> */}
                   <td>
                     Title
-                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('title', e.target.value)}>
+                    {isOnline?<select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('title', e.target.value)}>
                       <option value="" disabled selected></option>
                       <option value="1">Sort by Title (A-z)</option>
                       <option value="2">Sort by Title (Z-A)</option>
-                    </select>
+                    </select>:''}
                   </td>
                   <td>Type
-                    <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('type', e.target.value)}>
+                    {isOnline?<select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('type', e.target.value)}>
                     <option value="" disabled selected></option>
                       {type.length>0?type.map(item=>{
                         return <option value={item.type_id}>{item.type_name}</option>
                       }):''}
-                    </select>
+                    </select>:''}
                   </td>
                   <td>
                     Authors
+                    {isOnline?
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('author', e.target.value)}>
                       <option value="" disabled selected></option>
                       <option value="1">Sort by Author Name (A-z)</option>
                       <option value="2">Sort by Author Name (Z-A)</option>
-                    </select>
+                    </select>:''}
                   </td>
                   <td>
                     Department
+                    {isOnline?
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('department', e.target.value)}>
                       <option value="" disabled selected></option>
                       {department.length>0?department.map(item=>{
                         return <option value={item.dept_id}>{item.dept_name}</option>
                       }):''}
-                    </select>
+                    </select>:''}
                   </td>
                   <td>Topic
+                    {isOnline?
                     <select name="" id="" className='sort' onChange={(e)=>handleSelectedFilter('topic', e.target.value)}>
                       <option value="" disabled selected></option>
                       {topic.length>0?topic.map(item=>{
                         return <option value={item.topic_id}>{item.topic_name}</option>
                       }):''}
-                    </select>
+                    </select>:''}
                   </td>
                   <td >Copies</td>
                   <td ></td>
                 </tr>
               </thead>
               <tbody>
-              {catalog?catalog.length > 0 ? (
-                catalog.map((item, key) => (
-                  <tr key={key}>
-                    <td>{item.resource_title}</td>
-                    <td>{item.type_name}</td>
-                    <td>{item.author_names}</td>
-                    <td>{item.dept_name}</td>
-                    <td>{item.topic_name}</td>
-                    <td>{item.resource_quantity}</td>
-                    <td>
-                      <Link to={`/view-item/${item.resource_id}`}>
-                        <button className="btn cat-view">
-                          <i className="fa-solid fa-bars"></i>
-                          View
-                        </button>
-                      </Link>
+              {catalog.length > 0 ? (
+                  catalog.map((item, key) => (
+                    <tr key={key}>
+                      <td>{item.resource_title}</td>
+                      <td>{item.type_name}</td>
+                      <td>{item.author_names}</td>
+                      <td>{item.dept_name}</td>
+                      <td>{item.topic_name}</td>
+                      <td>{item.resource_quantity}</td>
+                      <td>
+                        <Link to={`/view-item/${item.resource_id}`}>
+                          <button className="btn cat-view">
+                            <i className="fa-solid fa-bars"></i>
+                            View
+                          </button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : !loading && catalog.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center' }}>No records available</td>
+                  </tr>
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                      <div className="spinner-box">
+                        <div className="spinner-grow text-danger" role="status">
+                          <span className="sr-only">Loading...</span>
+                        </div>
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7">No records available</td>
-                </tr>
-              ):''}
+                )}
             </tbody>
-
             </table> 
             {/* pagination */}
             <nav aria-label="Page navigation example">
@@ -528,7 +578,7 @@ console.log(selectedFilters)
               </div>
             </nav>
         
-      <Loading loading={loading}/>
+      {/* <Loading loading={loading}/> */}
       <ResourceStatusModal open={statusModal} close={()=>setStatusModal(false)} content={statusModalContent} isOnline={isOnline}/>
       {/* <CatalogFilterModal open={openFilter} close={()=>setOpenFilter(false)}/> */}
     </div>

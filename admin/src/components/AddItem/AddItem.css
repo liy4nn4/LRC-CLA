@@ -122,5 +122,6 @@
 .add-item-save:hover{
     background-color: var(--button-hover);
     border: var(--button-hover);
+    color: var(--white);
 }
 

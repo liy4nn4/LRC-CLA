@@ -10,6 +10,7 @@ import AboutUs from './components/AboutUs/AboutUs'
 import Services from './components/Services/Services'
 import Search from './components/Search/Search'
 import ResourceModal from './components/ResourceModal/ResourceModal'
+import TermsConditions from './components/TermsConditions/TermsConditions'
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
           <Route path='/search' element={<Search/>}/>
           <Route path='/resource' element={<ResourceModal/>}/>
           <Route path='/department' element={<DepartmentPage/>}/>
+          <Route path='/terms-conditions' element={<TermsConditions/>}/>
         </Routes>
       </BrowserRouter>
       

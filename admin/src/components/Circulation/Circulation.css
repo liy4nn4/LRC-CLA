@@ -165,8 +165,8 @@
 }
 
 .circulation-container .pagination button{
-    background-color: var(--tup-color);
-    color: var(--white);
+    background-color: transparent !important;
+    color: var(--tup-color ) !important;
 }
 
 .circulation-container .pagination .buttons{
@@ -177,8 +177,8 @@
 .circulation-container .pagination .buttons button:hover,
 .circulation-container .pagination .buttons button:focus,
 .circulation-container .pagination .buttons button:active{
-    background-color: var(--tup-color-hover);
-    color: var(--white);
+    background-color: var(--tup-color) !important;
+    color: var(--white) !important;
 }
 
 .circulation-container .pagination button:disabled{
@@ -195,4 +195,9 @@
     display: flex;
     /* background-color: var(--black); */
     gap: 10px;
+}
+
+.circulation-container .spinner-box{
+    width: 100%;
+    /* background-color: red !important; */
 }

@@ -25,7 +25,7 @@ const Accounts = () => {
     uname: '',
     role: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({});
@@ -40,9 +40,12 @@ const Accounts = () => {
   const [totalPages, setTotalPages] = useState(0); // Total pages
   const [keyword, setKeyword] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({ fname:0, lname:0, uname: 0, role: 0, status:''});
-
+  
   useEffect(() => {
     userAccounts();
+    getUsername(); 
+    console.log("account: ", account)
+    console.log("to edit account: ", toEditAccount)
     
     // Listen for updates from the server (via socket)
     socket.on('userUpdated', () => {
@@ -55,11 +58,47 @@ const Accounts = () => {
     };
   }, [currentPage, selectedFilters]);
 
+  const appendToAccount = (key, value) => {
+      setAccount((prevAccount) => ({
+          ...prevAccount,
+          [key]: value, // Dynamically add or update the key-value pair
+      }));
+      console.log(account)
+  };
+
+  const appendToEditAccount = (key, value) => {
+    setToEditAccount((prevToEditAccount) => ({
+        ...prevToEditAccount,
+        [key]: value, // Dynamically add or update the key-value pair
+    }));
+    console.log(toEditAccount)
+};
+
   useEffect(()=>{
     if(keyword==''){
       userAccounts(true)
     }
   },[keyword])
+
+  const [staffUname, setStaffUname] = useState(null);
+
+  const getUsername = async()=>{
+    try {
+      // Request server to verify the JWT token
+      const response = await axios.get(`http://localhost:3001/check-session`, { withCredentials: true });
+      console.log(response.data)
+      // If session is valid, set the role
+      if (response.data.loggedIn) {
+        setStaffUname(response.data.username);
+        appendToAccount('username', response.data.username);
+      } else {
+        setStaffUname(null); // If not logged in, clear the role
+      }
+    } catch (error) {
+      console.error('Error verifying session:', error);
+      setStaffUname(null); // Set null if there's an error
+    }
+  }
 
   // Fetch user accounts
   const userAccounts = async (resetPage = false) => {
@@ -107,6 +146,7 @@ const Accounts = () => {
       setLoading(true);
       try {
         const response = await axios.post('http://localhost:3001/accounts/create', account);
+        console.log(account)
         setLoading(false);
 
         if (response.data.status === 409) {
@@ -136,7 +176,7 @@ const Accounts = () => {
         uname: response.data[0].staff_uname,
         role: response.data[0].role_id,
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
     } catch (err) {
       console.log('Cannot get account to be edited. An error occurred: ', err.message);
@@ -150,8 +190,10 @@ const Accounts = () => {
       setLoading(true);
       try {
         console.log('Editing account with id: ', id);
+        appendToEditAccount('username', staffUname);
         const response = await axios.put(`http://localhost:3001/account`, toEditAccount);
         if (response.data.status === 201) {
+          console.log("to edit", toEditAccount)
           setEditUser(false);
           setStatusModal(true);
           setStatusModalContent({ status: 'success', message: response.data.message });
@@ -168,7 +210,8 @@ const Accounts = () => {
   const deactivateUser = async () => {
     setLoading(true);
     try {
-      const response = await axios.put(`http://localhost:3001/account/deactivate/${selectedId}`);
+      console.log('account: ', staffUname)
+      const response = await axios.put(`http://localhost:3001/account/deactivate/${selectedId}`, {staffUname});
       if (response.data.status === 201) {
         setOpenDeactivate(false);
         setStatusModal(true);
@@ -185,7 +228,7 @@ const Accounts = () => {
   const activateUser = async () => {
     setLoading(true);
     try {
-      const response = await axios.put(`http://localhost:3001/account/activate/${selectedId}`);
+      const response = await axios.put(`http://localhost:3001/account/activate/${selectedId}`, {staffUname});
       if (response.data.status === 201) {
         setOpenActivate(false);
         setStatusModal(true);
@@ -393,36 +436,52 @@ const Accounts = () => {
           </tr>
         </thead>
         <tbody>
-          {accounts.length > 0
-            ? accounts.map((item) => (
-                <tr key={item.staff_id}>
-                  <td>{item.staff_fname}</td>
-                  <td>{item.staff_lname}</td>
-                  <td>{item.staff_uname}</td>
-                  <td>{item.role_name}</td>
-                  <td>{item.staff_status}</td>
-                  <td className="action">
-                    {/* Edit user */}
-                    <button className="btn edit-btn" onClick={() => handleEdit(item.staff_id)}>
-                      <FontAwesomeIcon icon={faPen} />
-                      <span>Edit user</span>
-                    </button>
-                    {/* Deactivate / Activate */}
-                    {item.staff_status === 'active' ? (
-                      <button className="btn deac-acc-btn" onClick={() => handleDeac(item.staff_uname, item.staff_id)}>
-                        <FontAwesomeIcon icon={faUserSlash} />
-                        Deactivate user
-                      </button>
-                    ) : (
-                      <button className="btn deac-acc-btn" onClick={() => handleAct(item.staff_uname, item.staff_id)}>
-                        <FontAwesomeIcon icon={faUser} />
-                        Activate user
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            : ''}
+        {accounts.length > 0 ? (
+          accounts.map((item) => (
+            <tr key={item.staff_id}>
+              <td>{item.staff_fname}</td>
+              <td>{item.staff_lname}</td>
+              <td>{item.staff_uname}</td>
+              <td>{item.role_name}</td>
+              <td>{item.staff_status}</td>
+              <td className="action">
+                {/* Edit user */}
+                <button className="btn edit-btn" onClick={() => handleEdit(item.staff_id)}>
+                  <FontAwesomeIcon icon={faPen} />
+                  <span>Edit user</span>
+                </button>
+                {/* Deactivate / Activate */}
+                {item.staff_status === 'active' ? (
+                  <button className="btn deac-acc-btn" onClick={() => handleDeac(item.staff_uname, item.staff_id)}>
+                    <FontAwesomeIcon icon={faUserSlash} />
+                    Deactivate user
+                  </button>
+                ) : (
+                  <button className="btn deac-acc-btn" onClick={() => handleAct(item.staff_uname, item.staff_id)}>
+                    <FontAwesomeIcon icon={faUser} />
+                    Activate user
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))
+        ) : !loading && accounts.length === 0 ? (
+          <tr>
+            <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
+              No accounts available
+            </td>
+          </tr>
+        ) : (
+          <tr>
+            <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
+              <div className="spinner-box">
+                <div className="spinner-grow text-danger" role="status">
+                  <span className="sr-only">Loading...</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
         </tbody>
       </table>
 
@@ -475,7 +534,7 @@ const Accounts = () => {
       />
       <DeactivateModal open={openDeactivate} close={() => setOpenDeactivate(false)} uname={selectedUname} deactivateUser={deactivateUser} />
       <ActivateModal open={openActivate} close={() => setOpenActivate(false)} uname={selectedUname} activateUser={activateUser} />
-      <Loading loading={loading} />
+      {/* <Loading loading={loading} /> */}
       <ResourceStatusModal open={statusModal} close={() => setStatusModal(false)} content={statusModalContent} path={'/accounts'} />
     </div>
   );

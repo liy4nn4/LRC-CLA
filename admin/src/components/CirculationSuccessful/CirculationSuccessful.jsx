@@ -41,8 +41,8 @@ const CirculationSuccessful = ({ open, close, patronName }) => {
           <p>{actionMessage}</p>
           <p>{patronName}.</p>
         </div>
-        {/* Email confirmation */}
-        <p className="email mt-4">{confirmationMessage}</p>
+        {/* Email confirmation
+        <p className="email mt-4">{confirmationMessage}</p> */}
         {/* Okay button */}
         <Link to={'/circulation'}>
           <button className="btn okay-btn" onClick={close}>

@@ -58,20 +58,15 @@
 .logbook-container .log-search-button{
     background-color: var(--tup-color);
     color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .logbook-container .log-search-button:hover,.logbook-container .log-search-button:focus{
     border-color: var(--button) !important;
     background-color: var(--button) !important;
     color: var(--white) !important;
-}
-
-.logbook-container .log-search-button img{
-    width: 14px;
-    position: relative;
-    top: -1.5px;
-    margin-right: 6px;
-   
 }
 
 .logbook-container .logbook-filters{
@@ -119,70 +114,24 @@
 .logbook-container .logbook-table-pagination{
     display: flex;
     justify-content: space-between;
-
-}
-
-.logbook-container .logbook-table-pagination button{
-    border: none;
-}
-
-.logbook-container .logbook-current-entry,.logbook-total-entry{
-    font-weight: 700;
-}
-
-.logbook-container.logbook-table-button-pagination{
-    display: flex;
-    gap: 15px;
-}
-
-.logbook-container .logbook-pages{
-    display: flex;
-    gap: 8px;
-}
-
-.logbook-container.logbook-pages-not-current{
-    background-color: var(--white);
-    border: 1px solid var(--tup-color);
-    width: 20px;
-    height: 20px;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    border-radius: 50%;
-    color: var(--tup-color);
-    transition: all 0.2s linear;
-    cursor: pointer;
-}
-
-.logbook-container .logbook-pages-not-current:hover{
-    background-color: var(--tup-color);
-    color: var(--white);
-}
-
-.logbook-container .logbook-pages-current{
-    background-color: var(--tup-color) !important;
-    color: var(--white) !important;
-    border: none;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    border-radius: 50%;
-    transition: all 0.2s linear;
-    cursor: pointer;
-}
-
-.logbook-container .logbook-pages-current:hover{
-    background-color: var(--button-hover);
-        
-    
 }
 
 .logbook-container .logbook-table-button-pagination{
     /* cursor: pointer; */
     display: flex;
     align-items: center;
+    gap: 5px;
+}
+
+
+.logbook-container .logbook-table-button-pagination button{
+    color: var(--tup-color);
+    background-color: transparent   ;
+}
+
+
+.logbook-container .logbook-table-button-pagination button:hover{
+    color: var(--white);
+    background-color: var(--tup-color)   ;
 }

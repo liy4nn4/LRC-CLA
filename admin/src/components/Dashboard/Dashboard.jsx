@@ -13,6 +13,10 @@ import { faker } from '@faker-js/faker';
 import MultiLineGraph from '../MultiLineGraph'
 import { Doughnut } from 'react-chartjs-2'
 import BarChart from '../BarChart'
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+
 
 
 const Dashboard = () => {
@@ -30,7 +34,7 @@ const Dashboard = () => {
   let navigate = useNavigate();
   const weeklyLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const [booksData, setBooksData] = useState([])
-  const [jnData, setJnData] = useState([])
+  // const [jnData, setJnData] = useState([])
   const [visitStats, setVisitStats] = useState([])
   // const booksData = [50, 65, 80, 45, 90, 100]; // Example: Borrowed books data
   // const journalsData = [20, 30, 50, 25, 40, 60]; // Example: Borrowed journals data
@@ -39,7 +43,7 @@ const Dashboard = () => {
     labels:weeklyLabels,
     datasets: [
       {
-        label: 'Books',
+        label: 'Books, Journals, Newsletters',
         animations: {
           y: {
             duration: 2000,
@@ -51,13 +55,13 @@ const Dashboard = () => {
         backgroundColor: '#94152B',
         yAxisID: 'y',
       },
-      {
-        label: 'Journals & Newsletters',
-        data: jnData, // Updated API
-        borderColor: '#EDDF13',
-        backgroundColor: '#EDDF13',
-        yAxisID: 'y1',
-      },
+      // {
+      //   label: 'Journals & Newsletters',
+      //   data: jnData, // Updated API
+      //   borderColor: '#EDDF13',
+      //   backgroundColor: '#EDDF13',
+      //   yAxisID: 'y1',
+      // },
     ],
   };
 
@@ -91,14 +95,12 @@ const Dashboard = () => {
     }
 
     getBookTrends()
-    getJnTrends()
+    // getJnTrends()
     visitorStats()
     getUsername()
   }, []);
 
   useEffect(() => {
-    //setInterval throws an id na pwede natin gamitin to stop the interval
-    const intervalId = setInterval(()=>setDateTime(new Date()), 1000 );
     getTotalVisitors();
     getBorrowedBooks();
     getBorrowers();
@@ -106,11 +108,16 @@ const Dashboard = () => {
     fetchCovers();
     fetchOverdueBooks();
     fetchCheckoutInfo();
-    // iccall lang ng react ung cleanup kapag lumipat kana ng component
-     return function cleanup() {
-        //stops the interval
-         clearInterval(intervalId)
-    }
+
+    // Listen for updates from the server (via socket)
+    socket.on('attendanceUpdated', () => {
+      console.log('attendance updated, refreshing attendance...');
+      getTotalVisitors(); // Call userAccounts to refresh the list
+    });
+
+    return () => {
+      socket.off('attendanceUpdated'); // Cleanup on component unmount
+    };
 },[]);
 
   const toggleDropdown = ()=>{
@@ -134,22 +141,22 @@ const Dashboard = () => {
     }
   }
 
-  //get journal and newsletter trends
-  const getJnTrends = async()=>{
-    try{
-      const response = await axios.get(`http://localhost:3001/borrowed/jn/trends`)
-      const jn = response.data;
-      console.log(jn)
+  // //get journal and newsletter trends
+  // const getJnTrends = async()=>{
+  //   try{
+  //     const response = await axios.get(`http://localhost:3001/borrowed/jn/trends`)
+  //     const jn = response.data;
+  //     console.log(jn)
 
-      const jnTrends = jn.map(item=>
-        item.total_jn_borrowed
-      )
-      setJnData(jnTrends)
+  //     const jnTrends = jn.map(item=>
+  //       item.total_jn_borrowed
+  //     )
+  //     setJnData(jnTrends)
       
-    }catch(err){
-      console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
-    }
-  }
+  //   }catch(err){
+  //     console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
+  //   }
+  // }
 
   const visitorStats = async()=>{
     try{
@@ -392,8 +399,6 @@ const Dashboard = () => {
                   <td>Book ID</td>
                   <td>Title</td>
                   <td>Overdue</td>
-                  <td>Status</td>
-                  <td>Fine</td>
                 </tr>
               </thead>
               <tbody>
@@ -403,9 +408,7 @@ const Dashboard = () => {
                     <td>{book.patron_fname} {book.patron_lname}</td>
                     <td>{book.resource_id}</td>
                     <td>{book.resource_title}</td>
-                    <td>{book.overdue_days} days</td>
-                    <td>overdue</td>
-                    <td>{book.overdue_days * 20} pesos</td>
+                    <td>{book.overdue_days} day/s</td>
                     </tr>
                 )):<tr>
                 <td colSpan="7">No records available</td> 
@@ -425,7 +428,7 @@ const Dashboard = () => {
           </div>
 
       {/* book issued */}
-      <div className='borrowers-list'>
+      {/* <div className='borrowers-list'>
             <div className='heading'>
               <h5>Books issued</h5>
             </div>
@@ -452,7 +455,7 @@ const Dashboard = () => {
               </tbody>
             </table>
             <div className='see-all-box'><Link to={'/circulation'}><button className='see-all-button'>See all</button></Link></div>
-          </div>
+          </div> */}
     </div>
   )
 }

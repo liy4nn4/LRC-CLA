@@ -52,17 +52,23 @@ const AddItem = () => {
         message:''
     })
 
-    const getUsername = async () => {
+
+    const getUsername = async()=>{
         try {
-            const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
-            if (response.data.user) {
-                setUname(response.data.user.username); // Assuming the role is returned from session
-                
-            }
-        } catch (err) {
-            console.log('Error fetching session data', err);
+          // Request server to verify the JWT token
+          const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
+          console.log(response.data)
+          // If session is valid, set the role
+          if (response.data.loggedIn) {
+            setUname(response.data.username);
+          } else {
+            setUname(null); // If not logged in, clear the role
+          }
+        } catch (error) {
+          console.error('Error verifying session:', error);
+          setUname(null); // Set null if there's an error
         }
-    };
+      }
 
     useEffect(() => {
         getUsername();
@@ -437,6 +443,7 @@ const AddItem = () => {
                 });
 
             }catch(err){
+                setLoading(false)
                 setStatusModal(true)
                 setStatusModalContent({
                     status:'error',
@@ -445,6 +452,7 @@ const AddItem = () => {
                 console.log('Cannot save resource online. An error occurred: ',err.message);
             }
         } else {
+            setLoading(false)
             setStatusModal(true)
             setStatusModalContent({
                 status:'error',
@@ -495,6 +503,7 @@ const AddItem = () => {
             try{
                 setLoading(true)
                 const formData = new FormData();
+                formData.append('username', uname);
                 Object.entries(bookData).forEach(([key, value]) => {
                     formData.append(key, value);  
                 });
@@ -509,6 +518,7 @@ const AddItem = () => {
                     })
                 }            
             }catch(err){
+                setLoading(false)
                 setStatusModal(true)
                 setStatusModalContent({
                     status:'error',

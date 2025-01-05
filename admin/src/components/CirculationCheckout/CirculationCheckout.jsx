@@ -5,12 +5,12 @@ import './CirculationCheckout.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faX, faPen } from '@fortawesome/free-solid-svg-icons';
 import CirculationSuccessful from '../CirculationSuccessful/CirculationSuccessful';
+import Loading from '../Loading/Loading';
 
 const CirculationCheckout = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [uname, setUname] = useState(null);
   const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
   const id = localStorage.getItem('id');
   const clickedAction = localStorage.getItem('clickedAction'); // Get clicked action
@@ -21,6 +21,8 @@ const CirculationCheckout = () => {
   const currentDate = new Date(date); // Convert to Date object
   currentDate.setDate(currentDate.getDate() + 7); // Add 7 days
   const dueDate = currentDate.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+  const [loading, setLoading] = useState(false)
+  
 
   const getPatron = async () => {
     try {
@@ -34,17 +36,23 @@ const CirculationCheckout = () => {
     }
   };
 
-  const getUsername = async () => {
+  const [uname, setUname] = useState(null);
+  const getUsername = async()=>{
     try {
-        const response = await axios.get('http://localhost:3001/session', { withCredentials: true });
-        if (response.data.user) {
-            setUname(response.data.user.username); // Assuming the role is returned from session
-            
-        }
-    } catch (err) {
-        console.log('Error fetching session data', err);
+      // Request server to verify the JWT token
+      const response = await axios.get(`http://localhost:3001/check-session`, { withCredentials: true });
+      console.log(response.data)
+      // If session is valid, set the role
+      if (response.data.loggedIn) {
+        setUname(response.data.username);
+      } else {
+        setUname(null); // If not logged in, clear the role
+      }
+    } catch (error) {
+      console.error('Error verifying session:', error);
+      setUname(null); // Set null if there's an error
     }
-};
+  }
 
 
   useEffect(() => {
@@ -53,7 +61,57 @@ const CirculationCheckout = () => {
     console.log(patron)
   }, []);
 
+  const handleCheckin = async () => {
+    setLoading(true)
+    try {
+      const checkinPromises = selectedItems.map(async (item) => {
+        try {
+          // Get checkout record
+          const checkoutResponse = await axios.get(`http://localhost:3001/getCheckoutRecord`, {
+            params: { resource_id: item.resource_id, patron_id: id },
+          }); 
+          if (!checkoutResponse.data.checkout_id) {
+            throw new Error(`No checkout record found for resource_id: ${item.resource_id}`);
+          }
+  
+          const checkoutId = checkoutResponse.data.checkout_id;
+          const resourceid = item.resource_id;
+          console.log(resourceid)
+          // Post to checkin endpoint
+          const response = await axios.post(`http://localhost:3001/checkin`, {
+            checkout_id: checkoutId,
+            returned_date: date,
+            patron_id: id,
+            resource_id: resourceid,
+            username: uname,
+          });
+  
+          if (response.status !== 201) {
+            throw new Error(`Failed to check in item with checkout_id: ${checkoutId}`);
+          }
+  
+          return response.data;
+        } catch (error) {
+          console.error(`Error during check-in for item: ${item.resource_id}`, error.message);
+          throw error;
+        }
+      });
+  
+      await Promise.all(checkinPromises);
+      console.log('All items checked in successfully!');
+      setOpen(true);
+      setSelectedItems([]);
+    } catch (error) {
+      console.error('Error during check-in:', error.message);
+      alert('Failed to check in some items. Please try again.');
+    }finally{
+      setLoading(false)
+    }
+  };
+
+
   const handleCheckout = async () => {
+    setLoading(true)
     try {
       // Create an array of promises to insert all items
       const checkoutPromises = selectedItems.map((item) => {
@@ -65,7 +123,6 @@ const CirculationCheckout = () => {
           username: uname,
         });
       });
-
       // Await all promises to complete
       await Promise.all(checkoutPromises);
 
@@ -75,6 +132,8 @@ const CirculationCheckout = () => {
       setSelectedItems([]); // Update state
     } catch (error) {
       console.error('Error during checkout:', error.message);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -171,7 +230,7 @@ const CirculationCheckout = () => {
 
             {/* checkout button  */}
             <div className="checkout-btn-box">
-              <button className="btn" onClick={handleCheckout}>
+              <button className="btn" onClick={clickedAction === 'Check In' ? handleCheckin : handleCheckout}>
                 {clickedAction === 'Check In' ? 'Return item' : 'Check out item'}
               </button>
             </div>
@@ -180,6 +239,7 @@ const CirculationCheckout = () => {
       </div>
 
       <CirculationSuccessful open={open} close={() => setOpen(false)} patronName={patronName} />
+      <Loading loading={loading}/>
     </div>
   )
 }
