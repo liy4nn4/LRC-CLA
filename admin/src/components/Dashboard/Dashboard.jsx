@@ -30,7 +30,7 @@ const Dashboard = () => {
   let navigate = useNavigate();
   const weeklyLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const [booksData, setBooksData] = useState([])
-  const [jnData, setJnData] = useState([])
+  // const [jnData, setJnData] = useState([])
   const [visitStats, setVisitStats] = useState([])
   // const booksData = [50, 65, 80, 45, 90, 100]; // Example: Borrowed books data
   // const journalsData = [20, 30, 50, 25, 40, 60]; // Example: Borrowed journals data
@@ -39,7 +39,7 @@ const Dashboard = () => {
     labels:weeklyLabels,
     datasets: [
       {
-        label: 'Books',
+        label: 'Books, Journals, Newsletters',
         animations: {
           y: {
             duration: 2000,
@@ -51,13 +51,13 @@ const Dashboard = () => {
         backgroundColor: '#94152B',
         yAxisID: 'y',
       },
-      {
-        label: 'Journals & Newsletters',
-        data: jnData, // Updated API
-        borderColor: '#EDDF13',
-        backgroundColor: '#EDDF13',
-        yAxisID: 'y1',
-      },
+      // {
+      //   label: 'Journals & Newsletters',
+      //   data: jnData, // Updated API
+      //   borderColor: '#EDDF13',
+      //   backgroundColor: '#EDDF13',
+      //   yAxisID: 'y1',
+      // },
     ],
   };
 
@@ -91,7 +91,7 @@ const Dashboard = () => {
     }
 
     getBookTrends()
-    getJnTrends()
+    // getJnTrends()
     visitorStats()
     getUsername()
   }, []);
@@ -134,22 +134,22 @@ const Dashboard = () => {
     }
   }
 
-  //get journal and newsletter trends
-  const getJnTrends = async()=>{
-    try{
-      const response = await axios.get(`http://localhost:3001/borrowed/jn/trends`)
-      const jn = response.data;
-      console.log(jn)
+  // //get journal and newsletter trends
+  // const getJnTrends = async()=>{
+  //   try{
+  //     const response = await axios.get(`http://localhost:3001/borrowed/jn/trends`)
+  //     const jn = response.data;
+  //     console.log(jn)
 
-      const jnTrends = jn.map(item=>
-        item.total_jn_borrowed
-      )
-      setJnData(jnTrends)
+  //     const jnTrends = jn.map(item=>
+  //       item.total_jn_borrowed
+  //     )
+  //     setJnData(jnTrends)
       
-    }catch(err){
-      console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
-    }
-  }
+  //   }catch(err){
+  //     console.log('Cannot get borrowed book trends. An error occurred: ', err.message)
+  //   }
+  // }
 
   const visitorStats = async()=>{
     try{

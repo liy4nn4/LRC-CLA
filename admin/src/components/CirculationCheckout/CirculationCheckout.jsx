@@ -5,6 +5,7 @@ import './CirculationCheckout.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faX, faPen } from '@fortawesome/free-solid-svg-icons';
 import CirculationSuccessful from '../CirculationSuccessful/CirculationSuccessful';
+import Loading from '../Loading/Loading';
 
 const CirculationCheckout = () => {
   const [open, setOpen] = useState(false);
@@ -20,6 +21,8 @@ const CirculationCheckout = () => {
   const currentDate = new Date(date); // Convert to Date object
   currentDate.setDate(currentDate.getDate() + 7); // Add 7 days
   const dueDate = currentDate.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+  const [loading, setLoading] = useState(false)
+  
 
   const getPatron = async () => {
     try {
@@ -59,6 +62,7 @@ const CirculationCheckout = () => {
   }, []);
 
   const handleCheckin = async () => {
+    setLoading(true)
     try {
       const checkinPromises = selectedItems.map(async (item) => {
         try {
@@ -100,11 +104,14 @@ const CirculationCheckout = () => {
     } catch (error) {
       console.error('Error during check-in:', error.message);
       alert('Failed to check in some items. Please try again.');
+    }finally{
+      setLoading(false)
     }
   };
 
 
   const handleCheckout = async () => {
+    setLoading(true)
     try {
       // Create an array of promises to insert all items
       const checkoutPromises = selectedItems.map((item) => {
@@ -116,7 +123,6 @@ const CirculationCheckout = () => {
           username: uname,
         });
       });
-
       // Await all promises to complete
       await Promise.all(checkoutPromises);
 
@@ -126,6 +132,8 @@ const CirculationCheckout = () => {
       setSelectedItems([]); // Update state
     } catch (error) {
       console.error('Error during checkout:', error.message);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -231,6 +239,7 @@ const CirculationCheckout = () => {
       </div>
 
       <CirculationSuccessful open={open} close={() => setOpen(false)} patronName={patronName} />
+      <Loading loading={loading}/>
     </div>
   )
 }

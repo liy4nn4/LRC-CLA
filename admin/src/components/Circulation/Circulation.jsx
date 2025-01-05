@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './Circulation.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartPlus, faCartShopping } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faCartShopping, faL } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
 const Circulation = () => {

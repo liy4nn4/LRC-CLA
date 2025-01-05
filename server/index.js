@@ -3102,7 +3102,7 @@ app.put('/account/activate/:id',(req,res)=>{
         staff_status = ?
     WHERE 
         staff_id = ?`
-        
+
     db.query(q, ['active', id],(err,results)=>{
         if (err) {
             console.error(err);
@@ -3419,23 +3419,27 @@ app.get('/check-session', (req, res) => {
 /*------------------CHARTS IN DASHBOARD--------------- */
 app.get('/borrowed/book/trends', (req,res)=>{
     const q = `
+    WITH week_days AS (
+        SELECT 2 AS day_num, 'Monday' AS day_name
+        UNION ALL SELECT 3, 'Tuesday'
+        UNION ALL SELECT 4, 'Wednesday'
+        UNION ALL SELECT 5, 'Thursday'
+        UNION ALL SELECT 6, 'Friday'
+        UNION ALL SELECT 7, 'Saturday'
+    )
     SELECT 
-        DAYNAME(c.checkout_date) AS day_of_week, 
-        COUNT(*) AS total_books_borrowed
+        wd.day_name AS day_of_week,
+        COALESCE(COUNT(c.resource_id), 0) AS total_books_borrowed
     FROM 
-        checkout c
-    JOIN 
-        book b ON c.resource_id = b.resource_id
-    WHERE
-        c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
-        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+        week_days wd
+    LEFT JOIN 
+        checkout c ON DAYOFWEEK(c.checkout_date) = wd.day_num
+        AND c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY)
+        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY)
     GROUP BY 
-        DAYOFWEEK(c.checkout_date)
+        wd.day_num, wd.day_name
     ORDER BY 
-        CASE 
-            WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
-            ELSE DAYOFWEEK(c.checkout_date) - 1 
-        END;`
+        wd.day_num;`
 
     db.query(q, (err,result)=>{
         if (err) return res.status(500).send({ error: 'Database query failed' });
@@ -3444,51 +3448,56 @@ app.get('/borrowed/book/trends', (req,res)=>{
     })
 })
 
-app.get('/borrowed/jn/trends', (req,res)=>{
-    const q = `
-    SELECT 
-        DAYNAME(c.checkout_date) AS day_of_week, 
-        COUNT(*) AS total_jn_borrowed
-    FROM 
-        checkout c
-    JOIN 
-        journalnewsletter jn ON c.resource_id = jn.resource_id
-    WHERE
-        c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
-        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
-    GROUP BY 
-        DAYOFWEEK(c.checkout_date)
-    ORDER BY 
-        CASE 
-            WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
-            ELSE DAYOFWEEK(c.checkout_date) - 1 
-        END;`
+// app.get('/borrowed/jn/trends', (req,res)=>{
+//     const q = `
+//     SELECT 
+//         DAYNAME(c.checkout_date) AS day_of_week, 
+//         COUNT(*) AS total_jn_borrowed
+//     FROM 
+//         checkout c
+//     JOIN 
+//         journalnewsletter jn ON c.resource_id = jn.resource_id
+//     WHERE
+//         c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+//         AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+//     GROUP BY 
+//         DAYOFWEEK(c.checkout_date)
+//     ORDER BY 
+//         CASE 
+//             WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
+//             ELSE DAYOFWEEK(c.checkout_date) - 1 
+//         END;`
 
-    db.query(q, (err,result)=>{
-        if (err) return res.status(500).send({ error: 'Database query failed' });
+//     db.query(q, (err,result)=>{
+//         if (err) return res.status(500).send({ error: 'Database query failed' });
 
-        res.send(result)
-    })
-})
+//         res.send(result)
+//     })
+// })
 
 app.get('/visitor/stats', (req,res)=>{
     const q = `
-   SELECT 
-        DAYNAME(a.att_date) AS day_of_week, 
-        COUNT(*) AS total_attendance,
-        a.att_date
+   WITH week_days AS (
+        SELECT 2 AS day_num, 'Monday' AS day_name
+        UNION ALL SELECT 3, 'Tuesday'
+        UNION ALL SELECT 4, 'Wednesday'
+        UNION ALL SELECT 5, 'Thursday'
+        UNION ALL SELECT 6, 'Friday'
+        UNION ALL SELECT 7, 'Saturday'
+    )
+    SELECT 
+        wd.day_name AS day_of_week,
+        COALESCE(COUNT(a.att_date), 0) AS total_attendance
     FROM 
-        attendance a
-    WHERE
-        a.att_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
-        AND a.att_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+        week_days wd
+    LEFT JOIN 
+        attendance a ON DAYOFWEEK(a.att_date) = wd.day_num
+        AND a.att_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY)
+        AND a.att_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY)
     GROUP BY 
-        DAYOFWEEK(a.att_date)
+        wd.day_num, wd.day_name
     ORDER BY 
-        CASE 
-            WHEN DAYOFWEEK(a.att_date) = 1 THEN 7 
-            ELSE DAYOFWEEK(a.att_date) - 1 
-        END`
+        wd.day_num;`
 
     db.query(q, (err,result)=>{
         if (err) return res.status(500).send({ error: 'Database query failed' });
