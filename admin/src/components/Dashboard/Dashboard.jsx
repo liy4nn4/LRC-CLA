@@ -268,7 +268,12 @@ const Dashboard = () => {
           console.error('Error fetching checkout info:', error);
       }
   };
-  
+
+  useEffect(() => {
+  const interval = setInterval(() => setDateTime(new Date()), 1000);
+  return () => clearInterval(interval); // Cleanup interval on unmount
+}, []);
+
 
   return (
     <div className='dashboard-container'>
