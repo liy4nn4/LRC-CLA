@@ -1935,7 +1935,7 @@ app.get('/getCirculation', (req, res) => {
             ORDER BY 
                 status_category, 
                 MAX(c.checkout_date) DESC;
-            
+
             `;
     db.query(q, (err, results) => {
         if (err) {
