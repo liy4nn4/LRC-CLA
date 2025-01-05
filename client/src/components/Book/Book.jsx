@@ -48,8 +48,8 @@ const Book = ({ isSearch, isView, item }) => {
 
       {isView ? null : (
         <div className='title-author'>
-          <p className='title'>{item ? item.resource_title : ''}</p>
-          <p className='author'>By {Array.isArray(authors) ? authors[0] : ''}</p>
+          <p className='title m-0'>{item ? item.resource_title : ''}</p>
+          <p className='author m-0'>By {Array.isArray(authors) ? authors[0] : ''}</p>
         </div>
       )}
     </div>

@@ -7,6 +7,8 @@ import Loading from '../Loading/Loading'
 import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
 import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -564,7 +566,7 @@ console.log(selectedFilters)
                     disabled={currentPage === 1}
                     aria-label="Go to previous page"
                   >
-                    Previous
+                    <FontAwesomeIcon icon={faArrowLeft} className='icon'/>
                   </button>
                   <button
                     className='btn'
@@ -572,7 +574,7 @@ console.log(selectedFilters)
                     disabled={currentPage === totalPages}
                     aria-label="Go to next page"
                   >
-                    Next
+                    <FontAwesomeIcon icon={faArrowRight} className='icon'/>
                   </button>
                 </div>
               </div>

@@ -155,8 +155,16 @@
 }
 
 .cat-container .pagination button{
-    background-color: var(--tup-color);
+    background-color: transparent !important;
+    color: var(--tup-color) !important;
 }
+
+.cat-container .pagination button:hover,
+.cat-container .pagination button:focus,
+.cat-container .pagination button:active{
+    background-color: var(--tup-color) !important;
+    color: var(--white) !important;
+} 
 .cat-container .sync-2-db, .cat-container .sync-from-db{
     background-color: var(--tup-color);
     color: var(--white);

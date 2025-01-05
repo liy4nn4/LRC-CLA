@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Accounts.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faUser, faPen, faUserSlash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faUser, faPen, faUserSlash,faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import CreateUserModal from '../CreateUserModal/CreateUserModal';
 import EditUserModal from '../EditUserModal/EditUserModal';
 import DeactivateModal from '../DeactivateModal/DeactivateModal';
@@ -9,6 +9,7 @@ import ActivateModal from '../ActivateModal/ActivateModal';
 import axios from 'axios';
 import Loading from '../Loading/Loading';
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal';
+
 import io from 'socket.io-client';
 
 const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
@@ -496,10 +497,10 @@ const Accounts = () => {
         {/* Buttons */}
         <div className="buttons">
           <button className="btn prev-btn" onClick={handlePrevPage} disabled={currentPage === 1}>
-            Previous
+            <FontAwesomeIcon icon={faArrowLeft} className='icon'/>
           </button>
           <button className="btn next-btn" onClick={handleNextPage} disabled={currentPage === totalPages}>
-            Next
+            <FontAwesomeIcon icon={faArrowRight} className='icon'/>
           </button>
         </div>
       </div>

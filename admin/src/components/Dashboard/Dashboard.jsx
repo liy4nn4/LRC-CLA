@@ -113,10 +113,25 @@ const Dashboard = () => {
     socket.on('attendanceUpdated', () => {
       console.log('attendance updated, refreshing attendance...');
       getTotalVisitors(); // Call userAccounts to refresh the list
+      visitorStats()
+    });
+    // Listen for updates from the server (via socket)
+    socket.on('updatedCirculation', () => {
+      console.log('circulation updated, refreshing circulation...');
+      getBorrowedBooks(); // Call userAccounts to refresh the list
+      getBookTrends()
+      getBorrowers();
+    });
+
+    socket.on('updatedCatalog', () => {
+      console.log('catalog updated, refreshing catalog...');
+      getAddedBooks();
     });
 
     return () => {
-      socket.off('attendanceUpdated'); // Cleanup on component unmount
+      socket.off('attendanceUpdated');
+      socket.off('updatedCirculation');
+      socket.off('updatedCatalog');
     };
 },[]);
 

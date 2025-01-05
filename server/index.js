@@ -284,6 +284,7 @@ const insertThesis = async (resourceId, adviserId,res)=>{
             return res.status(500).send(err); 
         }
 
+        io.emit('updatedCatalog')
         return res.send({status:201,message:'Thesis inserted successfully.'});
     })
 }
@@ -301,6 +302,7 @@ const insertJournalNewsletter = async(jn,res,filePath)=>{
         if (filePath) {
             fs.unlinkSync(filePath);
         }
+        io.emit('updatedCatalog')
         return res.send({status: 201, message:'Journal/Newsletter inserted successfully.'});
     });
 }
@@ -407,7 +409,9 @@ const insertBook = async(cover, isbn, resourceId, pubId, topic,res, filePath)=>{
         if (filePath) {
             fs.unlinkSync(filePath);
         }
-        console.log('Book inserted successfully')
+        
+        io.emit('updatedCatalog')
+        // console.log('Book inserted successfully')
         return res.send({status: 201, message:'Book inserted successfully.'});
     })
 
@@ -1059,7 +1063,7 @@ app.get("/getBorrowedBooks", (req, res) => {
         return res.status(400).json({ message: "Date is required" });
     }
 
-    const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ?`;
+    const query = `SELECT COUNT(*) AS total_borrowed FROM checkout WHERE DATE(checkout_date) = ? AND status = 'borrowed'`;
 
     db.query(query, [date], (err, result) => {
         if (err) {
@@ -1531,6 +1535,7 @@ app.get('/getBorrowers', (req, res) => {
             resources r ON c.resource_id = r.resource_id
         JOIN 
             course ON p.course_id = course.course_id
+        WHERE c.status = 'borrowed'
         GROUP BY 
             p.tup_id, 
             p.patron_fname, 
@@ -1881,6 +1886,7 @@ app.post('/checkout', async (req, res) => {
         // Commit the transaction
         await db.query('COMMIT');
 
+        io.emit('updatedCirculation')
         res.status(200).json({
             message: 'Checkout successful!',
             checkout_id: result.insertId,
@@ -1985,6 +1991,7 @@ app.post('/checkin', async (req, res) => {
             JSON.stringify({ book_name: resource_title, status: 'returned', patron: patron_name })
         );
 
+        io.emit('updatedCirculation')
         res.status(201).json({
             message: 'Item successfully checked in and removed from checkout.',
             patron_name
@@ -2087,11 +2094,9 @@ app.get('/getCirculation', (req, res) => {
         if (err) {
             console.error(err);
             res.status(500).send({ error: 'Database error', details: err.message });
-        } else if (results.length > 0) {
-            res.json(results);
-        } else {
-            res.json({ message: 'No patrons with checkouts found' });
-        }
+        } 
+        res.json(results);
+      
     });
 });
 
@@ -2931,6 +2936,7 @@ app.get('/resources/view', (req, res) => {
     const q = `
        SELECT 
         resources.resource_title,
+        resources.resource_quantity,
         resources.resource_published_date,
         resources.resource_id,
         resources.type_id,
@@ -3959,20 +3965,19 @@ const checkOverdue = async () => {
     console.log('checking overdue')
     const q = `
     SELECT 
-        c.checkout_id, 
-        c.checkout_date,
-        c.checkout_due,
-        p.patron_email, 
-        p.tup_id, 
-        p.patron_fname, 
-        p.patron_lname,
-        r.resource_title,
-        r.resource_id
-    FROM checkout c
-    LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
-    LEFT JOIN patron p ON c.patron_id = p.patron_id
-    LEFT JOIN resources r ON r.resource_id = c.resource_id
-    WHERE ci.checkout_id IS NULL AND c.checkout_due < current_date()`;
+            c.checkout_id, 
+            c.checkout_date,
+            c.checkout_due,
+            p.patron_email, 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname,
+            r.resource_title,
+            r.resource_id
+        FROM checkout c
+        JOIN patron p ON c.patron_id = p.patron_id
+        JOIN resources r ON r.resource_id = c.resource_id
+        WHERE c.status = 'borrowed' AND c.checkout_due < current_date()`;
 
     db.query(q, (err, result) => {
         if (err) {

@@ -106,7 +106,7 @@ const ResourceModal = () => {
         <div className="res-info row">
           {/* Resource details */}
           <div className="res-details col-md-7 col-12 order-md-7 order-md-1 order-2" ref={resourceDetailsRef}>
-            <div className="res-status">Available</div>
+            <div className="res-status">{resource?resource.resource_quantity==0?'Unavailable':'Available':''}</div>
             <div className="title-author">
               <h4>{resource ? resource.resource_title : ''}</h4>
               <p className="m-0">by {resource ? resource.author_name : ''}</p>

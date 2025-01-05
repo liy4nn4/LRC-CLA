@@ -4,14 +4,17 @@ import './Patrons.css';
 import search from '../../assets/Management System/logbook/search.svg';
 import edit from '../../assets/Management System/patrons/edit-patron.svg';
 
+
 const Patrons = () => {
     const [patrons, setPatrons] = useState([]);
     const [filteredPatrons, setFilteredPatrons] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
+    const [loading,setLoading] = useState(false)
 
     useEffect(() => {
         // Fetch data from backend API
+        setLoading(true)
         axios
             .get(`http://localhost:3001/patron`) // Replace with your backend endpoint
             .then((response) => {
@@ -20,6 +23,9 @@ const Patrons = () => {
             })
             .catch((error) => {
                 console.error('Error fetching patron data:', error);
+            })
+            .finally(()=>{
+                setLoading(false)
             });
     }, []);
 
@@ -122,13 +128,21 @@ const Patrons = () => {
                                     </td>
                                 </tr>
                             ))
-                        ) : (
+                        ) : filteredPatrons.length == 0 && !loading ? (
                             <tr>
                                 <td colSpan="7" style={{ textAlign: 'center', padding: '10px' }}>
                                     No results found.
                                 </td>
                             </tr>
-                        )}
+                        ):(<tr>
+                            <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                              <div className="spinner-box">
+                                <div className="spinner-grow text-danger" role="status">
+                                  <span className="sr-only">Loading...</span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>)}
                     </tbody>
                 </table>
         </div>

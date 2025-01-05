@@ -166,7 +166,13 @@
 }
 
 .accounts-container .pagination button{
-    background-color: var(--tup-color);
+    background-color: transparent !important;
+    color: var(--tup-color);
+}
+
+.accounts-container .pagination button:hover{
+    background-color: var(--tup-color) !important;
+    color: var(--white);
 }
 
 

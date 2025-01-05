@@ -7,6 +7,7 @@ import { faX, faPen } from '@fortawesome/free-solid-svg-icons';
 import CirculationSuccessful from '../CirculationSuccessful/CirculationSuccessful';
 import Loading from '../Loading/Loading';
 
+
 const CirculationCheckout = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();

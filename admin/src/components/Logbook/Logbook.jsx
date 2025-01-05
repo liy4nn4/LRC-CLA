@@ -17,6 +17,7 @@ const Logbook = () => {
     const [entriesPerPage, setEntriesPerPage] = useState(5);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalEntries, setTotalEntries] = useState(0); // Total number of entries
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         getPatron();
@@ -32,6 +33,7 @@ const Logbook = () => {
     }, [currentPage, entriesPerPage]);
 
     const getPatron = async () => {
+        setLoading(true)
         try {
             const params = {
                 search: searchInput,
@@ -46,6 +48,8 @@ const Logbook = () => {
             setTotalEntries(response.data.total); // Set total entries for pagination
         } catch (err) {
             console.log(err.message);
+        }finally{
+            setLoading(false)
         }
     };
 
@@ -179,10 +183,20 @@ const Logbook = () => {
                                     <td>{item.att_log_in_time}</td>
                                 </tr>
                             ))
-                        ) : (
+                        ) : patron.length==0 && !loading?(
                             <tr>
                                 <td colSpan="10">No records available</td>
                             </tr>
+                        ):(
+                            <tr>
+                            <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                              <div className="spinner-box">
+                                <div className="spinner-grow text-danger" role="status">
+                                  <span className="sr-only">Loading...</span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
                         )}
                     </tbody>
                     
