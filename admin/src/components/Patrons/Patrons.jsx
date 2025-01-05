@@ -13,6 +13,29 @@ const Patrons = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [loading,setLoading] = useState(false)
+    const [userRole, setUserRole] = useState(null);
+   
+    useEffect(() => {
+      // Fetch user role from the server via cookies (JWT stored in HttpOnly cookie)
+      const fetchUserRole = async () => {
+        try {
+          // Request server to verify the JWT token
+          const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
+  
+          // If session is valid, set the role
+          if (response.data.loggedIn) {
+            setUserRole(response.data.userRole);
+          } else {
+            setUserRole(null); // If not logged in, clear the role
+          }
+        } catch (error) {
+          console.error('Error verifying session:', error);
+          setUserRole(null); // Set null if there's an error
+        }
+      };
+  
+      fetchUserRole();
+    }, []);
 
     useEffect(() => {
         // Fetch data from backend API
@@ -122,7 +145,7 @@ const Patrons = () => {
                                     <td style={{ padding: '10px' }} className='category'>{patron.category}</td>
                                     <td style={{ padding: '10px' }}>{patron.total_checkouts}</td>
                                     <td>₱<span>0.00</span></td>
-                                    <td className="patron-edit-checkout">
+                                    {userRole=='admin'?<td className="patron-edit-checkout">
                                         <Link to={`/edit-patron/${patron.patron_id}`}>
                                             <button className="patron-edit-button">
                                                 <img src={edit} alt="" />
@@ -130,7 +153,8 @@ const Patrons = () => {
                                             </button>
                                         </Link>
                                         
-                                    </td>
+                                    </td>:(<td></td>)}
+                                    
                                 </tr>
                             ))
                         ) : filteredPatrons.length == 0 && !loading ? (
