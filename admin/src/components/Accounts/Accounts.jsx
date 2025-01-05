@@ -25,7 +25,7 @@ const Accounts = () => {
     uname: '',
     role: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState({});
@@ -40,10 +40,12 @@ const Accounts = () => {
   const [totalPages, setTotalPages] = useState(0); // Total pages
   const [keyword, setKeyword] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({ fname:0, lname:0, uname: 0, role: 0, status:''});
-
+  
   useEffect(() => {
     userAccounts();
     getUsername(); 
+    console.log("account: ", account)
+    console.log("to edit account: ", toEditAccount)
     
     // Listen for updates from the server (via socket)
     socket.on('userUpdated', () => {
@@ -56,13 +58,30 @@ const Accounts = () => {
     };
   }, [currentPage, selectedFilters]);
 
+  const appendToAccount = (key, value) => {
+      setAccount((prevAccount) => ({
+          ...prevAccount,
+          [key]: value, // Dynamically add or update the key-value pair
+      }));
+      console.log(account)
+  };
+
+  const appendToEditAccount = (key, value) => {
+    setToEditAccount((prevToEditAccount) => ({
+        ...prevToEditAccount,
+        [key]: value, // Dynamically add or update the key-value pair
+    }));
+    console.log(toEditAccount)
+};
+
   useEffect(()=>{
     if(keyword==''){
       userAccounts(true)
     }
   },[keyword])
 
-  const [uname, setUname] = useState(null);
+  const [staffUname, setStaffUname] = useState(null);
+
   const getUsername = async()=>{
     try {
       // Request server to verify the JWT token
@@ -70,13 +89,14 @@ const Accounts = () => {
       console.log(response.data)
       // If session is valid, set the role
       if (response.data.loggedIn) {
-        setUname(response.data.username);
+        setStaffUname(response.data.username);
+        appendToAccount('username', response.data.username);
       } else {
-        setUname(null); // If not logged in, clear the role
+        setStaffUname(null); // If not logged in, clear the role
       }
     } catch (error) {
       console.error('Error verifying session:', error);
-      setUname(null); // Set null if there's an error
+      setStaffUname(null); // Set null if there's an error
     }
   }
 
@@ -103,7 +123,6 @@ const Accounts = () => {
           uname: selectedFilters.uname,
           role: selectedFilters.role,
           status: selectedFilters.status,
-          username: uname,
         }
       });
 
@@ -127,6 +146,7 @@ const Accounts = () => {
       setLoading(true);
       try {
         const response = await axios.post('http://localhost:3001/accounts/create', account);
+        console.log(account)
         setLoading(false);
 
         if (response.data.status === 409) {
@@ -156,7 +176,7 @@ const Accounts = () => {
         uname: response.data[0].staff_uname,
         role: response.data[0].role_id,
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
     } catch (err) {
       console.log('Cannot get account to be edited. An error occurred: ', err.message);
@@ -170,8 +190,10 @@ const Accounts = () => {
       setLoading(true);
       try {
         console.log('Editing account with id: ', id);
+        appendToEditAccount('username', staffUname);
         const response = await axios.put(`http://localhost:3001/account`, toEditAccount);
         if (response.data.status === 201) {
+          console.log("to edit", toEditAccount)
           setEditUser(false);
           setStatusModal(true);
           setStatusModalContent({ status: 'success', message: response.data.message });
@@ -188,7 +210,8 @@ const Accounts = () => {
   const deactivateUser = async () => {
     setLoading(true);
     try {
-      const response = await axios.put(`http://localhost:3001/account/deactivate/${selectedId}`);
+      console.log('account: ', staffUname)
+      const response = await axios.put(`http://localhost:3001/account/deactivate/${selectedId}`, {staffUname});
       if (response.data.status === 201) {
         setOpenDeactivate(false);
         setStatusModal(true);
@@ -205,7 +228,7 @@ const Accounts = () => {
   const activateUser = async () => {
     setLoading(true);
     try {
-      const response = await axios.put(`http://localhost:3001/account/activate/${selectedId}`);
+      const response = await axios.put(`http://localhost:3001/account/activate/${selectedId}`, {staffUname});
       if (response.data.status === 201) {
         setOpenActivate(false);
         setStatusModal(true);

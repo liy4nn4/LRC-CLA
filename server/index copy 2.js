@@ -2215,18 +2215,7 @@ app.get('/getCover', (req, res) => {
 
 app.get('/api/overdue-books', (req, res) => {
     const query = `
-       SELECT 
-            o.overdue_days,
-            p.patron_fname, 
-            p.patron_lname,
-            p.tup_id,
-            co.resource_id,
-            r.resource_title
-        FROM overdue o
-        JOIN checkout co ON o.checkout_id = co.checkout_id
-        JOIN patron p ON p.patron_id = co.patron_id
-        JOIn resources r ON r.resource_id = co.resource_id 
-        LIMIT 5;
+        SELECT p.tup_id, p.patron_fname, p.patron_lname, c.checkout_due, r.resource_id, r.resource_title, DATEDIFF(CURDATE(), c.checkout_due) AS overdue_days FROM checkout c JOIN patron p ON c.patron_id = p.patron_id JOIN resources r ON c.resource_id = r.resource_id JOIN book b ON r.resource_id = b.resource_id WHERE c.checkout_due < CURDATE() ORDER BY c.checkout_due DESC LIMIT 5;
     `;
     
     db.query(query, (error, results) => {
@@ -3259,7 +3248,7 @@ app.put('/account/activate/:id1',(req,res)=>{
         staff_status = ?
     WHERE 
         staff_id = ?`
-
+        
     db.query(q, ['active', id],(err,results)=>{
         if (err) {
             console.error(err);
@@ -3491,7 +3480,7 @@ app.post('/login', async (req, res) => {
         SELECT staff_uname, staff_password, role_name
         FROM staffaccount
         JOIN roles ON staffaccount.role_id = roles.role_id
-        WHERE staff_uname = ? AND staff_status = 'active'`;
+        WHERE staff_uname = ?`;
 
     try {
         db.query(query, [username], async (err, results) => {
@@ -3500,7 +3489,7 @@ app.post('/login', async (req, res) => {
             }
 
             if (results.length === 0) {
-                return res.status(404).json({ message: 'Invalid username or password' });
+                return res.status(404).json({ message: 'User not found' });
             }
 
             const user = results[0];
@@ -3576,27 +3565,23 @@ app.get('/check-session', (req, res) => {
 /*------------------CHARTS IN DASHBOARD--------------- */
 app.get('/borrowed/book/trends', (req,res)=>{
     const q = `
-    WITH week_days AS (
-        SELECT 2 AS day_num, 'Monday' AS day_name
-        UNION ALL SELECT 3, 'Tuesday'
-        UNION ALL SELECT 4, 'Wednesday'
-        UNION ALL SELECT 5, 'Thursday'
-        UNION ALL SELECT 6, 'Friday'
-        UNION ALL SELECT 7, 'Saturday'
-    )
     SELECT 
-        wd.day_name AS day_of_week,
-        COALESCE(COUNT(c.resource_id), 0) AS total_books_borrowed
+        DAYNAME(c.checkout_date) AS day_of_week, 
+        COUNT(*) AS total_books_borrowed
     FROM 
-        week_days wd
-    LEFT JOIN 
-        checkout c ON DAYOFWEEK(c.checkout_date) = wd.day_num
-        AND c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY)
-        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY)
+        checkout c
+    JOIN 
+        book b ON c.resource_id = b.resource_id
+    WHERE
+        c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
     GROUP BY 
-        wd.day_num, wd.day_name
+        DAYOFWEEK(c.checkout_date)
     ORDER BY 
-        wd.day_num;`
+        CASE 
+            WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
+            ELSE DAYOFWEEK(c.checkout_date) - 1 
+        END;`
 
     db.query(q, (err,result)=>{
         if (err) return res.status(500).send({ error: 'Database query failed' });
@@ -3605,56 +3590,51 @@ app.get('/borrowed/book/trends', (req,res)=>{
     })
 })
 
-// app.get('/borrowed/jn/trends', (req,res)=>{
-//     const q = `
-//     SELECT 
-//         DAYNAME(c.checkout_date) AS day_of_week, 
-//         COUNT(*) AS total_jn_borrowed
-//     FROM 
-//         checkout c
-//     JOIN 
-//         journalnewsletter jn ON c.resource_id = jn.resource_id
-//     WHERE
-//         c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
-//         AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
-//     GROUP BY 
-//         DAYOFWEEK(c.checkout_date)
-//     ORDER BY 
-//         CASE 
-//             WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
-//             ELSE DAYOFWEEK(c.checkout_date) - 1 
-//         END;`
+app.get('/borrowed/jn/trends', (req,res)=>{
+    const q = `
+    SELECT 
+        DAYNAME(c.checkout_date) AS day_of_week, 
+        COUNT(*) AS total_jn_borrowed
+    FROM 
+        checkout c
+    JOIN 
+        journalnewsletter jn ON c.resource_id = jn.resource_id
+    WHERE
+        c.checkout_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+        AND c.checkout_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
+    GROUP BY 
+        DAYOFWEEK(c.checkout_date)
+    ORDER BY 
+        CASE 
+            WHEN DAYOFWEEK(c.checkout_date) = 1 THEN 7 
+            ELSE DAYOFWEEK(c.checkout_date) - 1 
+        END;`
 
-//     db.query(q, (err,result)=>{
-//         if (err) return res.status(500).send({ error: 'Database query failed' });
+    db.query(q, (err,result)=>{
+        if (err) return res.status(500).send({ error: 'Database query failed' });
 
-//         res.send(result)
-//     })
-// })
+        res.send(result)
+    })
+})
 
 app.get('/visitor/stats', (req,res)=>{
     const q = `
-   WITH week_days AS (
-        SELECT 2 AS day_num, 'Monday' AS day_name
-        UNION ALL SELECT 3, 'Tuesday'
-        UNION ALL SELECT 4, 'Wednesday'
-        UNION ALL SELECT 5, 'Thursday'
-        UNION ALL SELECT 6, 'Friday'
-        UNION ALL SELECT 7, 'Saturday'
-    )
-    SELECT 
-        wd.day_name AS day_of_week,
-        COALESCE(COUNT(a.att_date), 0) AS total_attendance
+   SELECT 
+        DAYNAME(a.att_date) AS day_of_week, 
+        COUNT(*) AS total_attendance,
+        a.att_date
     FROM 
-        week_days wd
-    LEFT JOIN 
-        attendance a ON DAYOFWEEK(a.att_date) = wd.day_num
-        AND a.att_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY)
-        AND a.att_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY)
+        attendance a
+    WHERE
+        a.att_date >= DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) DAY) 
+        AND a.att_date < DATE_ADD(CURDATE(), INTERVAL - WEEKDAY(CURDATE()) + 6 DAY) 
     GROUP BY 
-        wd.day_num, wd.day_name
+        DAYOFWEEK(a.att_date)
     ORDER BY 
-        wd.day_num;`
+        CASE 
+            WHEN DAYOFWEEK(a.att_date) = 1 THEN 7 
+            ELSE DAYOFWEEK(a.att_date) - 1 
+        END`
 
     db.query(q, (err,result)=>{
         if (err) return res.status(500).send({ error: 'Database query failed' });
@@ -3664,7 +3644,7 @@ app.get('/visitor/stats', (req,res)=>{
 })
 
 /*--------------check overdue resources using cron-------- */
-const sendEmail = (email, name, tupid, borrowDate, borrowDue, resourceTitle, resourceId) => {
+const sendEmail = (email, subject, text) => {
     
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -3677,127 +3657,11 @@ let transporter = nodemailer.createTransport({
     }
   });
 
-
-  let borrowerData = {
-    borrower_name: name,
-    borrower_id: tupid,
-    borrowed_date: borrowDate,
-    borrowed_due: borrowDue,
-    item_title: resourceTitle,
-    item_id: resourceId
-  };
-
   let mailOptions = {
     from: process.env.USER_EMAIL,
     to: email,
-    subject: 'Overdue Notice', // Email subject
-    html: `<!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                background-color: #f9f9f9;
-                margin: 0;
-                padding: 0;
-            }
-            p{
-                color: #0c0c0c;
-            }
-            .email-container {
-                max-width: 600px;
-                margin: 20px auto;
-                background: #ffffff;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                overflow: hidden;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-                background-color: #94152B;
-                color: white;
-                padding: 15px;
-                text-align: center;
-            }
-            .content {
-                padding: 20px;
-                color: #333;
-            }
-            .footer {
-                text-align: center;
-                font-size: 12px;
-                color: #999;
-                padding: 10px;
-                background: #f1f1f1;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 10px;
-            }
-            table th, table td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }
-            table th {
-                background-color: #94152B;
-                color: white;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="email-container">
-            <div class="header">
-                <h1>Overdue Notice</h1>
-            </div>
-            <div class="content">
-                <p>Dear {{borrower_name}},</p>
-                <p>We hope this email finds you well. This is a reminder that the following items you borrowed from the Learning Resources Center are overdue:</p>
-                
-                <table>
-                    <tr>
-                        <th>Borrower's ID</th>
-                        <td>{{borrower_id}}</td>
-                    </tr>
-                    <tr>
-                        <th>Borrowed Date</th>
-                        <td>{{borrowed_date}}</td>
-                    </tr>
-                    <tr>
-                        <th>Due Date</th>
-                        <td>{{borrowed_due}}</td>
-                    </tr>
-                </table>
-                
-                <h3>Overdue Item:</h3>
-                <table>
-                    <tr>
-                        <th>Item Title</th>
-                        <th>Item ID</th>
-                    </tr>
-                    <tr>
-                        <td>{{item_title}}</td>
-                        <td>{{item_id}}</td>
-                    </tr>
-                </table>
-                <p>Please return the items as soon as possible to avoid additional fines. If you have any questions, feel free to contact us.</p>
-                
-                <p>Thank you,<br>Learning Resources Center</p>
-            </div>
-            <div class="footer">
-                This is an automated email. Please do not reply.
-            </div>
-        </div>
-    </body>
-    </html>`
-    .replace('{{borrower_name}}', borrowerData.borrower_name)
-    .replace('{{borrower_id}}', borrowerData.borrower_id)
-    .replace('{{borrowed_date}}', borrowerData.borrowed_date)
-    .replace('{{borrowed_due}}', borrowerData.borrowed_due)
-    .replace('{{item_title}}', borrowerData.item_title)
-    .replace('{{item_id}}', borrowerData.item_id)
+    subject: subject,
+    text: text
   };
 
   transporter.sendMail(mailOptions, function(err, data) {
@@ -3812,20 +3676,10 @@ let transporter = nodemailer.createTransport({
 const checkOverdue = async () => {
     console.log('checking overdue')
     const q = `
-    SELECT 
-        c.checkout_id, 
-        c.checkout_date,
-        c.checkout_due,
-        p.patron_email, 
-        p.tup_id, 
-        p.patron_fname, 
-        p.patron_lname,
-        r.resource_title,
-        r.resource_id
+    SELECT c.checkout_id, p.patron_email
     FROM checkout c
     LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
     LEFT JOIN patron p ON c.patron_id = p.patron_id
-    LEFT JOIN resources r ON r.resource_id = c.resource_id
     WHERE ci.checkout_id IS NULL AND c.checkout_due < current_date()`;
 
     db.query(q, (err, result) => {
@@ -3860,7 +3714,7 @@ const checkOverdue = async () => {
 
                             console.log('Overdue days incremented for checkout_id:', item.checkout_id);
                             // Send email to patron
-                            sendEmail(item.patron_email,`${item.patron_fname} ${item.patron_lname}`, item.tup_id, item.checkout_date, item.checkout_due,item.resource_title, item.resource_id);
+                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
                         });
                     } else {
                         // If checkout_id doesn't exist in the overdue table, insert it
@@ -3877,7 +3731,7 @@ const checkOverdue = async () => {
 
                             console.log('New overdue entry created for checkout_id:', item.checkout_id);
                             // Send email to patron
-                            sendEmail(item.patron_email,`${item.patron_fname} ${item.patron_lname}`, item.tup_id, item.checkout_date, item.checkout_due,item.resource_title, item.resource_id);
+                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
                         });
                     }
                 });
