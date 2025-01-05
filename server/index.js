@@ -3334,7 +3334,7 @@ app.post('/login', async (req, res) => {
         SELECT staff_uname, staff_password, role_name
         FROM staffaccount
         JOIN roles ON staffaccount.role_id = roles.role_id
-        WHERE staff_uname = ?`;
+        WHERE staff_uname = ? AND staff_status = 'active'`;
 
     try {
         db.query(query, [username], async (err, results) => {
@@ -3343,7 +3343,7 @@ app.post('/login', async (req, res) => {
             }
 
             if (results.length === 0) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Invalid username or password' });
             }
 
             const user = results[0];
