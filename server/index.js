@@ -2215,7 +2215,18 @@ app.get('/getCover', (req, res) => {
 
 app.get('/api/overdue-books', (req, res) => {
     const query = `
-        SELECT p.tup_id, p.patron_fname, p.patron_lname, c.checkout_due, r.resource_id, r.resource_title, DATEDIFF(CURDATE(), c.checkout_due) AS overdue_days FROM checkout c JOIN patron p ON c.patron_id = p.patron_id JOIN resources r ON c.resource_id = r.resource_id JOIN book b ON r.resource_id = b.resource_id WHERE c.checkout_due < CURDATE() ORDER BY c.checkout_due DESC LIMIT 5;
+       SELECT 
+            o.overdue_days,
+            p.patron_fname, 
+            p.patron_lname,
+            p.tup_id,
+            co.resource_id,
+            r.resource_title
+        FROM overdue o
+        JOIN checkout co ON o.checkout_id = co.checkout_id
+        JOIN patron p ON p.patron_id = co.patron_id
+        JOIn resources r ON r.resource_id = co.resource_id 
+        LIMIT 5;
     `;
     
     db.query(query, (error, results) => {

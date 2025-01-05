@@ -13,6 +13,10 @@ import { faker } from '@faker-js/faker';
 import MultiLineGraph from '../MultiLineGraph'
 import { Doughnut } from 'react-chartjs-2'
 import BarChart from '../BarChart'
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+
 
 
 const Dashboard = () => {
@@ -97,8 +101,6 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    //setInterval throws an id na pwede natin gamitin to stop the interval
-    const intervalId = setInterval(()=>setDateTime(new Date()), 1000 );
     getTotalVisitors();
     getBorrowedBooks();
     getBorrowers();
@@ -106,11 +108,16 @@ const Dashboard = () => {
     fetchCovers();
     fetchOverdueBooks();
     fetchCheckoutInfo();
-    // iccall lang ng react ung cleanup kapag lumipat kana ng component
-     return function cleanup() {
-        //stops the interval
-         clearInterval(intervalId)
-    }
+
+    // Listen for updates from the server (via socket)
+    socket.on('attendanceUpdated', () => {
+      console.log('attendance updated, refreshing attendance...');
+      getTotalVisitors(); // Call userAccounts to refresh the list
+    });
+
+    return () => {
+      socket.off('attendanceUpdated'); // Cleanup on component unmount
+    };
 },[]);
 
   const toggleDropdown = ()=>{
@@ -392,8 +399,6 @@ const Dashboard = () => {
                   <td>Book ID</td>
                   <td>Title</td>
                   <td>Overdue</td>
-                  <td>Status</td>
-                  <td>Fine</td>
                 </tr>
               </thead>
               <tbody>
@@ -403,9 +408,7 @@ const Dashboard = () => {
                     <td>{book.patron_fname} {book.patron_lname}</td>
                     <td>{book.resource_id}</td>
                     <td>{book.resource_title}</td>
-                    <td>{book.overdue_days} days</td>
-                    <td>overdue</td>
-                    <td>{book.overdue_days * 20} pesos</td>
+                    <td>{book.overdue_days} day/s</td>
                     </tr>
                 )):<tr>
                 <td colSpan="7">No records available</td> 
@@ -425,7 +428,7 @@ const Dashboard = () => {
           </div>
 
       {/* book issued */}
-      <div className='borrowers-list'>
+      {/* <div className='borrowers-list'>
             <div className='heading'>
               <h5>Books issued</h5>
             </div>
@@ -452,7 +455,7 @@ const Dashboard = () => {
               </tbody>
             </table>
             <div className='see-all-box'><Link to={'/circulation'}><button className='see-all-button'>See all</button></Link></div>
-          </div>
+          </div> */}
     </div>
   )
 }
