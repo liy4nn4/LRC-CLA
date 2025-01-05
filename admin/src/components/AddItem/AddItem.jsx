@@ -12,6 +12,7 @@ import { saveResourceOffline } from '../../indexedDb/saveResourcesOffline';
 import { viewResourcesOffline } from '../../indexedDb/viewResourcesOffline';
 import { editResourceOffline } from '../../indexedDb/editResourcesOffline';
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal';
+import { useNavigate } from 'react-router-dom';
 
 
 const AddItem = () => {
