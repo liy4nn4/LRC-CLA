@@ -3507,7 +3507,7 @@ app.get('/visitor/stats', (req,res)=>{
 })
 
 /*--------------check overdue resources using cron-------- */
-const sendEmail = (email, subject, text) => {
+const sendEmail = (email, name, tupid, borrowDate, borrowDue, resourceTitle, resourceId) => {
     
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -3520,11 +3520,127 @@ let transporter = nodemailer.createTransport({
     }
   });
 
+
+  let borrowerData = {
+    borrower_name: name,
+    borrower_id: tupid,
+    borrowed_date: borrowDate,
+    borrowed_due: borrowDue,
+    item_title: resourceTitle,
+    item_id: resourceId
+  };
+
   let mailOptions = {
     from: process.env.USER_EMAIL,
     to: email,
-    subject: subject,
-    text: text
+    subject: 'Overdue Notice', // Email subject
+    html: `<!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+            }
+            p{
+                color: #0c0c0c;
+            }
+            .email-container {
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                background-color: #94152B;
+                color: white;
+                padding: 15px;
+                text-align: center;
+            }
+            .content {
+                padding: 20px;
+                color: #333;
+            }
+            .footer {
+                text-align: center;
+                font-size: 12px;
+                color: #999;
+                padding: 10px;
+                background: #f1f1f1;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            table th, table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            table th {
+                background-color: #94152B;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="email-container">
+            <div class="header">
+                <h1>Overdue Notice</h1>
+            </div>
+            <div class="content">
+                <p>Dear {{borrower_name}},</p>
+                <p>We hope this email finds you well. This is a reminder that the following items you borrowed from the Learning Resources Center are overdue:</p>
+                
+                <table>
+                    <tr>
+                        <th>Borrower's ID</th>
+                        <td>{{borrower_id}}</td>
+                    </tr>
+                    <tr>
+                        <th>Borrowed Date</th>
+                        <td>{{borrowed_date}}</td>
+                    </tr>
+                    <tr>
+                        <th>Due Date</th>
+                        <td>{{borrowed_due}}</td>
+                    </tr>
+                </table>
+                
+                <h3>Overdue Item:</h3>
+                <table>
+                    <tr>
+                        <th>Item Title</th>
+                        <th>Item ID</th>
+                    </tr>
+                    <tr>
+                        <td>{{item_title}}</td>
+                        <td>{{item_id}}</td>
+                    </tr>
+                </table>
+                <p>Please return the items as soon as possible to avoid additional fines. If you have any questions, feel free to contact us.</p>
+                
+                <p>Thank you,<br>Learning Resources Center</p>
+            </div>
+            <div class="footer">
+                This is an automated email. Please do not reply.
+            </div>
+        </div>
+    </body>
+    </html>`
+    .replace('{{borrower_name}}', borrowerData.borrower_name)
+    .replace('{{borrower_id}}', borrowerData.borrower_id)
+    .replace('{{borrowed_date}}', borrowerData.borrowed_date)
+    .replace('{{borrowed_due}}', borrowerData.borrowed_due)
+    .replace('{{item_title}}', borrowerData.item_title)
+    .replace('{{item_id}}', borrowerData.item_id)
   };
 
   transporter.sendMail(mailOptions, function(err, data) {
@@ -3539,10 +3655,20 @@ let transporter = nodemailer.createTransport({
 const checkOverdue = async () => {
     console.log('checking overdue')
     const q = `
-    SELECT c.checkout_id, p.patron_email
+    SELECT 
+        c.checkout_id, 
+        c.checkout_date,
+        c.checkout_due,
+        p.patron_email, 
+        p.tup_id, 
+        p.patron_fname, 
+        p.patron_lname,
+        r.resource_title,
+        r.resource_id
     FROM checkout c
     LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
     LEFT JOIN patron p ON c.patron_id = p.patron_id
+    LEFT JOIN resources r ON r.resource_id = c.resource_id
     WHERE ci.checkout_id IS NULL AND c.checkout_due < current_date()`;
 
     db.query(q, (err, result) => {
@@ -3577,7 +3703,7 @@ const checkOverdue = async () => {
 
                             console.log('Overdue days incremented for checkout_id:', item.checkout_id);
                             // Send email to patron
-                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
+                            sendEmail(item.patron_email,`${item.patron_fname} ${item.patron_lname}`, item.tup_id, item.checkout_date, item.checkout_due,item.resource_title, item.resource_id);
                         });
                     } else {
                         // If checkout_id doesn't exist in the overdue table, insert it
@@ -3594,7 +3720,7 @@ const checkOverdue = async () => {
 
                             console.log('New overdue entry created for checkout_id:', item.checkout_id);
                             // Send email to patron
-                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
+                            sendEmail(item.patron_email,`${item.patron_fname} ${item.patron_lname}`, item.tup_id, item.checkout_date, item.checkout_due,item.resource_title, item.resource_id);
                         });
                     }
                 });
