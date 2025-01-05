@@ -3,20 +3,20 @@ import './Catalog.css'
 
 import axios from 'axios'
 import io from 'socket.io-client';
-import Loading from '../Loading/Loading'
-import { getAllFromStore, getAllUnsyncedFromStore, getBook, getBookPub, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
-import { clearObjectStore, deleteResourceFromIndexedDB, markAsSynced } from '../../indexedDb/syncData'
+
+import { getAllFromStore, getCatalogDetailsOffline, getPub, getResource, getResourceAdviser, getResourceAuthors } from '../../indexedDb/getDataOffline'
+import { clearObjectStore, deleteResourceFromIndexedDB } from '../../indexedDb/syncData'
 import ResourceStatusModal from '../ResourceStatusModal/ResourceStatusModal'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
-const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
+//const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const Catalog = () => {
   const [catalog, setCatalog] = useState([])
   // Pagination state
-  const [pagination, setPagination] = useState(5); // Items per page
+  //const [pagination, setPagination] = useState(5); // Items per page
   const [currentPage, setCurrentPage] = useState(1); // Current page
   const [totalPages, setTotalPages] = useState(0); // Total pages
   const [loading,setLoading] = useState(false)
@@ -27,7 +27,7 @@ const Catalog = () => {
     message:''
   })
   const [isOnline, setIsOnline] = useState(true)
-  const [openFilter, setOpenFilter] = useState(false)
+  //const [openFilter, setOpenFilter] = useState(false)
   const [type, setType] = useState('');
   const [department, setDepartment] = useState([])
   const [topic,setTopic] = useState([])
