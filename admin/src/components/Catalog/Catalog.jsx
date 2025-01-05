@@ -403,7 +403,7 @@ console.log(selectedFilters)
               disabled={!navigator.onLine}
               title='You need internet connection to sync to database.'
             >
-              Sync to database
+              Sync offline data to database
             </button>
            </div>
         </div>
@@ -423,7 +423,6 @@ console.log(selectedFilters)
               </button>
           </div>
      
-
             <table className="cat-table">
               <thead>
                 <tr>

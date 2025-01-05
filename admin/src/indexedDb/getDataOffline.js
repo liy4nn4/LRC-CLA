@@ -37,20 +37,54 @@ export const getCatalogDetailsOffline = async ()=>{
     const authors = await authorStore.getAll()
     await txAuthor.done
 
-    //get department for the shelf no
+    //get department
     const txDept = db.transaction('department','readonly');
     const deptStore = txDept.objectStore('department')
     const department = await deptStore.getAll()
     await txDept.done
     
+    // get topic
+    const txTopic = db.transaction('topic','readonly');
+    const topicStore = txTopic.objectStore('topic')
+    const topic = await topicStore.getAll()
+    await txTopic.done
+
+    // get book
+    const txBook = db.transaction('book','readonly');
+    const bookStore = txBook.objectStore('book')
+    const book = await bookStore.getAll()
+    await txBook.done
+
+    // get journalnewsletter
+    const txJn = db.transaction('journalnewsletter','readonly');
+    const jnStore = txJn.objectStore('journalnewsletter')
+    const jn = await jnStore.getAll()
+    await txJn.done
 
     for(const resource of resources){
         //.find() returns the entire object if it finds a match.
         //resource type
         const resourceType = types.find(type => type.type_id == resource.type_id)?.type_name || '';
 
+        // console.log(resourceType)
+        let topicName;
+        let topicId = 0;
+        if(resourceType=='book'){
+            topicId = book.find(b=>b.resource_id == resource.resource_id)?.topic_id||'';
+        }else if(resourceType=='journal'){
+            topicId = jn.find(j=>j.resource_id == resource.resource_id)?.topic_id||'';
+        }else if(resourceType=='newsletter'){
+            topicId = jn.find(j=>j.resource_id == resource.resource_id)?.topic_id||'';
+        }
+
+        topicName = topicId!=0?topic.find(t=>t.topic_id == topicId)?.topic_name||'':'n/a';
+
+        
         //resource shelf no
-        const shelfNo = department.find(dept=>dept.dept_id == resource.dept_id)?.dept_shelf_no||'';
+        // const shelfNo = department.find(dept=>dept.dept_id == resource.dept_id)?.dept_shelf_no||'';
+
+        //resource dept name
+        const deptName = department.find(dept=>dept.dept_id == resource.dept_id)?.dept_name||'';
 
         //get authors 
         //filter returns whole objet that matches the condition
@@ -69,11 +103,11 @@ export const getCatalogDetailsOffline = async ()=>{
             resource_title: resource.resource_title,
             type_name: resourceType,
             author_names: resourceAuthors.length>1?resourceAuthors.join(', '):resourceAuthors,
-            dept_shelf_no: shelfNo,
+            // dept_shelf_no: shelfNo,
+            dept_name: deptName,
+            topic_name:topicName,
             resource_quantity: resource.resource_quantity
         })
-
-        console.log(resourceAuthors)
     }
     return catalog
 }
