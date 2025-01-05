@@ -1737,122 +1737,268 @@ try {
 }
 });
 
-app.post('/checkout', async (req, res) => {
+
+app.post('/checkout1', async (req, res) => {
     const { checkout_date, checkout_due, resource_id, patron_id, username } = req.body;
+
     if (!checkout_date || !checkout_due || !resource_id || !patron_id) {
         return res.status(400).json({
-          error: 'Invalid input. All fields (checkout_date, checkout_due, resource_id, patron_id) are required.',
+            error: 'Invalid input. All fields (checkout_date, checkout_due, resource_id, patron_id) are required.',
         });
-      }
+    }
+
+    const db = await dbPromise; // Assuming `dbPromise` resolves to the database connection
+
     try {
-      const result = await (await dbPromise).query(
-        'INSERT INTO checkout (checkout_date, checkout_due, resource_id, patron_id) VALUES (?, ?, ?, ?)',
-        [checkout_date, checkout_due, resource_id, patron_id]
-      );
+        // Start a transaction
+        await db.query('START TRANSACTION');
 
-    const [resource] = await (await dbPromise).query(
-        'SELECT resource_title FROM resources WHERE resource_id = ?',
-        [resource_id]
-    );
+        // Insert checkout record
+        const [result] = await db.query(
+            'INSERT INTO checkout (checkout_date, checkout_due, resource_id, patron_id) VALUES (?, ?, ?, ?)',
+            [checkout_date, checkout_due, resource_id, patron_id]
+        );
 
-    // If no resource is found, handle the case (optional)
-    if (!resource || !resource.length) {
-        return res.status(404).json({ error: 'Resource not found' });
-    }
+        // Fetch the resource details
+        const [resource] = await db.query(
+            'SELECT resource_title, resource_quantity FROM resources WHERE resource_id = ?',
+            [resource_id]
+        );
 
-    const resource_title = resource[0].resource_title;
+        if (!resource || !resource.length) {
+            await db.query('ROLLBACK');
+            return res.status(404).json({ error: 'Resource not found' });
+        }
 
-      logAuditAction(username, 'INSERT', 'checkout', resource_id, null, JSON.stringify({ book_name: resource_title , status: 'borrowed' }));
-      res.status(200).json({ message: 'Checkout successful!', checkout_id: result.insertId });
+        const { resource_title, resource_quantity } = resource[0];
+
+        // Check if resource_quantity is greater than 0
+        if (resource_quantity <= 0) {
+            await db.query('ROLLBACK');
+            return res.status(400).json({ error: 'Resource is not available for checkout.' });
+        }
+
+        // Decrement resource quantity
+        await db.query(
+            'UPDATE resources SET resource_quantity = resource_quantity - 1 WHERE resource_id = ?',
+            [resource_id]
+        );
+
+        // Log audit action
+        logAuditAction(
+            username,
+            'INSERT',
+            'checkout',
+            resource_id,
+            null,
+            JSON.stringify({ book_name: resource_title, status: 'borrowed' })
+        );
+
+        // Commit the transaction
+        await db.query('COMMIT');
+
+        res.status(200).json({ message: 'Checkout successful!', checkout_id: result.insertId });
     } catch (error) {
-      console.error('Error inserting checkout:', error.message);
-      res.status(500).json({ error: 'Failed to process checkout' });
-    }
-  });
+        console.error('Error processing checkout:', error.message);
 
-  app.get('/getCheckoutRecord', (req, res) => {
-    const { resource_id, patron_id } = req.query;
-    const query = 'SELECT checkout_id FROM checkout WHERE resource_id = ? AND patron_id = ?';
-  
-    db.query(query, [resource_id, patron_id], (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({ message: 'Checkout record not found.' });
-      }
-      res.json(results[0]);
-    });
-  });
+        // Rollback transaction on error
+        await db.query('ROLLBACK');
+
+        res.status(500).json({ error: 'Failed to process checkout' });
+    }
+});
+
+app.post('/checkout', async (req, res) => {
+    const { checkout_date, checkout_due, resource_id, patron_id, username } = req.body;
+
+    if (!checkout_date || !checkout_due || !resource_id || !patron_id) {
+        return res.status(400).json({
+            error: 'Invalid input. All fields (checkout_date, checkout_due, resource_id, patron_id) are required.',
+        });
+    }
+
+    const db = await dbPromise; // Assuming `dbPromise` resolves to the database connection
+
+    try {
+        // Start a transaction
+        await db.query('START TRANSACTION');
+
+        // Fetch patron details
+        const [patron] = await db.query(
+            'SELECT patron_fname, patron_lname FROM patron WHERE patron_id = ?',
+            [patron_id]
+        );
+
+        if (!patron || !patron.length) {
+            await db.query('ROLLBACK');
+            return res.status(404).json({ error: 'Patron not found' });
+        }
+
+        const { patron_fname, patron_lname } = patron[0];
+        const patron_name = `${patron_fname} ${patron_lname}`; // Combine patron_fname and patron_lname
+
+        // Insert checkout record
+        const [result] = await db.query(
+            'INSERT INTO checkout (checkout_date, checkout_due, resource_id, patron_id) VALUES (?, ?, ?, ?)',
+            [checkout_date, checkout_due, resource_id, patron_id]
+        );
+
+        // Fetch the resource details
+        const [resource] = await db.query(
+            'SELECT resource_title, resource_quantity FROM resources WHERE resource_id = ?',
+            [resource_id]
+        );
+
+        if (!resource || !resource.length) {
+            await db.query('ROLLBACK');
+            return res.status(404).json({ error: 'Resource not found' });
+        }
+
+        const { resource_title, resource_quantity } = resource[0];
+
+        // Check if resource_quantity is greater than 0
+        if (resource_quantity <= 0) {
+            await db.query('ROLLBACK');
+            return res.status(400).json({ error: 'Resource is not available for checkout.' });
+        }
+
+        // Decrement resource quantity
+        await db.query(
+            'UPDATE resources SET resource_quantity = resource_quantity - 1 WHERE resource_id = ?',
+            [resource_id]
+        );
+
+        // Log audit action
+        logAuditAction(
+            username,
+            'INSERT',
+            'checkout',
+            resource_id,
+            null,
+            JSON.stringify({ book_name: resource_title, status: 'borrowed', patron: patron_name })
+        );
+
+        // Commit the transaction
+        await db.query('COMMIT');
+
+        res.status(200).json({
+            message: 'Checkout successful!',
+            checkout_id: result.insertId,
+            patron_name,
+        });
+    } catch (error) {
+        console.error('Error processing checkout:', error.message);
+
+        // Rollback transaction on error
+        await db.query('ROLLBACK');
+
+        res.status(500).json({ error: 'Failed to process checkout' });
+    }
+});
+
+
+
+
+app.get('/getCheckoutRecord', (req, res) => {
+const { resource_id, patron_id } = req.query;
+const query = 'SELECT checkout_id FROM checkout WHERE resource_id = ? AND patron_id = ?';
+
+db.query(query, [resource_id, patron_id], (err, results) => {
+    if (err) {
+    return res.status(500).json({ error: err.message });
+    }
+    if (results.length === 0) {
+    return res.status(404).json({ message: 'Checkout record not found.' });
+    }
+    res.json(results[0]);
+});
+});
   
   // Check In (insert records into the checkin table)
 // Check In (insert records into the checkin table and delete from checkout)
+
+
+
 app.post('/checkin', async (req, res) => {
     const { checkout_id, returned_date, patron_id, resource_id, username } = req.body;
-  
+
     if (!checkout_id || !returned_date) {
-      return res.status(400).json({ error: 'checkout_id and returned_date are required.' });
+        return res.status(400).json({ error: 'checkout_id and returned_date are required.' });
     }
-  
+
+    const db = await dbPromise; // Assuming `dbPromise` resolves to the database connection
+
     try {
-      await new Promise((resolve, reject) => {
-        db.beginTransaction((err) => {
-          if (err) {
-            console.error('Transaction Start Error:', err);
-            return reject('Failed to start transaction.');
-          }
-  
-          // Insert into the checkin table
-          const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
-          db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
-            if (err) {
-              console.error('Checkin Insert Error:', err);
-              return db.rollback(() => reject('Failed to insert into checkin table.'));
-            }
-  
-            // Update checkout status
-            const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
-            db.query(updateCheckoutStatusQuery, ['returned', checkout_id], (err, results) => {
-              if (err) {
-                console.error('Update Checkout Status Error:', err);
-                return db.rollback(() => reject('Failed to update checkout status.'));
-              }
-  
-              // Commit the transaction
-              db.commit((err) => {
-                if (err) {
-                  console.error('Transaction Commit Error:', err);
-                  return db.rollback(() => reject('Transaction commit failed.'));
-                }
-                resolve();
-              });
-            });
-          });
+        // Start a transaction
+        await db.query('START TRANSACTION');
+
+        // Fetch patron details
+        const [patron] = await db.query(
+            'SELECT patron_fname, patron_lname FROM patron WHERE patron_id = ?',
+            [patron_id]
+        );
+
+        if (!patron || !patron.length) {
+            await db.query('ROLLBACK');
+            return res.status(404).json({ error: 'Patron not found' });
+        }
+
+        const { patron_fname, patron_lname } = patron[0];
+        const patron_name = `${patron_fname} ${patron_lname}`; // Combine patron_fname and patron_lname
+
+        // Insert into the checkin table
+        const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
+        const [checkinResult] = await db.query(checkinQuery, [checkout_id, returned_date]);
+
+        // Update checkout status
+        const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
+        await db.query(updateCheckoutStatusQuery, ['returned', checkout_id]);
+
+        // Increment resource quantity
+        const incrementResourceQuery =
+            'UPDATE resources SET resource_quantity = resource_quantity + 1 WHERE resource_id = ?';
+        await db.query(incrementResourceQuery, [resource_id]);
+
+        // Commit the transaction
+        await db.query('COMMIT');
+
+        // After the transaction is committed, fetch the resource title
+        const [resource] = await db.query(
+            'SELECT resource_title FROM resources WHERE resource_id = ?',
+            [resource_id]
+        );
+
+        // If no resource is found, handle the case
+        if (!resource || !resource.length) {
+            return res.status(404).json({ error: 'Resource not found' });
+        }
+
+        const resource_title = resource[0].resource_title;
+
+        // Log the audit action
+        logAuditAction(
+            username,
+            'INSERT',
+            'checkin',
+            resource_id,
+            null,
+            JSON.stringify({ book_name: resource_title, status: 'returned', patron: patron_name })
+        );
+
+        res.status(201).json({
+            message: 'Item successfully checked in and removed from checkout.',
+            patron_name
         });
-      });
-  
-      // After the transaction is committed, fetch the resource title
-      const [resource] = await (await dbPromise).query(
-        'SELECT resource_title FROM resources WHERE resource_id = ?',
-        [resource_id]
-      );
-  
-      // If no resource is found, handle the case
-      if (!resource || !resource.length) {
-        return res.status(404).json({ error: 'Resource not found' });
-      }
-  
-      const resource_title = resource[0].resource_title;
-  
-      // Log the audit action
-      logAuditAction(username, 'INSERT', 'checkin', resource_id, null, JSON.stringify({ book_name: resource_title, status: 'returned' }));
-  
-      res.status(201).json({ message: 'Item successfully checked in and removed from checkout.' });
     } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: error });
+        console.error('Error:', error);
+        
+        // Rollback transaction on error
+        await db.query('ROLLBACK');
+
+        res.status(500).json({ error: 'Failed to process checkin' });
     }
-  });
+});
+
   
 
 app.get('/getCirculation1', (req, res) => {
