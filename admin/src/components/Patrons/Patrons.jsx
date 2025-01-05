@@ -3,6 +3,8 @@ import axios from 'axios';
 import './Patrons.css';
 import search from '../../assets/Management System/logbook/search.svg';
 import edit from '../../assets/Management System/patrons/edit-patron.svg';
+import { Link } from 'react-router-dom';
+
 
 
 const Patrons = () => {
@@ -112,19 +114,22 @@ const Patrons = () => {
                         {filteredPatrons.length > 0 ? (
                             filteredPatrons.map((patron, index) => (
                                 <tr key={index} style={{ borderBottom: '1px solid #ddd' }}>
-                                    <td style={{ padding: '10px' }}>{patron.tup_id}</td>
+                                    <td style={{ padding: '10px' }} className='tup-id'>{patron.tup_id}</td>
                                     <td style={{ padding: '10px' }}>
                                         {patron.patron_fname} {patron.patron_lname}
                                     </td>
-                                    <td style={{ padding: '10px' }}>{patron.patron_email}</td>
-                                    <td style={{ padding: '10px' }}>{patron.category}</td>
+                                    <td style={{ padding: '10px' }} className='email'>{patron.patron_email}</td>
+                                    <td style={{ padding: '10px' }} className='category'>{patron.category}</td>
                                     <td style={{ padding: '10px' }}>{patron.total_checkouts}</td>
                                     <td>₱<span>0.00</span></td>
                                     <td className="patron-edit-checkout">
-                                        <button className="patron-edit-button">
-                                            <img src={edit} alt="" />
-                                            Edit
-                                        </button>
+                                        <Link to={`/edit-patron/${patron.patron_id}`}>
+                                            <button className="patron-edit-button">
+                                                <img src={edit} alt="" />
+                                                Edit
+                                            </button>
+                                        </Link>
+                                        
                                     </td>
                                 </tr>
                             ))

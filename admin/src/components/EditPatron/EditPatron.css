@@ -1,0 +1,173 @@
+@import "~@fortawesome/fontawesome-free/css/all.css";
+
+
+@font-face {
+    font-family: 'Inter';
+    font-weight: 400;
+    src: url('../../assets/Fonts/Inter_24pt-Regular.ttf') format('ttf');
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter';
+    text-decoration: none;
+}
+
+:root{
+    --black:#1F1F1F;
+    --tup-color: #94152B;
+    --white: #fff;
+    --button:  #97170E;
+    --button-hover:  #75110a;
+    --shadow: #0000003b;
+    --yellow: #EDDF13;
+    --yellow-hover: rgb(218, 168, 3);
+    --yellow-filter: brightness(0) saturate(10%) invert(90%) sepia(41%) saturate(1000%) hue-rotate(332deg) brightness(103%) contrast(103%);
+    --white-filter:  brightness(100%) saturate(0) invert(100%) sepia(0) saturate(0) hue-rotate(0) brightness(1000%) contrast(100%);
+    --green: #54CB58;
+    --light-gray: #F7F7F7;
+    --blue: #5499CB;
+    --table-header: #6F6A6A;
+    --table-border-bottom:#D9D9D9;
+    --light-red: rgba(148, 21, 43, 0.1);
+}
+
+.custom-spacing{
+    margin-left: 20px;
+}
+
+.edit-patron-container{
+    padding: 10px 70px 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-x: hidden;   
+}
+
+.edit-patron-container h1{
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--black);
+}
+
+.edit-patron-path-button{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-patron-path-button p{
+    margin: 0;
+}
+
+.edit-patron-back-button{
+    width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 5px;
+    border-radius: 20px;
+    color: var(--button);
+    border: 1px solid var(--button);
+    background-color: var(--white);
+    transition: all 0.2s linear;
+}
+
+.edit-patron-back-button:hover{
+    background-color: var(--button);
+    color: var(--white);
+
+}
+
+.edit-patron-path span{
+    color: var(--button);
+    font-weight: 700;
+}
+
+.patron-info{
+    background-color: var(--light-gray);
+    border-radius: 15px 15px 0px 0px;
+    overflow: hidden;
+    height: auto;
+}
+
+.patron-info-header{
+    background-color: var(--tup-color);
+    padding: 10px;
+    text-align: center;
+    color: var(--white);
+    font-size: 1.2rem;
+}
+
+.information-inputs{
+    font-size: 0.9rem;
+    padding: 50px 80px;
+
+}
+
+.information-inputs .patron-input-box{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 16px;
+
+}
+
+.information-inputs .patron-input-box input, .information-inputs .patron-input-box select{
+    height: 45px;
+    width: 100%;
+    padding: 0 10px;
+    border-radius: 5px;
+    border-color: var(--tup-color);
+    background-color: var(--white);
+}
+
+
+/* Style for the dropdown */
+.patron-dropdown {
+    width: 100%; /* Makes it take up the full width of the parent container */
+    padding: 8px; /* Adds inner spacing */
+    border: 1px solid #ccc; /* Defines a border */
+    border-radius: 4px; /* Adds rounded corners */
+    font-size: 14px; /* Adjusts font size */
+    background-color: #fff; /* Sets the background color */
+    appearance: none; /* Removes the browser-specific dropdown arrow */
+}
+
+
+.patron-input-box select {
+    border-color: var(--tup-color);
+    background-color: var(--white);
+}
+
+
+.save-button {
+    background-color: var(--button); /* Green background */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px; /* Optional rounded corners */
+    width: 20%; /* Set the width of the button */
+    margin-top: 60px; /* Add space above the button */
+    display: block; /* Make the button a block element */
+    margin-left: auto; /* Align to the right */
+    margin-right: auto; /* Align to the left */
+}
+
+
+.save-button:hover {
+    background-color: var(--button-hover); /* Darker green on hover */
+}
+
+.patron-error{
+    margin-top: 4px;
+    color: var(--tup-color);
+    font-style: italic;
+    font-size: 12px;
+}
+

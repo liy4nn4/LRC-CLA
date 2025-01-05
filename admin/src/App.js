@@ -22,6 +22,8 @@ import CirculationCheckoutPage from './pages/CirculationCheckoutPage/Circulation
 import AuditPage from './pages/AuditPage/AuditPage';
 import AccountsPage from './pages/AccountsPage/AccountsPage';
 import LoginPage from './pages/LoginPage/LoginPage';
+import EditPatronPage from './pages/EditPatronPage/EditPatronPage';
+
 import Cookies from 'js-cookie';
 import ProtectedRoute from './components/ProtectedRoute'
 const App = () => {
@@ -95,6 +97,14 @@ const App = () => {
           }/>
           
           {/* Restricted routes for staff */}
+
+          <Route path='/edit-patron/:id' element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <EditPatronPage/>
+            </ProtectedRoute>
+          }
+          />
+
           <Route path='/audit' element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AuditPage/>
