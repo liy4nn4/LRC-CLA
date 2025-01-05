@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   if (loading) {
     // Optionally, you can show a loading spinner or placeholder while checking login status
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   if (!userRole) {
@@ -42,7 +42,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
     // If user is not authorized based on roles, redirect to an unauthorized page
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/" />;
   }
 
   // If user is authenticated and authorized, render the children (protected content)

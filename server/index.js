@@ -3215,8 +3215,9 @@ app.post('/login', async (req, res) => {
             // Optionally store the token as a secure cookie
             res.cookie('authToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // Secure cookie for HTTPS only in production
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
             });
 
             // Send the response
@@ -3244,10 +3245,10 @@ app.post('/logout', (req, res) => {
     return res.status(200).json({ message: 'Logged out successfully' });
 });
 
+// Check Session Route
 app.get('/check-session', (req, res) => {
     const token = req.cookies.authToken;
 
-    // console.log(token)
     if (!token) {
         return res.status(401).json({ loggedIn: false });
     }
@@ -3257,8 +3258,13 @@ app.get('/check-session', (req, res) => {
             return res.status(401).json({ loggedIn: false });
         }
 
-        // Return the user role based on the JWT payload
-        return res.status(200).json({ loggedIn: true, userRole: decoded.role, username:decoded.username });
+        // Check if token has expired
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+            return res.status(401).json({ loggedIn: false });
+        }
+
+        return res.status(200).json({ loggedIn: true, userRole: decoded.role, username: decoded.username });
     });
 });
 
