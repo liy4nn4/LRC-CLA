@@ -2550,7 +2550,7 @@ app.get('/featured-book', (req, res) => {
     JOIN resources ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
     JOIN book ON book.resource_id = resources.resource_id
-    WHERE resources.resource_description != 'n/a' AND 
+    WHERE resources.resource_description NOT LIKE '%n/a%' AND 
     resources.type_id='1'
     GROUP BY resources.resource_id, resources.resource_title, book.book_cover
     LIMIT 1`;

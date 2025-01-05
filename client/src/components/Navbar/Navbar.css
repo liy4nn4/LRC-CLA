@@ -81,3 +81,7 @@
     text-decoration: none;
     color: var(--black) !important;
 }
+
+.navbar-container a{
+  font-size: 1rem;
+}
