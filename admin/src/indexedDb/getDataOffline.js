@@ -68,7 +68,7 @@ export const getCatalogDetailsOffline = async ()=>{
 
         // console.log(resourceType)
         let topicName;
-        let topicId = 0;
+        let topicId = null;
         if(resourceType=='book'){
             topicId = book.find(b=>b.resource_id == resource.resource_id)?.topic_id||'';
         }else if(resourceType=='journal'){
@@ -77,7 +77,7 @@ export const getCatalogDetailsOffline = async ()=>{
             topicId = jn.find(j=>j.resource_id == resource.resource_id)?.topic_id||'';
         }
 
-        topicName = topicId!=0?topic.find(t=>t.topic_id == topicId)?.topic_name||'':'n/a';
+        topicName = topicId?topic.find(t=>t.topic_id == topicId)?.topic_name||'':'n/a';
 
         
         //resource shelf no
@@ -100,6 +100,9 @@ export const getCatalogDetailsOffline = async ()=>{
 
         catalog.push({
             resource_id: resource.resource_id,
+            type_id: resource.type_id,
+            dept_id: resource.dept_id,
+            topic_id: topicId,
             resource_title: resource.resource_title,
             type_name: resourceType,
             author_names: resourceAuthors.length>1?resourceAuthors.join(', '):resourceAuthors,
