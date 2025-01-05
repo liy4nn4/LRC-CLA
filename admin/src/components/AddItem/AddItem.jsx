@@ -24,7 +24,7 @@ const AddItem = () => {
     const navigate = useNavigate()
     // initialize offline database
     const [disabled,setDisabled] = useState(false)
-    //const [type, setType] = useState('');
+    const [type, setType] = useState('');
     const [bookData, setBookData] = useState({
         mediaType: '1',
         authors: [],
