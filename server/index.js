@@ -13,6 +13,8 @@ const saltRounds = 10;
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 import cron from 'node-cron'
+import nodemailer from 'nodemailer'
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 dotenv.config();
 
@@ -2763,7 +2765,61 @@ app.get('/resources/view', (req, res) => {
 });
 
 /*------------------USER ACCOUNT-------------*/
+app.post('/accounts/create',(req,res)=>{
+    console.log(req.body)
+    const password = req.body.password;
 
+    //check if user exist 
+    const checkQ = `
+    SELECT * FROM staffaccount WHERE staff_uname = ? AND staff_fname = ? AND staff_lname = ?`
+
+    const checkValues = [
+        req.body.uname,
+        req.body.fname,
+        req.body.lname
+    ]
+
+    db.query(checkQ, checkValues, (err, checkResults)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        if(checkResults.length>0){
+            return res.send({status: 409, message: 'This user already exist. Please create a new one.'})
+        }else{
+            const q = `
+            INSERT INTO staffaccount (staff_uname, staff_fname, staff_lname, staff_password, staff_status, role_id ) 
+            VALUES (?, ?, ?, ?, ?, ?)`
+            
+            bcrypt.hash(password,saltRounds,(err,hash)=>{
+                if(err){
+                    console.log(err)
+                }
+                const values = [
+                    req.body.uname,
+                    req.body.fname,
+                    req.body.lname,
+                    hash,
+                    'active',
+                    req.body.role
+                ]
+
+                db.query(q, values, (err,results)=>{
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send({ error: 'Database query failed' });
+                    }
+
+                    io.emit('userUpdated')
+                    res.send({status: 201, message:'User Created Successfully'});
+                
+                })
+
+            })
+        }
+    })
+})
 
 app.get('/accounts', (req,res)=>{
     const keyword = req.query.keyword || '';
@@ -2958,7 +3014,7 @@ app.put('/account/activate/:id',(req,res)=>{
         staff_status = ?
     WHERE 
         staff_id = ?`
-
+        
     db.query(q, ['active', id],(err,results)=>{
         if (err) {
             console.error(err);
@@ -3354,12 +3410,43 @@ app.get('/visitor/stats', (req,res)=>{
 })
 
 /*--------------check overdue resources using cron-------- */
+const sendEmail = (email, subject, text) => {
+    
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      type: 'OAuth2',
+      user: process.env.USER_EMAIL,
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      refreshToken: process.env.REFRESH_TOKEN
+    }
+  });
+
+  let mailOptions = {
+    from: process.env.USER_EMAIL,
+    to: email,
+    subject: subject,
+    text: text
+  };
+
+  transporter.sendMail(mailOptions, function(err, data) {
+    if (err) {
+      console.log("Error " + err);
+    } else {
+      console.log("Email sent successfully");
+    }
+  });
+};
+
 const checkOverdue = async () => {
+    console.log('checking overdue')
     const q = `
-    SELECT c.checkout_id
+    SELECT c.checkout_id, p.patron_email
     FROM checkout c
     LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
-    WHERE ci.checkout_id IS NULL`;
+    LEFT JOIN patron p ON c.patron_id = p.patron_id
+    WHERE ci.checkout_id IS NULL AND c.checkout_due < current_date()`;
 
     db.query(q, (err, result) => {
         if (err) {
@@ -3392,6 +3479,8 @@ const checkOverdue = async () => {
                             }
 
                             console.log('Overdue days incremented for checkout_id:', item.checkout_id);
+                            // Send email to patron
+                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
                         });
                     } else {
                         // If checkout_id doesn't exist in the overdue table, insert it
@@ -3407,6 +3496,8 @@ const checkOverdue = async () => {
                             }
 
                             console.log('New overdue entry created for checkout_id:', item.checkout_id);
+                            // Send email to patron
+                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
                         });
                     }
                 });
@@ -3416,7 +3507,6 @@ const checkOverdue = async () => {
         }
     });
 };
-
 
 cron.schedule('0 0 * * *', () => {
     checkOverdue()
