@@ -13,7 +13,6 @@ const saltRounds = 10;
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 import cron from 'node-cron'
-import nodemailer from 'nodemailer'
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import validateTupIdRouter from './routes/validateTupId.js'; // Adjust the path if neededimport cron from 'node-cron'
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -2054,41 +2053,34 @@ app.get('/getCirculation1', (req, res) => {
 
 app.get('/getCirculation', (req, res) => {
     const q = `SELECT 
-                p.tup_id, 
-                p.patron_fname, 
-                p.patron_lname, 
-                p.patron_email, 
-                p.category, 
-                c.checkout_date,
-                c.status,
-                c.checkout_due,
-                GROUP_CONCAT(r.resource_title ORDER BY r.resource_title SEPARATOR ', \n') AS borrowed_books,
-                course.course_name AS course, 
-                COUNT(c.patron_id) AS total_checkouts,
-                CASE 
-                    WHEN c.status = 'borrowed' THEN 'Currently Borrowed'
-                    WHEN c.status = 'returned' THEN 'Returned'
-                    ELSE 'Other'
-                END AS status_category
-            FROM 
-                patron p
-            INNER JOIN 
-                checkout c ON p.patron_id = c.patron_id
-            INNER JOIN 
-                resources r ON c.resource_id = r.resource_id
-            JOIN 
-                course ON p.course_id = course.course_id
-            GROUP BY 
-                status_category,
-                p.tup_id, 
-                p.patron_fname, 
-                p.patron_lname, 
-                p.patron_email, 
-                p.category, 
-                course.course_name
-            ORDER BY 
-                status_category, 
-                MAX(c.checkout_date) DESC;
+    p.tup_id, 
+    p.patron_fname, 
+    p.patron_lname, 
+    p.patron_email, 
+    p.category, 
+    c.checkout_id,
+    c.checkout_date,
+    c.status,
+    c.checkout_due,
+    r.resource_title AS borrowed_book,
+    course.course_name AS course, 
+    CASE 
+        WHEN c.status = 'borrowed' THEN 'Currently Borrowed'
+        WHEN c.status = 'returned' THEN 'Returned'
+        ELSE 'Other'
+    END AS status_category
+FROM 
+    patron p
+INNER JOIN 
+    checkout c ON p.patron_id = c.patron_id
+INNER JOIN 
+    resources r ON c.resource_id = r.resource_id
+JOIN 
+    course ON p.course_id = course.course_id
+ORDER BY 
+    status_category, 
+    c.checkout_date DESC;
+
 
             `;
     db.query(q, (err, results) => {

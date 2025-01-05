@@ -99,7 +99,7 @@ const Circulation = () => {
             <tr>
               <td>TUP ID</td>
               <td>Name</td>
-              <td>No. of book/s issued</td>
+              {/* <td>No. of book/s issued</td> */}
               <td>Book/s issued</td>
               <td>Course</td>
               <td>Borrow Date</td>
@@ -114,8 +114,8 @@ const Circulation = () => {
                   <td style={{ padding: '10px' }}>
                     {borrower.patron_fname} {borrower.patron_lname}
                   </td>
-                  <td style={{ padding: '10px' }}>{borrower.total_checkouts}</td>
-                  <td style={{ padding: '10px' }}>{borrower.borrowed_books}</td>
+                  {/* <td style={{ padding: '10px' }}>{borrower.total_checkouts}</td> */}
+                  <td style={{ padding: '10px' }}>{borrower.borrowed_book}</td>
                   <td style={{ padding: '10px' }}>{borrower.course}</td>
                   <td style={{ padding: '10px' }}>
                     {new Date(borrower.checkout_date).toLocaleDateString('en-CA')}
