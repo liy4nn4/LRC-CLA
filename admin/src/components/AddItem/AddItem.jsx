@@ -443,6 +443,7 @@ const AddItem = () => {
                 });
 
             }catch(err){
+                setLoading(false)
                 setStatusModal(true)
                 setStatusModalContent({
                     status:'error',
@@ -451,6 +452,7 @@ const AddItem = () => {
                 console.log('Cannot save resource online. An error occurred: ',err.message);
             }
         } else {
+            setLoading(false)
             setStatusModal(true)
             setStatusModalContent({
                 status:'error',
@@ -515,6 +517,7 @@ const AddItem = () => {
                     })
                 }            
             }catch(err){
+                setLoading(false)
                 setStatusModal(true)
                 setStatusModalContent({
                     status:'error',

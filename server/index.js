@@ -201,7 +201,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
             // Handle books
             const pubId = await checkIfPubExist(pub);
             console.log('Publisher ID:', pubId);
-            await insertBook(imageFile, req.body.isbn, resourceId, pubId, req.body.topic, res);
+            await insertBook(imageFile, req.body.isbn, resourceId, pubId, req.body.topic, res, filePath);
         }else if(['2', '3'].includes(mediaType)){
             // insert journal/newsletter in database
             const jn = [
@@ -385,7 +385,7 @@ const insertPublisher = async (pub) => {
 };
 
 //insert book
-const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
+const insertBook = async(cover, isbn, resourceId, pubId, topic,res, filePath)=>{
     const q = `
     INSERT INTO book (book_cover, book_isbn, resource_id, pub_id, topic_id) VALUES (?,?,?,?,?)`
 
@@ -400,6 +400,10 @@ const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
     db.query(q, values, (err,results)=>{
         if (err) {
             return res.status(500).send(err); 
+        }
+        // Cleanup uploaded file
+        if (filePath) {
+            fs.unlinkSync(filePath);
         }
         console.log('Book inserted successfully')
         return res.send({status: 201, message:'Book inserted successfully.'});
@@ -661,6 +665,7 @@ const editBook = async (cover, isbn, resourceId, pubId, topic,res,filePath)=>{
                 if (unlinkErr) console.error('Error deleting file:', unlinkErr);
             }); 
         }
+        
         console.log('Book edited successfully')
         // Successfully inserted 
         return res.send({status: 201, message:'Book edited successfully.'});
@@ -3174,7 +3179,6 @@ const generateInventory = async(res,kind)=>{
 }
   
 /*------------------login------------------ */
-
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
