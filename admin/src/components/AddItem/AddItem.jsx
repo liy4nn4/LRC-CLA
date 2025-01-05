@@ -65,6 +65,7 @@ const AddItem = () => {
     };
 
     useEffect(() => {
+        getUsername();
         if(!disabled){
             if (bookData.mediaType== 1) {
                 setBookData({
@@ -399,11 +400,14 @@ const AddItem = () => {
             setLoading(true)
             try{
                 const formData = new FormData();
+                formData.append('username', uname);
                 Object.entries(bookData).forEach(([key, value]) => {
                     formData.append(key, value);
-                });
+                }
+            );
                 console.log(formData)
-                const response = await axios.post('http://localhost:3001/save', formData, uname);
+                const response = await axios.post('http://localhost:3001/save', formData);
+               
                 console.log(response)
                  // close loading
                  setLoading(false)

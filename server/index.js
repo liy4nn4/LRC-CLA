@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import express from "express";
-import mysql from "mysql2";    
+import express from "express";   
+import mysql from 'mysql2';
 import mysqlPromise from 'mysql2/promise';
 import cors from "cors";
 import axios from 'axios';
@@ -12,7 +12,9 @@ import bcrypt from 'bcrypt';
 const saltRounds = 10;
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
-
+import cron from 'node-cron'
+import nodemailer from 'nodemailer'
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 dotenv.config();
 
@@ -156,8 +158,10 @@ app.post('/file', upload.single('file'), (req, res) => {
 app.post('/save', upload.single('file'), async (req, res) => {
     console.log('Saving resource...');
     const mediaType = req.body.mediaType;
+    const username = req.body.username;
     let adviserFname, adviserLname, filePath, imageFile;
     let pub = {};
+    console.log('username 1: ', username)
 
     // Handle image upload or URL
     try{
@@ -169,7 +173,7 @@ app.post('/save', upload.single('file'), async (req, res) => {
             const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
             imageFile = response.data;
         }
-    
+        
         // initialize variables based on media type
         if(mediaType==='1'){
            pub = {
@@ -193,13 +197,13 @@ app.post('/save', upload.single('file'), async (req, res) => {
         ? req.body.authors: req.body.authors.split(',');
        
         // Insert resource
-        const resourceId = await insertResources(res, req, authors);
+        const resourceId = await insertResources(res, req, authors, username);
     
         if (mediaType === '1') {
             // Handle books
             const pubId = await checkIfPubExist(pub);
             console.log('Publisher ID:', pubId);
-            await insertBook(imageFile, req.body.isbn, resourceId, pubId, req.body.topic, res);
+            await insertBook(imageFile, req.body.isbn, resourceId, pubId, req.body.topic, res, filePath);
         }else if(['2', '3'].includes(mediaType)){
             // insert journal/newsletter in database
             const jn = [
@@ -383,7 +387,7 @@ const insertPublisher = async (pub) => {
 };
 
 //insert book
-const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
+const insertBook = async(cover, isbn, resourceId, pubId, topic,res, filePath)=>{
     const q = `
     INSERT INTO book (book_cover, book_isbn, resource_id, pub_id, topic_id) VALUES (?,?,?,?,?)`
 
@@ -398,6 +402,10 @@ const insertBook = async(cover, isbn, resourceId, pubId, topic,res)=>{
     db.query(q, values, (err,results)=>{
         if (err) {
             return res.status(500).send(err); 
+        }
+        // Cleanup uploaded file
+        if (filePath) {
+            fs.unlinkSync(filePath);
         }
         console.log('Book inserted successfully')
         return res.send({status: 201, message:'Book inserted successfully.'});
@@ -427,7 +435,7 @@ const checkResourceIfExist = (title) => {
 };
 
 //insert resource
-const insertResources = async (res, req, authors) => {
+const insertResources = async (res, req, authors, username) => {
     return new Promise(async (resolve, reject) => {
         try {
             // Check if the resource exists
@@ -437,7 +445,7 @@ const insertResources = async (res, req, authors) => {
                 console.log('Resource already exists.');
                 return reject({ status: 409, message: 'Resource already exists.' });
             }
-
+            console.log("username: ",username)
             // Insert the resource
             const insertQuery = `
                 INSERT INTO resources (
@@ -470,7 +478,7 @@ const insertResources = async (res, req, authors) => {
 
                 // Get the `resource_id` of the newly inserted row
                 const resourceId = results.insertId;
-
+                logAuditAction(username, 'INSERT', 'resources', null, null, JSON.stringify({ resource_name: req.body.title }));
                 try {
                     // Insert authors for the resource
                     await insertAuthors(res, authors, resourceId);
@@ -573,6 +581,7 @@ app.put('/file', upload.single('file'), (req, res) => {
 app.put('/edit/:id', upload.single('file'),async (req, res) => {
     const resourceId = req.params.id;
     const mediaType = req.body.mediaType;
+    const username = req.body.username;
     let adviserFname, adviserLname, filePath, imageFile;
     let pub = {};
     
@@ -608,7 +617,7 @@ app.put('/edit/:id', upload.single('file'),async (req, res) => {
          const authors = req.body.authors.split(',')
 
          //edit resource
-         await editResource(res,req,authors,resourceId)
+         await editResource(res,req,authors,resourceId,username)
 
          if (mediaType === '1') {
             //  check if publisher exist 
@@ -659,6 +668,7 @@ const editBook = async (cover, isbn, resourceId, pubId, topic,res,filePath)=>{
                 if (unlinkErr) console.error('Error deleting file:', unlinkErr);
             }); 
         }
+        
         console.log('Book edited successfully')
         // Successfully inserted 
         return res.send({status: 201, message:'Book edited successfully.'});
@@ -715,9 +725,10 @@ const editJournalNewsletter = async(filePath,res,volume,issue,cover,resourceId)=
             return res.send({status:201,message:'Journal/Newsletter edited successfully.'});
         });
 }
-//edit resource
-const editResource = async (res,req,authors,resourceId)=>{
+//edit resource no audit
+/* const editResource = async (res,req,authors,resourceId,username)=>{
     return new Promise((resolve,reject)=>{
+        
         const q = `
         UPDATE
             resources
@@ -759,7 +770,93 @@ const editResource = async (res,req,authors,resourceId)=>{
             // resolve('success')
         })
     })
-}
+} */
+
+const editResource = async (res, req, authors, resourceId, username) => {
+    return new Promise((resolve, reject) => {
+        
+        const updatedValues = [
+            req.body.title,
+            req.body.description,
+            req.body.publishedDate,
+            req.body.quantity,
+            req.body.isCirculation,
+            req.body.department,
+            req.body.mediaType,
+            req.body.status,
+            resourceId
+        ];
+        
+        // Fetch old value for audit logging
+        const selectQuery = 'SELECT * FROM resources WHERE resource_id = ?';
+        db.query(selectQuery, [resourceId], (err, results) => {
+            if (err || results.length === 0) {
+                return res.status(404).json({ error: 'Resource not found' });
+            }
+
+            const oldValue = JSON.stringify(results[0]);
+            console.log("old value1: ", oldValue)
+
+            // Update resource
+            const updateQuery = `
+                UPDATE resources
+                SET 
+                    resource_title = ?,
+                    resource_description = ?,
+                    resource_published_date = ?,
+                    resource_quantity = ?,
+                    resource_is_circulation = ?,
+                    dept_id = ?,
+                    type_id = ?,
+                    avail_id = ?
+                WHERE 
+                    resource_id = ?
+            `;
+
+            
+
+            console.log("new values1: ", updatedValues)
+
+            db.query(updateQuery, updatedValues, (err, results) => {
+                if (err) {
+                    return res.status(500).send(err);
+                }
+
+                // Update authors
+                editAuthors(res, authors, resourceId)
+                    .then(() => {
+                        // Log audit action
+                        const newValue = JSON.stringify({
+                            resource_id: resourceId,
+                            title: req.body.title,
+                            description: req.body.description,
+                            publishedDate: req.body.publishedDate,
+                            quantity: req.body.quantity,
+                            isCirculation: req.body.isCirculation,
+                            department: req.body.department,
+                            mediaType: req.body.mediaType,
+                            status: req.body.status
+                        });
+
+                        logAuditAction(
+                            username,  // Assuming userId is part of req.body
+                            'UPDATE',
+                            'resources',
+                            resourceId,
+                            oldValue,
+                            newValue
+                        );
+
+                        resolve('success');
+                    })
+                    .catch((err) => reject(err));
+            });
+        });
+    });
+};
+
+
+
 //edit thesis
 const editThesis = async (values,res)=>{
     const q = `UPDATE thesis SET adviser_id = ? WHERE
@@ -2548,7 +2645,7 @@ app.get('/featured-book', (req, res) => {
     JOIN resources ON resourceauthors.resource_id = resources.resource_id
     JOIN author ON resourceauthors.author_id = author.author_id
     JOIN book ON book.resource_id = resources.resource_id
-    WHERE resources.resource_description != 'n/a' AND 
+    WHERE resources.resource_description NOT LIKE '%n/a%' AND 
     resources.type_id='1'
     GROUP BY resources.resource_id, resources.resource_title, book.book_cover
     LIMIT 1`;
@@ -2756,7 +2853,61 @@ app.get('/resources/view', (req, res) => {
 });
 
 /*------------------USER ACCOUNT-------------*/
+app.post('/accounts/create',(req,res)=>{
+    console.log(req.body)
+    const password = req.body.password;
 
+    //check if user exist 
+    const checkQ = `
+    SELECT * FROM staffaccount WHERE staff_uname = ? AND staff_fname = ? AND staff_lname = ?`
+
+    const checkValues = [
+        req.body.uname,
+        req.body.fname,
+        req.body.lname
+    ]
+
+    db.query(checkQ, checkValues, (err, checkResults)=>{
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        if(checkResults.length>0){
+            return res.send({status: 409, message: 'This user already exist. Please create a new one.'})
+        }else{
+            const q = `
+            INSERT INTO staffaccount (staff_uname, staff_fname, staff_lname, staff_password, staff_status, role_id ) 
+            VALUES (?, ?, ?, ?, ?, ?)`
+            
+            bcrypt.hash(password,saltRounds,(err,hash)=>{
+                if(err){
+                    console.log(err)
+                }
+                const values = [
+                    req.body.uname,
+                    req.body.fname,
+                    req.body.lname,
+                    hash,
+                    'active',
+                    req.body.role
+                ]
+
+                db.query(q, values, (err,results)=>{
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send({ error: 'Database query failed' });
+                    }
+
+                    io.emit('userUpdated')
+                    res.send({status: 201, message:'User Created Successfully'});
+                
+                })
+
+            })
+        }
+    })
+})
 
 app.get('/accounts', (req,res)=>{
     const keyword = req.query.keyword || '';
@@ -2951,7 +3102,7 @@ app.put('/account/activate/:id',(req,res)=>{
         staff_status = ?
     WHERE 
         staff_id = ?`
-
+        
     db.query(q, ['active', id],(err,results)=>{
         if (err) {
             console.error(err);
@@ -3172,7 +3323,6 @@ const generateInventory = async(res,kind)=>{
 }
   
 /*------------------login------------------ */
-
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -3213,8 +3363,9 @@ app.post('/login', async (req, res) => {
             // Optionally store the token as a secure cookie
             res.cookie('authToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // Secure cookie for HTTPS only in production
+                secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
             });
 
             // Send the response
@@ -3242,10 +3393,10 @@ app.post('/logout', (req, res) => {
     return res.status(200).json({ message: 'Logged out successfully' });
 });
 
+// Check Session Route
 app.get('/check-session', (req, res) => {
     const token = req.cookies.authToken;
 
-    // console.log(token)
     if (!token) {
         return res.status(401).json({ loggedIn: false });
     }
@@ -3255,8 +3406,13 @@ app.get('/check-session', (req, res) => {
             return res.status(401).json({ loggedIn: false });
         }
 
-        // Return the user role based on the JWT payload
-        return res.status(200).json({ loggedIn: true, userRole: decoded.role, username:decoded.username });
+        // Check if token has expired
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+            return res.status(401).json({ loggedIn: false });
+        }
+
+        return res.status(200).json({ loggedIn: true, userRole: decoded.role, username: decoded.username });
     });
 });
 
@@ -3342,6 +3498,333 @@ app.get('/visitor/stats', (req,res)=>{
 })
 
 /*--------------check overdue resources using cron-------- */
+const sendEmail = (email, subject, text) => {
+    
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      type: 'OAuth2',
+      user: process.env.USER_EMAIL,
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      refreshToken: process.env.REFRESH_TOKEN
+    }
+  });
+
+  let mailOptions = {
+    from: process.env.USER_EMAIL,
+    to: email,
+    subject: subject,
+    text: text
+  };
+
+  transporter.sendMail(mailOptions, function(err, data) {
+    if (err) {
+      console.log("Error " + err);
+    } else {
+      console.log("Email sent successfully");
+    }
+  });
+};
+
+const checkOverdue = async () => {
+    console.log('checking overdue')
+    const q = `
+    SELECT c.checkout_id, p.patron_email
+    FROM checkout c
+    LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
+    LEFT JOIN patron p ON c.patron_id = p.patron_id
+    WHERE ci.checkout_id IS NULL AND c.checkout_due < current_date()`;
+
+    db.query(q, (err, result) => {
+        if (err) {
+            return console.error('Error fetching checkout data:', err);
+        }
+
+        if (result.length > 0) {
+            result.forEach(item => {
+                console.log('Processing checkout_id:', item.checkout_id);
+
+                // Check if the checkout_id already exists in the overdue table
+                const checkOverdueQuery = `
+                SELECT * FROM overdue WHERE checkout_id = ?`;
+
+                db.query(checkOverdueQuery, [item.checkout_id], (err, overdueResult) => {
+                    if (err) {
+                        return console.error('Error checking overdue table:', err);
+                    }
+
+                    if (overdueResult.length > 0) {
+                        // If the checkout_id exists, increment the overdue_days by 1
+                        const updateOverdueQuery = `
+                        UPDATE overdue
+                        SET overdue_days = overdue_days + 1
+                        WHERE checkout_id = ?`;
+
+                        db.query(updateOverdueQuery, [item.checkout_id], (err, updateResult) => {
+                            if (err) {
+                                return console.error('Error updating overdue table:', err);
+                            }
+
+                            console.log('Overdue days incremented for checkout_id:', item.checkout_id);
+                            // Send email to patron
+                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
+                        });
+                    } else {
+                        // If checkout_id doesn't exist in the overdue table, insert it
+                        const insertOverdueQuery = `
+                        INSERT INTO overdue (overdue_days, overdue_fine, checkout_id)
+                        VALUES (?, ?, ?)`;
+
+                        const values = [1, 0, item.checkout_id];
+
+                        db.query(insertOverdueQuery, values, (err, insertResult) => {
+                            if (err) {
+                                return console.error('Error inserting into overdue table:', err);
+                            }
+
+                            console.log('New overdue entry created for checkout_id:', item.checkout_id);
+                            // Send email to patron
+                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
+                        });
+                    }
+                });
+            });
+        } else {
+            console.log('No overdue checkouts found.');
+        }
+    });
+};
+
+cron.schedule('0 0 * * *', () => {
+    checkOverdue()
+});
+
+/*-------- ADD PATRON -------- */
+
+
+
+// Middleware to parse JSON body
+app.use(express.json()); // This is the line you need to add
+
+// MySQL connection setup
+
+
+// POST route for adding a patron
+app.post('/add-patron', (req, res) => {
+  const { patron_fname, patron_lname, patron_sex, patron_mobile, patron_email, category, college_id, course_id } = req.body;
+  
+  // SQL query to insert new patron into the database
+  const query = 'INSERT INTO patron (patron_fname, patron_lname, patron_sex, patron_mobile, patron_email, category, college_id, course_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+
+  // Execute the query with the data from the request body
+  db.query(query, [patron_fname, patron_lname, patron_sex, patron_mobile, patron_email, category, college_id, course_id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error adding patron', error: err });
+    }
+    res.status(200).json({ message: 'Patron added successfully', result });
+  });
+});
+
+
+/*-------- DELETE PATRON -------- */
+app.delete('/delete-patron/:id', (req, res) => {
+    const patronId = req.params.id;
+  
+    // Ensure patronId is not empty or invalid
+    if (!patronId) {
+      return res.status(400).json({ error: 'Patron ID is required' });
+    }
+  
+    // SQL query to delete the patron based on the patron_id
+    const query = 'DELETE FROM patron WHERE patron_id = ?';
+  
+    db.query(query, [patronId], (err, result) => {
+      if (err) {
+        console.error('Error deleting patron:', err);
+        return res.status(500).json({ error: 'Failed to delete patron' });
+      }
+  
+      // If no rows are affected, that means the patron doesn't exist
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Patron not found' });
+      }
+  
+      // Success response
+      res.status(200).json({ message: 'Patron deleted successfully' });
+    });
+  });
+  
+
+
+
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+});
+
+
+/*-------- UPDATE PATRON -------- */
+app.get('/update-patron/:id', async (req, res) => {
+    console.log(`Received PUT request for patron ID: ${req.params.id}`);
+    console.log('Request body:', req.body);
+    const patronId = req.params.id;
+    const query = `
+        SELECT 
+            p.patron_id, 
+            p.tup_id, 
+            p.patron_fname, 
+            p.patron_lname, 
+            p.patron_sex, 
+            p.patron_mobile, 
+            p.patron_email, 
+            p.category, 
+            p.college_id, 
+            p.course_id, 
+            col.college_name, 
+            cr.course_name
+        FROM patron p
+        LEFT JOIN college col ON p.college_id = col.college_id
+        LEFT JOIN course cr ON p.course_id = cr.course_id
+        WHERE p.patron_id = ?;
+    `;
+
+    try {
+        const [results] = await (await dbPromise).execute(query, [patronId]);
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Patron not found' });
+        }
+
+        const patronData = results[0];
+
+        // Fetch colleges and courses for dropdown options
+        const [colleges] = await (await dbPromise).execute('SELECT * FROM college');
+        const [courses] = await (await dbPromise).execute('SELECT * FROM course');
+
+        res.json({ patronData, colleges, courses });
+    } catch (err) {
+        console.error('Error fetching patron data:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.put('/update-patron/:id', async (req, res) => {
+    const patronId = req.params.id;
+    const {
+        patron_fname,
+        patron_lname,
+        patron_sex,
+        patron_mobile,
+        patron_email,
+        category,
+        college,  // college_id
+        program,  // course_id
+        tup_id,
+    } = req.body;
+
+    const query = `
+        UPDATE patron
+        SET 
+            patron_fname = ?, 
+            patron_lname = ?, 
+            patron_sex = ?, 
+            patron_mobile = ?, 
+            patron_email = ?, 
+            category = ?, 
+            college_id = ?, 
+            course_id = ?, 
+            tup_id = ?
+        WHERE patron_id = ?;
+    `;
+
+    try {
+        const [result] = await (await dbPromise).execute(query, [
+            patron_fname,
+            patron_lname,
+            patron_sex,
+            patron_mobile,
+            patron_email,
+            category,
+            college,
+            program,
+            tup_id,
+            patronId,
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Patron not found' });
+        }
+
+        res.json({ message: 'Patron updated successfully' });
+    } catch (err) {
+        console.error('Error updating patron:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/category-options', async (req, res) => {
+    const query = `
+        SELECT COLUMN_TYPE
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = 'patron' AND COLUMN_NAME = 'category';
+    `;
+
+    try {
+        const [results] = await (await dbPromise).execute(query);
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Category options not found' });
+        }
+
+        const enumString = results[0].COLUMN_TYPE; // e.g., "enum('Student','Faculty','','')"
+        const options = enumString
+            .match(/'([^']+)'/g) // Extract values within single quotes
+            .map(option => option.replace(/'/g, '')); // Remove quotes
+
+        res.json(options); // Send the array of options to the frontend
+    } catch (err) {
+        console.error('Error fetching category options:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+
+
+
+
+// Backend - Fetching the college and course details
+// app.get('/update-patron/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const query = 'SELECT * FROM patron WHERE patron_id = ?';
+
+//     try {
+//         // Execute query using await on dbPromise
+//         const [results] = await dbPromise.query(query, [id]);
+        
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'Patron not found' });
+//         }
+//         res.json({ patronData: results[0] });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send('Database query error');
+//     }
+// });
+
+
+// app.put('/update-patron/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const updatedData = req.body;
+//     const query = `UPDATE patron SET ? WHERE patron_id = ?`;
+
+//     try {
+//         await dbPromise.query(query, [updatedData, id]);
+//         res.json({ message: 'Patron updated successfully' });
+//     } catch (err) {
+//         console.error('Error updating patron:', err);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
 
 
 
