@@ -4,16 +4,15 @@ import {
   Routes,
   Route
 } from "react-router-dom";
-import AdminLogInPage from './pages/AdminLogInPage/AdminLogInPage';
 import DashboardPage from './pages/DashboardPage/DashboardPage';
-import Admin from './pages/Admin/Admin';
+
 import LogbookPage from './pages/LogbookPage/LogbookPage';
 import PatronsPage from './pages/PatronsPage/PatronsPage';
 import ReportsPage from './pages/ReportsPage/ReportsPage';
 import CatalogPage from './pages/CatalogPage/CatalogPage';
 import AddItemPage from './pages/AddItemPage/AddItemPage';
-import ViewItem from './components/ViewItem/ViewItem';
-import ViewItemPage from './pages/ViewItemPage/ViewItemPage';
+
+
 import AttendancePage from './pages/AttendancePage/AttendancePage';
 import CirculationPage from './pages/CirculationPage/CirculationPage';
 import CirculationSelectPatronPage from './pages/CirculationSelectPatronPage/CirculationSelectPatronPage';
@@ -24,7 +23,7 @@ import AccountsPage from './pages/AccountsPage/AccountsPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import EditPatronPage from './pages/EditPatronPage/EditPatronPage';
 
-import Cookies from 'js-cookie';
+
 import ProtectedRoute from './components/ProtectedRoute'
 const App = () => {
   return (
