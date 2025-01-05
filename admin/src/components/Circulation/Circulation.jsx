@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './Circulation.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCartPlus, faCartShopping, faL } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faCartShopping, faL,faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 
 const Circulation = () => {
   const [borrowers, setBorrowers] = useState([]);
   const [filteredBorrowers, setFilteredBorrowers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     getBorrowers();
@@ -16,6 +17,7 @@ const Circulation = () => {
   }, []);
 
   const getBorrowers = async () => {
+    setLoading(true)
     try {
       const response = await axios
         .get(`http://localhost:3001/getCirculation`)
@@ -25,6 +27,8 @@ const Circulation = () => {
       console.log(response);
     } catch (err) {
       console.log(err.message);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -114,15 +118,23 @@ const Circulation = () => {
                   <td style={{ padding: '10px' }}>
                     {new Date(borrower.checkout_date).toLocaleDateString('en-CA')}
                   </td>
-                  <td style={{ padding: '10px' }}>
-                    {borrower.status}
-                  </td>
+                  <td style={{ padding: '10px' }}>{borrower.status}</td>
                 </tr>
               ))
-            ) : (
+            ) : filteredBorrowers.length === 0 && !loading ? (
               <tr>
                 <td colSpan="7" style={{ textAlign: 'center', padding: '10px' }}>
                   No records found...
+                </td>
+              </tr>
+            ) : (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                  <div className="spinner-box">
+                    <div className="spinner-grow text-danger" role="status">
+                      <span className="sr-only">Loading...</span>
+                    </div>
+                  </div>
                 </td>
               </tr>
             )}
@@ -130,12 +142,13 @@ const Circulation = () => {
         </table>
       </div>
 
+
       {/* Pagination */}
       <div className="pagination">
         <span>Page 1 of 1</span>
         <div className="buttons">
-          <button className="btn">Previous</button>
-          <button className="btn">Next</button>
+          <button className="btn"><FontAwesomeIcon icon={faArrowLeft} className='icon'/></button>
+          <button className="btn"><FontAwesomeIcon icon={faArrowRight} className='icon'/></button>
         </div>
       </div>
     </div>

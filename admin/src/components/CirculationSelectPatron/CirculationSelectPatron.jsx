@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './CirculationSelectPatron.css';
 import { Link, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 const CirculationSelectPatron = ({ clickedAction }) => {
   const navigate = useNavigate();
@@ -160,9 +162,9 @@ const CirculationSelectPatron = ({ clickedAction }) => {
         {filteredPatrons.length > 0 && (
           <div className="pagination">
             <div className="buttons">
-              <button className="btn" onClick={goToPreviousPage} disabled={currentPage === 1}>Previous</button>
+              <button className="btn" onClick={goToPreviousPage} disabled={currentPage === 1}><FontAwesomeIcon icon={faArrowLeft} className='icon'/></button>
               <span>Page {currentPage} of {totalPages}</span>
-              <button className="btn" onClick={goToNextPage} disabled={currentPage === totalPages}>Next</button>
+              <button className="btn" onClick={goToNextPage} disabled={currentPage === totalPages}><FontAwesomeIcon icon={faArrowRight} className='icon'/></button>
             </div>
           </div>
         )}

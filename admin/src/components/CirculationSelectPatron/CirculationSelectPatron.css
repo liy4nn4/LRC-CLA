@@ -153,7 +153,7 @@
     justify-content: center;
 }
 
-.circ-select-patron-container  .patron-list .pagination{
+.circ-select-patron-container .pagination{
     display: flex;
     justify-content: end;
     position: relative;
@@ -162,18 +162,20 @@
 
 .circ-select-patron-container  .patron-list .pagination  .buttons{
     display: flex;
+    align-items: center;
     gap: 10px;
 }
 
 .circ-select-patron-container .patron-list .pagination button{
-    background-color: var(--tup-color);
-    color: var(--white);
+    background-color: transparent;
+    color: var(--tup-color);
+    border: none;
 }
 
 .circ-select-patron-container .patron-list .pagination button:hover,
 .circ-select-patron-container .patron-list .pagination button:active,
 .circ-select-patron-container .patron-list .pagination button:focus{
-    background-color: var(--tup-color-hover);
+    background-color: var(--tup-color);
     color: var(--white);
 }
 

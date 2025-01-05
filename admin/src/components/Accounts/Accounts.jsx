@@ -413,36 +413,52 @@ const Accounts = () => {
           </tr>
         </thead>
         <tbody>
-          {accounts.length > 0
-            ? accounts.map((item) => (
-                <tr key={item.staff_id}>
-                  <td>{item.staff_fname}</td>
-                  <td>{item.staff_lname}</td>
-                  <td>{item.staff_uname}</td>
-                  <td>{item.role_name}</td>
-                  <td>{item.staff_status}</td>
-                  <td className="action">
-                    {/* Edit user */}
-                    <button className="btn edit-btn" onClick={() => handleEdit(item.staff_id)}>
-                      <FontAwesomeIcon icon={faPen} />
-                      <span>Edit user</span>
-                    </button>
-                    {/* Deactivate / Activate */}
-                    {item.staff_status === 'active' ? (
-                      <button className="btn deac-acc-btn" onClick={() => handleDeac(item.staff_uname, item.staff_id)}>
-                        <FontAwesomeIcon icon={faUserSlash} />
-                        Deactivate user
-                      </button>
-                    ) : (
-                      <button className="btn deac-acc-btn" onClick={() => handleAct(item.staff_uname, item.staff_id)}>
-                        <FontAwesomeIcon icon={faUser} />
-                        Activate user
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            : ''}
+        {accounts.length > 0 ? (
+          accounts.map((item) => (
+            <tr key={item.staff_id}>
+              <td>{item.staff_fname}</td>
+              <td>{item.staff_lname}</td>
+              <td>{item.staff_uname}</td>
+              <td>{item.role_name}</td>
+              <td>{item.staff_status}</td>
+              <td className="action">
+                {/* Edit user */}
+                <button className="btn edit-btn" onClick={() => handleEdit(item.staff_id)}>
+                  <FontAwesomeIcon icon={faPen} />
+                  <span>Edit user</span>
+                </button>
+                {/* Deactivate / Activate */}
+                {item.staff_status === 'active' ? (
+                  <button className="btn deac-acc-btn" onClick={() => handleDeac(item.staff_uname, item.staff_id)}>
+                    <FontAwesomeIcon icon={faUserSlash} />
+                    Deactivate user
+                  </button>
+                ) : (
+                  <button className="btn deac-acc-btn" onClick={() => handleAct(item.staff_uname, item.staff_id)}>
+                    <FontAwesomeIcon icon={faUser} />
+                    Activate user
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))
+        ) : !loading && accounts.length === 0 ? (
+          <tr>
+            <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
+              No accounts available
+            </td>
+          </tr>
+        ) : (
+          <tr>
+            <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
+              <div className="spinner-box">
+                <div className="spinner-grow text-danger" role="status">
+                  <span className="sr-only">Loading...</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
         </tbody>
       </table>
 
@@ -495,7 +511,7 @@ const Accounts = () => {
       />
       <DeactivateModal open={openDeactivate} close={() => setOpenDeactivate(false)} uname={selectedUname} deactivateUser={deactivateUser} />
       <ActivateModal open={openActivate} close={() => setOpenActivate(false)} uname={selectedUname} activateUser={activateUser} />
-      <Loading loading={loading} />
+      {/* <Loading loading={loading} /> */}
       <ResourceStatusModal open={statusModal} close={() => setStatusModal(false)} content={statusModalContent} path={'/accounts'} />
     </div>
   );

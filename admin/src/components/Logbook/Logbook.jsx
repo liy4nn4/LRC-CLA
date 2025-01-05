@@ -20,6 +20,15 @@ const Logbook = () => {
 
     useEffect(() => {
         getPatron();
+        // Listen for updates from the server (via socket)
+        socket.on('attendanceUpdated', () => {
+            console.log('attendance updated, refreshing attendance...');
+            getPatron();
+        });
+  
+        return () => {
+            socket.off('attendanceUpdated'); // Cleanup on component unmount
+        };
     }, [currentPage, entriesPerPage]);
 
     const getPatron = async () => {

@@ -515,32 +515,41 @@ console.log(selectedFilters)
                 </tr>
               </thead>
               <tbody>
-              {catalog?catalog.length > 0 ? (
-                catalog.map((item, key) => (
-                  <tr key={key}>
-                    <td>{item.resource_title}</td>
-                    <td>{item.type_name}</td>
-                    <td>{item.author_names}</td>
-                    <td>{item.dept_name}</td>
-                    <td>{item.topic_name}</td>
-                    <td>{item.resource_quantity}</td>
-                    <td>
-                      <Link to={`/view-item/${item.resource_id}`}>
-                        <button className="btn cat-view">
-                          <i className="fa-solid fa-bars"></i>
-                          View
-                        </button>
-                      </Link>
+              {catalog.length > 0 ? (
+                  catalog.map((item, key) => (
+                    <tr key={key}>
+                      <td>{item.resource_title}</td>
+                      <td>{item.type_name}</td>
+                      <td>{item.author_names}</td>
+                      <td>{item.dept_name}</td>
+                      <td>{item.topic_name}</td>
+                      <td>{item.resource_quantity}</td>
+                      <td>
+                        <Link to={`/view-item/${item.resource_id}`}>
+                          <button className="btn cat-view">
+                            <i className="fa-solid fa-bars"></i>
+                            View
+                          </button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : !loading && catalog.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center' }}>No records available</td>
+                  </tr>
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                      <div className="spinner-box">
+                        <div className="spinner-grow text-danger" role="status">
+                          <span className="sr-only">Loading...</span>
+                        </div>
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7">No records available</td>
-                </tr>
-              ):''}
+                )}
             </tbody>
-
             </table> 
             {/* pagination */}
             <nav aria-label="Page navigation example">
@@ -569,7 +578,7 @@ console.log(selectedFilters)
               </div>
             </nav>
         
-      <Loading loading={loading}/>
+      {/* <Loading loading={loading}/> */}
       <ResourceStatusModal open={statusModal} close={()=>setStatusModal(false)} content={statusModalContent} isOnline={isOnline}/>
       {/* <CatalogFilterModal open={openFilter} close={()=>setOpenFilter(false)}/> */}
     </div>
