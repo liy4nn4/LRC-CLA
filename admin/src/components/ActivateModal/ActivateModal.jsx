@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
+
 import ReactDom from 'react-dom'
 import './ActivateModal.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {faX} from '@fortawesome/free-solid-svg-icons'
+
+
 
 
 const ActivateModal = ({open, close,uname, activateUser}) => {
