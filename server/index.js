@@ -581,6 +581,7 @@ app.put('/file', upload.single('file'), (req, res) => {
 app.put('/edit/:id', upload.single('file'),async (req, res) => {
     const resourceId = req.params.id;
     const mediaType = req.body.mediaType;
+    const username = req.body.username;
     let adviserFname, adviserLname, filePath, imageFile;
     let pub = {};
     
@@ -616,7 +617,7 @@ app.put('/edit/:id', upload.single('file'),async (req, res) => {
          const authors = req.body.authors.split(',')
 
          //edit resource
-         await editResource(res,req,authors,resourceId)
+         await editResource(res,req,authors,resourceId,username)
 
          if (mediaType === '1') {
             //  check if publisher exist 
@@ -724,9 +725,10 @@ const editJournalNewsletter = async(filePath,res,volume,issue,cover,resourceId)=
             return res.send({status:201,message:'Journal/Newsletter edited successfully.'});
         });
 }
-//edit resource
-const editResource = async (res,req,authors,resourceId)=>{
+//edit resource no audit
+/* const editResource = async (res,req,authors,resourceId,username)=>{
     return new Promise((resolve,reject)=>{
+        
         const q = `
         UPDATE
             resources
@@ -768,7 +770,93 @@ const editResource = async (res,req,authors,resourceId)=>{
             // resolve('success')
         })
     })
-}
+} */
+
+const editResource = async (res, req, authors, resourceId, username) => {
+    return new Promise((resolve, reject) => {
+        
+        const updatedValues = [
+            req.body.title,
+            req.body.description,
+            req.body.publishedDate,
+            req.body.quantity,
+            req.body.isCirculation,
+            req.body.department,
+            req.body.mediaType,
+            req.body.status,
+            resourceId
+        ];
+        
+        // Fetch old value for audit logging
+        const selectQuery = 'SELECT * FROM resources WHERE resource_id = ?';
+        db.query(selectQuery, [resourceId], (err, results) => {
+            if (err || results.length === 0) {
+                return res.status(404).json({ error: 'Resource not found' });
+            }
+
+            const oldValue = JSON.stringify(results[0]);
+            console.log("old value1: ", oldValue)
+
+            // Update resource
+            const updateQuery = `
+                UPDATE resources
+                SET 
+                    resource_title = ?,
+                    resource_description = ?,
+                    resource_published_date = ?,
+                    resource_quantity = ?,
+                    resource_is_circulation = ?,
+                    dept_id = ?,
+                    type_id = ?,
+                    avail_id = ?
+                WHERE 
+                    resource_id = ?
+            `;
+
+            
+
+            console.log("new values1: ", updatedValues)
+
+            db.query(updateQuery, updatedValues, (err, results) => {
+                if (err) {
+                    return res.status(500).send(err);
+                }
+
+                // Update authors
+                editAuthors(res, authors, resourceId)
+                    .then(() => {
+                        // Log audit action
+                        const newValue = JSON.stringify({
+                            resource_id: resourceId,
+                            title: req.body.title,
+                            description: req.body.description,
+                            publishedDate: req.body.publishedDate,
+                            quantity: req.body.quantity,
+                            isCirculation: req.body.isCirculation,
+                            department: req.body.department,
+                            mediaType: req.body.mediaType,
+                            status: req.body.status
+                        });
+
+                        logAuditAction(
+                            username,  // Assuming userId is part of req.body
+                            'UPDATE',
+                            'resources',
+                            resourceId,
+                            oldValue,
+                            newValue
+                        );
+
+                        resolve('success');
+                    })
+                    .catch((err) => reject(err));
+            });
+        });
+    });
+};
+
+
+
 //edit thesis
 const editThesis = async (values,res)=>{
     const q = `UPDATE thesis SET adviser_id = ? WHERE
