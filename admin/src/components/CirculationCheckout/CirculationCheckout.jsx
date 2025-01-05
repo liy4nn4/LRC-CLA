@@ -10,7 +10,6 @@ const CirculationCheckout = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [uname, setUname] = useState(null);
   const [selectedItems, setSelectedItems] = useState(JSON.parse(localStorage.getItem('selectedItems')) || []);
   const id = localStorage.getItem('id');
   const clickedAction = localStorage.getItem('clickedAction'); // Get clicked action
@@ -34,10 +33,11 @@ const CirculationCheckout = () => {
     }
   };
 
+  const [uname, setUname] = useState(null);
   const getUsername = async()=>{
     try {
       // Request server to verify the JWT token
-      const response = await axios.get('http://localhost:3001/check-session', { withCredentials: true });
+      const response = await axios.get(`http://localhost:3001/check-session`, { withCredentials: true });
       console.log(response.data)
       // If session is valid, set the role
       if (response.data.loggedIn) {
@@ -57,6 +57,52 @@ const CirculationCheckout = () => {
     getUsername();
     console.log(patron)
   }, []);
+
+  const handleCheckin = async () => {
+    try {
+      const checkinPromises = selectedItems.map(async (item) => {
+        try {
+          // Get checkout record
+          const checkoutResponse = await axios.get(`http://localhost:3001/getCheckoutRecord`, {
+            params: { resource_id: item.resource_id, patron_id: id },
+          }); 
+          if (!checkoutResponse.data.checkout_id) {
+            throw new Error(`No checkout record found for resource_id: ${item.resource_id}`);
+          }
+  
+          const checkoutId = checkoutResponse.data.checkout_id;
+          const resourceid = item.resource_id;
+          console.log(resourceid)
+          // Post to checkin endpoint
+          const response = await axios.post(`http://localhost:3001/checkin`, {
+            checkout_id: checkoutId,
+            returned_date: date,
+            patron_id: id,
+            resource_id: resourceid,
+            username: uname,
+          });
+  
+          if (response.status !== 201) {
+            throw new Error(`Failed to check in item with checkout_id: ${checkoutId}`);
+          }
+  
+          return response.data;
+        } catch (error) {
+          console.error(`Error during check-in for item: ${item.resource_id}`, error.message);
+          throw error;
+        }
+      });
+  
+      await Promise.all(checkinPromises);
+      console.log('All items checked in successfully!');
+      setOpen(true);
+      setSelectedItems([]);
+    } catch (error) {
+      console.error('Error during check-in:', error.message);
+      alert('Failed to check in some items. Please try again.');
+    }
+  };
+
 
   const handleCheckout = async () => {
     try {
@@ -176,7 +222,7 @@ const CirculationCheckout = () => {
 
             {/* checkout button  */}
             <div className="checkout-btn-box">
-              <button className="btn" onClick={handleCheckout}>
+              <button className="btn" onClick={clickedAction === 'Check In' ? handleCheckin : handleCheckout}>
                 {clickedAction === 'Check In' ? 'Return item' : 'Check out item'}
               </button>
             </div>

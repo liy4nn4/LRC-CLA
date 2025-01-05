@@ -60,6 +60,11 @@ const App = () => {
               <CirculationCheckoutPage/>
             </ProtectedRoute>
           } />
+          <Route path='/circulation/patron/item/checkin' element={
+            <ProtectedRoute allowedRoles={['admin','staff']}>
+              <CirculationCheckoutPage/>
+            </ProtectedRoute>
+          } />
           <Route path='/patrons' element={
             <ProtectedRoute allowedRoles={['admin','staff']}>
               <PatronsPage/>

@@ -16,7 +16,7 @@ const CirculationSelectItem = () => {
 
   const actionSelected = localStorage.getItem('clickedAction') || 'Check Out'; // Default to 'Check Out'
   const actionLabel = actionSelected === 'Check In' ? 'Check In' : 'Check Out'; // Dynamic label based on action
-  const isDisabled = selectedItems.length === 0;
+  const isDisabled = selectedItems.length === 0 || selectedItems.length > 1;
   // Fetch suggestions from the database
   const fetchSuggestions = async (query) => {
     if (!query) {

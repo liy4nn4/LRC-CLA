@@ -176,3 +176,15 @@
     background-color: var(--tup-color-hover);
     color: var(--white);
 }
+
+.patron.disabled {
+    pointer-events: none; /* Disable interaction */
+    opacity: 0.6; /* Slightly fade the row */
+    background-color: #f0f0f0; /* Light grey background */
+    color: #888; /* Grey text */
+    cursor: not-allowed; /* Change cursor to indicate unclickable */
+}
+
+    .patron input[type="radio"]:disabled {
+    cursor: not-allowed; /* Indicate disabled radio button */
+}

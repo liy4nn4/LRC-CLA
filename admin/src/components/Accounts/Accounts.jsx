@@ -43,6 +43,7 @@ const Accounts = () => {
 
   useEffect(() => {
     userAccounts();
+    getUsername(); 
     
     // Listen for updates from the server (via socket)
     socket.on('userUpdated', () => {
@@ -60,6 +61,24 @@ const Accounts = () => {
       userAccounts(true)
     }
   },[keyword])
+
+  const [uname, setUname] = useState(null);
+  const getUsername = async()=>{
+    try {
+      // Request server to verify the JWT token
+      const response = await axios.get(`http://localhost:3001/check-session`, { withCredentials: true });
+      console.log(response.data)
+      // If session is valid, set the role
+      if (response.data.loggedIn) {
+        setUname(response.data.username);
+      } else {
+        setUname(null); // If not logged in, clear the role
+      }
+    } catch (error) {
+      console.error('Error verifying session:', error);
+      setUname(null); // Set null if there's an error
+    }
+  }
 
   // Fetch user accounts
   const userAccounts = async (resetPage = false) => {
@@ -84,6 +103,7 @@ const Accounts = () => {
           uname: selectedFilters.uname,
           role: selectedFilters.role,
           status: selectedFilters.status,
+          username: uname,
         }
       });
 
