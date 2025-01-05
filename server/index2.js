@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import express from "express";   
-import mysql from 'mysql2';
+import express from "express";
+import mysql from "mysql2";    
 import mysqlPromise from 'mysql2/promise';
 import cors from "cors";
 import axios from 'axios';
@@ -15,13 +15,10 @@ import cookieParser from 'cookie-parser'
 import cron from 'node-cron'
 import nodemailer from 'nodemailer'
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-import validateTupIdRouter from './routes/validateTupId.js'; // Adjust the path if neededimport cron from 'node-cron'
-import nodemailer from 'nodemailer'
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 dotenv.config();
 
-const dbPromise = mysqlPromise.createPool({ host: process.env.DB_HOST_LOCAL,
+const dbPromise = mysqlPromise.createConnection({ host: process.env.DB_HOST_LOCAL,
     user: process.env.DB_USER_LOCAL,
     password: process.env.DB_PASSWORD_LOCAL,
     database: process.env.DB_DATABASE_LOCAL, });
@@ -35,7 +32,6 @@ app.use(cors({
     credentials:true
 }));
 
- 
 
 // app.use((req,res,next)=>{
 //     console.log(store)
@@ -1905,7 +1901,7 @@ app.post('/checkout', async (req, res) => {
 
 app.get('/getCheckoutRecord', (req, res) => {
 const { resource_id, patron_id } = req.query;
-const query = 'SELECT checkout_id FROM checkout WHERE resource_id = ? AND patron_id = ? AND status = "borrowed"';
+const query = 'SELECT checkout_id FROM checkout WHERE resource_id = ? AND patron_id = ?';
 
 db.query(query, [resource_id, patron_id], (err, results) => {
     if (err) {
@@ -1930,44 +1926,55 @@ app.post('/checkin', async (req, res) => {
         return res.status(400).json({ error: 'checkout_id and returned_date are required.' });
     }
 
-    const db = await dbPromise; // Assuming `dbPromise` resolves to the database connection
-
     try {
-        // Start a transaction
-        await db.query('START TRANSACTION');
+        await new Promise((resolve, reject) => {
+            db.beginTransaction((err) => {
+                if (err) {
+                    console.error('Transaction Start Error:', err);
+                    return reject('Failed to start transaction.');
+                }
 
-        // Fetch patron details
-        const [patron] = await db.query(
-            'SELECT patron_fname, patron_lname FROM patron WHERE patron_id = ?',
-            [patron_id]
-        );
+                // Insert into the checkin table
+                const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
+                db.query(checkinQuery, [checkout_id, returned_date], (err, results) => {
+                    if (err) {
+                        console.error('Checkin Insert Error:', err);
+                        return db.rollback(() => reject('Failed to insert into checkin table.'));
+                    }
 
-        if (!patron || !patron.length) {
-            await db.query('ROLLBACK');
-            return res.status(404).json({ error: 'Patron not found' });
-        }
+                    // Update checkout status
+                    const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
+                    db.query(updateCheckoutStatusQuery, ['returned', checkout_id], (err, results) => {
+                        if (err) {
+                            console.error('Update Checkout Status Error:', err);
+                            return db.rollback(() => reject('Failed to update checkout status.'));
+                        }
 
-        const { patron_fname, patron_lname } = patron[0];
-        const patron_name = `${patron_fname} ${patron_lname}`; // Combine patron_fname and patron_lname
+                        // Increment resource quantity
+                        const incrementResourceQuery =
+                            'UPDATE resources SET resource_quantity = resource_quantity + 1 WHERE resource_id = ?';
+                        db.query(incrementResourceQuery, [resource_id], (err, results) => {
+                            if (err) {
+                                console.error('Increment Resource Quantity Error:', err);
+                                return db.rollback(() => reject('Failed to update resource quantity.'));
+                            }
 
-        // Insert into the checkin table
-        const checkinQuery = 'INSERT INTO checkin (checkout_id, checkin_date) VALUES (?, ?)';
-        const [checkinResult] = await db.query(checkinQuery, [checkout_id, returned_date]);
-
-        // Update checkout status
-        const updateCheckoutStatusQuery = 'UPDATE checkout SET status = ? WHERE checkout_id = ?';
-        await db.query(updateCheckoutStatusQuery, ['returned', checkout_id]);
-
-        // Increment resource quantity
-        const incrementResourceQuery =
-            'UPDATE resources SET resource_quantity = resource_quantity + 1 WHERE resource_id = ?';
-        await db.query(incrementResourceQuery, [resource_id]);
-
-        // Commit the transaction
-        await db.query('COMMIT');
+                            // Commit the transaction
+                            db.commit((err) => {
+                                if (err) {
+                                    console.error('Transaction Commit Error:', err);
+                                    return db.rollback(() => reject('Transaction commit failed.'));
+                                }
+                                resolve();
+                            });
+                        });
+                    });
+                });
+            });
+        });
 
         // After the transaction is committed, fetch the resource title
-        const [resource] = await db.query(
+        const [resource] = await (await dbPromise).query(
             'SELECT resource_title FROM resources WHERE resource_id = ?',
             [resource_id]
         );
@@ -1986,24 +1993,16 @@ app.post('/checkin', async (req, res) => {
             'checkin',
             resource_id,
             null,
-            JSON.stringify({ book_name: resource_title, status: 'returned', patron: patron_name })
+            JSON.stringify({ book_name: resource_title, status: 'returned' })
         );
 
-        res.status(201).json({
-            message: 'Item successfully checked in and removed from checkout.',
-            patron_name
-        });
+        res.status(201).json({ message: 'Item successfully checked in and removed from checkout.' });
     } catch (error) {
         console.error('Error:', error);
-        
-        // Rollback transaction on error
-        await db.query('ROLLBACK');
-
-        res.status(500).json({ error: 'Failed to process checkin' });
+        res.status(500).json({ error: error });
     }
 });
 
-  
 
 app.get('/getCirculation1', (req, res) => {
     const q = `SELECT 
@@ -3016,61 +3015,6 @@ app.get('/resources/view', (req, res) => {
 /*------------------USER ACCOUNT-------------*/
 app.post('/accounts/create',(req,res)=>{
     console.log(req.body)
-    const password = req.body.password;
-
-    //check if user exist 
-    const checkQ = `
-    SELECT * FROM staffaccount WHERE staff_uname = ? AND staff_fname = ? AND staff_lname = ?`
-
-    const checkValues = [
-        req.body.uname,
-        req.body.fname,
-        req.body.lname
-    ]
-
-    db.query(checkQ, checkValues, (err, checkResults)=>{
-        if (err) {
-            console.error(err);
-            return res.status(500).send({ error: 'Database query failed' });
-        }
-
-        if(checkResults.length>0){
-            return res.send({status: 409, message: 'This user already exist. Please create a new one.'})
-        }else{
-            const q = `
-            INSERT INTO staffaccount (staff_uname, staff_fname, staff_lname, staff_password, staff_status, role_id ) 
-            VALUES (?, ?, ?, ?, ?, ?)`
-            
-            bcrypt.hash(password,saltRounds,(err,hash)=>{
-                if(err){
-                    console.log(err)
-                }
-                const values = [
-                    req.body.uname,
-                    req.body.fname,
-                    req.body.lname,
-                    hash,
-                    'active',
-                    req.body.role
-                ]
-
-                db.query(q, values, (err,results)=>{
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send({ error: 'Database query failed' });
-                    }
-
-                    io.emit('userUpdated')
-                    res.send({status: 201, message:'User Created Successfully'});
-                
-                })
-
-            })
-        }
-    })
-})
-app.post('/accounts/create',(req,res)=>{
-    console.log(req.body)
     const username = req.body.username;
     const password = req.body.password;
 
@@ -3464,7 +3408,7 @@ app.put('/account/activate/:id1',(req,res)=>{
         staff_status = ?
     WHERE 
         staff_id = ?`
-        
+
     db.query(q, ['active', id],(err,results)=>{
         if (err) {
             console.error(err);
@@ -3869,7 +3813,7 @@ app.get('/visitor/stats', (req,res)=>{
 })
 
 /*--------------check overdue resources using cron-------- */
-const sendEmail = (email, subject, text) => {
+const sendEmail = (email, name, tupid, borrowDate, borrowDue, resourceTitle, resourceId) => {
     
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -3882,11 +3826,127 @@ let transporter = nodemailer.createTransport({
     }
   });
 
+
+  let borrowerData = {
+    borrower_name: name,
+    borrower_id: tupid,
+    borrowed_date: borrowDate,
+    borrowed_due: borrowDue,
+    item_title: resourceTitle,
+    item_id: resourceId
+  };
+
   let mailOptions = {
     from: process.env.USER_EMAIL,
     to: email,
-    subject: subject,
-    text: text
+    subject: 'Overdue Notice', // Email subject
+    html: `<!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+            }
+            p{
+                color: #0c0c0c;
+            }
+            .email-container {
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                background-color: #94152B;
+                color: white;
+                padding: 15px;
+                text-align: center;
+            }
+            .content {
+                padding: 20px;
+                color: #333;
+            }
+            .footer {
+                text-align: center;
+                font-size: 12px;
+                color: #999;
+                padding: 10px;
+                background: #f1f1f1;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            table th, table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            table th {
+                background-color: #94152B;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="email-container">
+            <div class="header">
+                <h1>Overdue Notice</h1>
+            </div>
+            <div class="content">
+                <p>Dear {{borrower_name}},</p>
+                <p>We hope this email finds you well. This is a reminder that the following items you borrowed from the Learning Resources Center are overdue:</p>
+                
+                <table>
+                    <tr>
+                        <th>Borrower's ID</th>
+                        <td>{{borrower_id}}</td>
+                    </tr>
+                    <tr>
+                        <th>Borrowed Date</th>
+                        <td>{{borrowed_date}}</td>
+                    </tr>
+                    <tr>
+                        <th>Due Date</th>
+                        <td>{{borrowed_due}}</td>
+                    </tr>
+                </table>
+                
+                <h3>Overdue Item:</h3>
+                <table>
+                    <tr>
+                        <th>Item Title</th>
+                        <th>Item ID</th>
+                    </tr>
+                    <tr>
+                        <td>{{item_title}}</td>
+                        <td>{{item_id}}</td>
+                    </tr>
+                </table>
+                <p>Please return the items as soon as possible to avoid additional fines. If you have any questions, feel free to contact us.</p>
+                
+                <p>Thank you,<br>Learning Resources Center</p>
+            </div>
+            <div class="footer">
+                This is an automated email. Please do not reply.
+            </div>
+        </div>
+    </body>
+    </html>`
+    .replace('{{borrower_name}}', borrowerData.borrower_name)
+    .replace('{{borrower_id}}', borrowerData.borrower_id)
+    .replace('{{borrowed_date}}', borrowerData.borrowed_date)
+    .replace('{{borrowed_due}}', borrowerData.borrowed_due)
+    .replace('{{item_title}}', borrowerData.item_title)
+    .replace('{{item_id}}', borrowerData.item_id)
   };
 
   transporter.sendMail(mailOptions, function(err, data) {
@@ -3901,10 +3961,20 @@ let transporter = nodemailer.createTransport({
 const checkOverdue = async () => {
     console.log('checking overdue')
     const q = `
-    SELECT c.checkout_id, p.patron_email
+    SELECT 
+        c.checkout_id, 
+        c.checkout_date,
+        c.checkout_due,
+        p.patron_email, 
+        p.tup_id, 
+        p.patron_fname, 
+        p.patron_lname,
+        r.resource_title,
+        r.resource_id
     FROM checkout c
     LEFT JOIN checkin ci ON c.checkout_id = ci.checkout_id
     LEFT JOIN patron p ON c.patron_id = p.patron_id
+    LEFT JOIN resources r ON r.resource_id = c.resource_id
     WHERE ci.checkout_id IS NULL AND c.checkout_due < current_date()`;
 
     db.query(q, (err, result) => {
@@ -3939,7 +4009,7 @@ const checkOverdue = async () => {
 
                             console.log('Overdue days incremented for checkout_id:', item.checkout_id);
                             // Send email to patron
-                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
+                            sendEmail(item.patron_email,`${item.patron_fname} ${item.patron_lname}`, item.tup_id, item.checkout_date, item.checkout_due,item.resource_title, item.resource_id);
                         });
                     } else {
                         // If checkout_id doesn't exist in the overdue table, insert it
@@ -3956,7 +4026,7 @@ const checkOverdue = async () => {
 
                             console.log('New overdue entry created for checkout_id:', item.checkout_id);
                             // Send email to patron
-                            sendEmail(item.patron_email, 'Overdue Notice', `Your checkout (ID: ${item.checkout_id}) is overdue. Please return it as soon as possible.`);
+                            sendEmail(item.patron_email,`${item.patron_fname} ${item.patron_lname}`, item.tup_id, item.checkout_date, item.checkout_due,item.resource_title, item.resource_id);
                         });
                     }
                 });
@@ -3970,237 +4040,6 @@ const checkOverdue = async () => {
 cron.schedule('0 0 * * *', () => {
     checkOverdue()
 });
-
-/*-------- ADD PATRON -------- */
-
-
-
-// Middleware to parse JSON body
-app.use(express.json()); // This is the line you need to add
-
-// MySQL connection setup
-
-
-// POST route for adding a patron
-app.post('/add-patron', (req, res) => {
-  const { patron_fname, patron_lname, patron_sex, patron_mobile, patron_email, category, college_id, course_id } = req.body;
-  
-  // SQL query to insert new patron into the database
-  const query = 'INSERT INTO patron (patron_fname, patron_lname, patron_sex, patron_mobile, patron_email, category, college_id, course_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-
-  // Execute the query with the data from the request body
-  db.query(query, [patron_fname, patron_lname, patron_sex, patron_mobile, patron_email, category, college_id, course_id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error adding patron', error: err });
-    }
-    res.status(200).json({ message: 'Patron added successfully', result });
-  });
-});
-
-
-/*-------- DELETE PATRON -------- */
-app.delete('/delete-patron/:id', (req, res) => {
-    const patronId = req.params.id;
-  
-    // Ensure patronId is not empty or invalid
-    if (!patronId) {
-      return res.status(400).json({ error: 'Patron ID is required' });
-    }
-  
-    // SQL query to delete the patron based on the patron_id
-    const query = 'DELETE FROM patron WHERE patron_id = ?';
-  
-    db.query(query, [patronId], (err, result) => {
-      if (err) {
-        console.error('Error deleting patron:', err);
-        return res.status(500).json({ error: 'Failed to delete patron' });
-      }
-  
-      // If no rows are affected, that means the patron doesn't exist
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'Patron not found' });
-      }
-  
-      // Success response
-      res.status(200).json({ message: 'Patron deleted successfully' });
-    });
-  });
-  
-
-
-
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-});
-
-
-/*-------- UPDATE PATRON -------- */
-app.get('/update-patron/:id', async (req, res) => {
-    console.log(`Received PUT request for patron ID: ${req.params.id}`);
-    console.log('Request body:', req.body);
-    const patronId = req.params.id;
-    const query = `
-        SELECT 
-            p.patron_id, 
-            p.tup_id, 
-            p.patron_fname, 
-            p.patron_lname, 
-            p.patron_sex, 
-            p.patron_mobile, 
-            p.patron_email, 
-            p.category, 
-            p.college_id, 
-            p.course_id, 
-            col.college_name, 
-            cr.course_name
-        FROM patron p
-        LEFT JOIN college col ON p.college_id = col.college_id
-        LEFT JOIN course cr ON p.course_id = cr.course_id
-        WHERE p.patron_id = ?;
-    `;
-
-    try {
-        const [results] = await (await dbPromise).execute(query, [patronId]);
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'Patron not found' });
-        }
-
-        const patronData = results[0];
-
-        // Fetch colleges and courses for dropdown options
-        const [colleges] = await (await dbPromise).execute('SELECT * FROM college');
-        const [courses] = await (await dbPromise).execute('SELECT * FROM course');
-
-        res.json({ patronData, colleges, courses });
-    } catch (err) {
-        console.error('Error fetching patron data:', err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-app.put('/update-patron/:id', async (req, res) => {
-    const patronId = req.params.id;
-    const {
-        patron_fname,
-        patron_lname,
-        patron_sex,
-        patron_mobile,
-        patron_email,
-        category,
-        college,  // college_id
-        program,  // course_id
-        tup_id,
-    } = req.body;
-
-    const query = `
-        UPDATE patron
-        SET 
-            patron_fname = ?, 
-            patron_lname = ?, 
-            patron_sex = ?, 
-            patron_mobile = ?, 
-            patron_email = ?, 
-            category = ?, 
-            college_id = ?, 
-            course_id = ?, 
-            tup_id = ?
-        WHERE patron_id = ?;
-    `;
-
-    try {
-        const [result] = await (await dbPromise).execute(query, [
-            patron_fname,
-            patron_lname,
-            patron_sex,
-            patron_mobile,
-            patron_email,
-            category,
-            college,
-            program,
-            tup_id,
-            patronId,
-        ]);
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Patron not found' });
-        }
-
-        res.json({ message: 'Patron updated successfully' });
-    } catch (err) {
-        console.error('Error updating patron:', err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-app.get('/category-options', async (req, res) => {
-    const query = `
-        SELECT COLUMN_TYPE
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_NAME = 'patron' AND COLUMN_NAME = 'category';
-    `;
-
-    try {
-        const [results] = await (await dbPromise).execute(query);
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'Category options not found' });
-        }
-
-        const enumString = results[0].COLUMN_TYPE; // e.g., "enum('Student','Faculty','','')"
-        const options = enumString
-            .match(/'([^']+)'/g) // Extract values within single quotes
-            .map(option => option.replace(/'/g, '')); // Remove quotes
-
-        res.json(options); // Send the array of options to the frontend
-    } catch (err) {
-        console.error('Error fetching category options:', err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-// 
-app.post('/validate-tup-id', async (req, res) => {
-    const { tup_id } = req.body;
-
-    if (!tup_id) {
-        return res.status(400).json({ error: 'TUP ID is required.' });
-    }
-
-    try {
-        const query = 'SELECT 1 FROM patron WHERE tup_id = ? LIMIT 1';
-        const [rows] = await dbPromise.query(query, [tup_id]);
-
-        if (rows.length > 0) {
-            return res.status(200).json({ exists: true, message: 'TUP ID already exists.' });
-        }
-
-        res.status(200).json({ exists: false, message: 'TUP ID is available.' });
-    } catch (error) {
-        console.error('Error checking TUP ID:', error);
-        res.status(500).json({ error: 'Server error while checking TUP ID.' });
-    }
-});
-
-
-
-export { dbPromise, db };
-
-(async () => {
-    try {
-        const [rows] = await dbPromise.execute('SELECT 1');
-        console.log('Database connection test successful:', rows);
-    } catch (error) {
-        console.error('Database connection test failed:', error);
-    }
-})();
-
-app.use((req, res, next) => {
-    console.log(`Received request: ${req.method} ${req.url}`);
-    next();
-});
-
-app.use('/', validateTupIdRouter); // Connect the router
-
 
 server.listen(3001,()=>{
     console.log('this is the backend')

@@ -59,6 +59,8 @@ const CirculationCheckout = () => {
     getPatron();
     getUsername();
     console.log(patron)
+    console.log('selected item: ', selectedItems)
+    console.log(clickedAction)
   }, []);
 
   const handleCheckin = async () => {

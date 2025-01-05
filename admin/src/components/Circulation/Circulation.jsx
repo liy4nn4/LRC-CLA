@@ -14,6 +14,8 @@ const Circulation = () => {
   useEffect(() => {
     getBorrowers();
     localStorage.removeItem('clickedAction');
+    localStorage.removeItem('selectedItems');
+
   }, []);
 
   const getBorrowers = async () => {

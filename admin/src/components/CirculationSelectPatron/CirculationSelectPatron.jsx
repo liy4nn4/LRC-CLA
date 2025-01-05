@@ -5,14 +5,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
-const CirculationSelectPatron = ({ clickedAction }) => {
+const CirculationSelectPatron = () => {
   const navigate = useNavigate();
   const [patrons, setPatrons] = useState([]);
   const [searchQuery, setSearchQuery] = useState(''); // State for search query
   const [filteredPatrons, setFilteredPatrons] = useState([]);
   const [currentPage, setCurrentPage] = useState(1); // Current page number
   const [itemsPerPage] = useState(5); // Number of items per page
-
+  const clickedAction = localStorage.getItem('clickedAction');
   const getPatrons = async () => {
     try {
       // Determine the URL based on clickedAction
@@ -34,6 +34,7 @@ const CirculationSelectPatron = ({ clickedAction }) => {
 
   useEffect(() => {
     getPatrons();
+    console.log("clicked Action: ", clickedAction)
     localStorage.removeItem('selectedItems');
   }, [clickedAction]);
 
