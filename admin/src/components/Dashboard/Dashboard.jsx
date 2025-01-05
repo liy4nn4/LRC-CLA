@@ -2,16 +2,16 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import './Dashboard.css'
 import { Link,  useNavigate  } from 'react-router-dom'
-import dropdown_black from '../../assets/Management System/dashboard/dropdown-black.svg'
-import add from '../../assets/Management System/dashboard/add.svg'
-import more from'../../assets/Management System/dashboard/more.svg'
-import left from'../../assets/Management System/dashboard/arrow-left-black.svg'
-import right from'../../assets/Management System/dashboard/arrow-right-black.svg'
+//import dropdown_black from '../../assets/Management System/dashboard/dropdown-black.svg'
+//import add from '../../assets/Management System/dashboard/add.svg'
+//import more from'../../assets/Management System/dashboard/more.svg'
+//import left from'../../assets/Management System/dashboard/arrow-left-black.svg'
+//import right from'../../assets/Management System/dashboard/arrow-right-black.svg'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers ,faBook, faPlus} from '@fortawesome/free-solid-svg-icons';
-import { faker } from '@faker-js/faker';
+//import { faker } from '@faker-js/faker';
 import MultiLineGraph from '../MultiLineGraph'
-import { Doughnut } from 'react-chartjs-2'
+//import { Doughnut } from 'react-chartjs-2'
 import BarChart from '../BarChart'
 import io from 'socket.io-client';
 
@@ -27,11 +27,11 @@ const Dashboard = () => {
   const [covers, setCovers] = useState([]);
   const date = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });  // e.g., "2024-12-16"
   const [overdueBooks, setOverdueBooks] = useState([]);
-  const [dateTime,setDateTime] = useState(new Date());
-  const [dropdown, setDropdown]= useState(false);
-  const [checkoutData, setCheckoutData] = useState([]);
+  //const [dateTime,setDateTime] = useState(new Date());
+  //const [dropdown, setDropdown]= useState(false);
+  //const [checkoutData, setCheckoutData] = useState([]);
   const [uname, setUname] = useState(null)
-  let navigate = useNavigate();
+  //let navigate = useNavigate();
   const weeklyLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const [booksData, setBooksData] = useState([])
   // const [jnData, setJnData] = useState([])
@@ -135,8 +135,8 @@ const Dashboard = () => {
     };
 },[]);
 
-  const toggleDropdown = ()=>{
-    setDropdown(prev=>!prev)
+  //const toggleDropdown = ()=>{
+  //  setDropdown(prev=>!prev)
   }
 
   //get book trends
