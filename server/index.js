@@ -1585,7 +1585,8 @@ app.get('/api/books/search', async (req, res) => {
         ON 
             b.resource_id = r.resource_id
         WHERE 
-            b.book_isbn LIKE ? OR r.resource_title LIKE ?
+            (b.book_isbn LIKE ? OR r.resource_title LIKE ?)
+            AND r.resource_quantity > 0
         LIMIT 10;
         `,
         [`%${query}%`, `%${query}%`]
