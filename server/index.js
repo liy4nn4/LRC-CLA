@@ -96,7 +96,7 @@ io.on('connection', (socket) => {
     // Listen for an event from the client
     socket.on('newResource', () => {
         console.log('New data inserted');
-        io.emit('updateCatalog');
+        io.emit('updatedCatalog');
     });
 });
 
@@ -673,6 +673,7 @@ const editBook = async (cover, isbn, resourceId, pubId, topic,res,filePath)=>{
             }); 
         }
         
+        io.emit('updatedCatalog');
         console.log('Book edited successfully')
         // Successfully inserted 
         return res.send({status: 201, message:'Book edited successfully.'});
@@ -725,7 +726,8 @@ const editJournalNewsletter = async(filePath,res,volume,issue,cover,resourceId)=
                     if (unlinkErr) console.error('Error deleting file:', unlinkErr);
                 }); 
             }
-
+            
+            io.emit('updatedCatalog');
             return res.send({status:201,message:'Journal/Newsletter edited successfully.'});
         });
 }
@@ -871,6 +873,7 @@ const editThesis = async (values,res)=>{
             return res.status(500).send(err); 
         }
 
+        io.emit('updatedCatalog');
         res.send({status:201, message:'Thesis edited successfully.'})
     })
 }
@@ -2932,6 +2935,7 @@ app.get('/resources/view', (req, res) => {
         resources.resource_quantity,
         resources.resource_published_date,
         resources.resource_id,
+        resources.resource_is_circulation,
         resources.type_id,
         department.dept_name,
         department.dept_shelf_no,

@@ -183,7 +183,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-  }
+}
+
+.res-modal-container .isCirculation{
+    margin-top: 30px;
+    color: var(--tup-color);
+    font-style: italic;
+}
+
 
 @media screen and (max-width:1024px) {
     .res-modal-container{

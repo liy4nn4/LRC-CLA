@@ -13,6 +13,9 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 // import required modules
 import { Pagination } from 'swiper/modules';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3001'); // Connect to the Socket.IO server
 
 const ResourceModal = () => {
   console.log('resource modal rendered');
@@ -34,6 +37,19 @@ const ResourceModal = () => {
   useEffect(() => {
     viewResource();
   }, [id]);
+
+  useEffect(()=>{
+    viewResource();
+    
+    socket.on('updatedCatalog', () => {
+      console.log('catalog updated, refreshing catalog...');
+      viewResource();
+    });
+
+    return () => {
+      socket.off('updatedCatalog');
+    };
+  },[])
 
   useEffect(() => {
     if (resource) {
@@ -141,7 +157,7 @@ const ResourceModal = () => {
                 {resource ? resource.topic_row_no : ''}
               </p>
             </div>:''}
-            
+            <p className='isCirculation'>{resource?resource.resource_is_circulation==0?'This resource cannot be borrowed and is available for use within the premises only.':'This resource can be borrowed and is not limited to use within the premises.':''}</p>
           </div>
 
           {/* Resource images */}

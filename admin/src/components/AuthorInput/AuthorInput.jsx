@@ -18,7 +18,7 @@ const AuthorInput = ({disabled,authors,handleChange,bookData, addAuthor,formVali
                         {disabled?'':<button className='delete-author' onClick={()=>deleteAuthor(key)}>x</button>}</span>
                     }):''}
                     <button>
-                        <i class="fa-solid fa-xmark"></i>
+                        {/* <i class="fa-solid fa-xmark"></i> */}
                     </button>
                 </div>
         </div>
